@@ -13,14 +13,16 @@
 
 #include "raylib.h"
 
+#define PHYSAC_IMPLEMENTATION
+#include "physac.h"
+
 #if defined(PLATFORM_WEB)
-    #define CUSTOM_MODAL_DIALOGS            // Force custom modal dialogs usage
-    #include <emscripten/emscripten.h>      // Emscripten library - LLVM to JavaScript compiler
+    //#define CUSTOM_MODAL_DIALOGS            // Force custom modal dialogs usage
+    #include "emscripten.h"      // Emscripten library - LLVM to JavaScript compiler
 #endif
 
 #include <stdio.h>                          // Required for: printf()
 #include <stdlib.h>                         // Required for: 
-#include <string.h>                         // Required for: 
 
 //----------------------------------------------------------------------------------
 // Defines and Macros
@@ -37,14 +39,11 @@
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
-typedef enum { 
-    SCREEN_LOGO = 0, 
+typedef enum {
     SCREEN_TITLE, 
     SCREEN_GAMEPLAY, 
     SCREEN_ENDING
 } GameScreen;
-
-// TODO: Define your custom data types here
 
 //----------------------------------------------------------------------------------
 // Global Variables Definition
@@ -67,6 +66,9 @@ static void UpdateDrawFrame(void);      // Update and Draw one frame
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
+PhysicsBody _t;
+PhysicsBody circle;
+
 int main(void)
 {
 #if !defined(_DEBUG)
@@ -76,9 +78,17 @@ int main(void)
     // Initialization
     //--------------------------------------------------------------------------------------
     InitWindow(screenWidth, screenHeight, "raylib 9yr gamejam");
-    
-    // TODO: Load resources / Initialize variables at this point
-    
+    InitPhysics();
+
+        // Create _t rectangle physics body
+    _t = CreatePhysicsBodyRectangle((Vector2){ screenWidth/2.0f, (float)screenHeight }, 500, 100, 10);
+    _t->enabled = false;         // Disable body state to convert it to static (no dynamics, but collisions)
+
+    // Create obstacle circle physics body
+    circle = CreatePhysicsBodyCircle((Vector2){ screenWidth/2.0f, screenHeight/2.0f }, 45, 10);
+    circle->enabled = false;        // Disable body state to convert it to static (no dynamics, but collisions)
+
+
     // Render texture to draw full screen, enables screen scaling
     // NOTE: If screen is scaled, mouse input should be scaled proportionally
     target = LoadRenderTexture(screenWidth, screenHeight);
@@ -133,8 +143,21 @@ void UpdateDrawFrame(void)
         prevScreenScale = screenScale;
     }
 
-    // TODO: Update variables / Implement example logic at this point
+    //Physics
+    UpdatePhysics();
+
+    // 
     //----------------------------------------------------------------------------------
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) CreatePhysicsBodyPolygon(GetMousePosition(), (float)GetRandomValue(20, 80), GetRandomValue(3, 8), 10);
+    else if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) CreatePhysicsBodyCircle(GetMousePosition(), (float)GetRandomValue(10, 45), 10);
+
+    // Destroy falling physics bodies
+        int bodiesCount = GetPhysicsBodiesCount();
+        for (int i = bodiesCount - 1; i >= 0; i--)
+        {
+            PhysicsBody body = GetPhysicsBody(i);
+            if (body != NULL && (body->position.y > screenHeight*2)) DestroyPhysicsBody(body);
+        }
 
     // Draw
     //----------------------------------------------------------------------------------
@@ -155,6 +178,36 @@ void UpdateDrawFrame(void)
 
         // Draw equivalent mouse position on the target render-texture
         DrawCircleLines(GetMouseX(), GetMouseY(), 10, MAROON);
+
+    // Draw created physics bodies
+            bodiesCount = GetPhysicsBodiesCount();
+            for (int i = 0; i < bodiesCount; i++)
+            {
+                PhysicsBody body = GetPhysicsBody(i);
+
+                if (body != NULL)
+                {
+                    int vertexCount = GetPhysicsShapeVerticesCount(i);
+                    for (int j = 0; j < vertexCount; j++)
+                    {
+                        // Get physics bodies shape vertices to draw lines
+                        // Note: GetPhysicsShapeVertex() already calculates rotation transformations
+                        Vector2 vertexA = GetPhysicsShapeVertex(body, j);
+
+                        int jj = (((j + 1) < vertexCount) ? (j + 1) : 0);   // Get next vertex or first to close the shape
+                        Vector2 vertexB = GetPhysicsShapeVertex(body, jj);
+
+                        DrawLineV(vertexA, vertexB, GREEN);     // Draw a line between two vertex positions
+                    }
+                }
+            }
+
+            DrawText("Left mouse button to create a polygon", 10, 10, 10, WHITE);
+            DrawText("Right mouse button to create a circle", 10, 25, 10, WHITE);
+            DrawText("Press 'R' to reset example", 10, 40, 10, WHITE);
+
+            //DrawText("Physac", logoX, logoY, 30, WHITE);
+            //DrawText("Powered by", logoX + 50, logoY - 7, 10, WHITE);
 
         // TODO: Draw everything that requires to be drawn at this point:
 

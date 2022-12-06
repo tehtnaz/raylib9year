@@ -26,7 +26,7 @@
 # Define required environment variables
 #------------------------------------------------------------------------------------------------
 # Define target platform: PLATFORM_DESKTOP, PLATFORM_WEB
-PLATFORM              ?= PLATFORM_WEB
+PLATFORM              ?= PLATFORM_DESKTOP
 
 # Define project variables
 PROJECT_NAME          ?= raylib_game
@@ -53,7 +53,7 @@ BUILD_WEB_ASYNCIFY    ?= FALSE
 BUILD_WEB_SHELL       ?= minshell.html
 BUILD_WEB_HEAP_SIZE   ?= 134217728
 BUILD_WEB_RESOURCES   ?= TRUE
-BUILD_WEB_RESOURCES_PATH  ?= resources
+BUILD_WEB_RESOURCES_PATH  ?= ./../res
 
 DEFAULT_INCLUDE_PATH  ?= ./../include
 
@@ -81,13 +81,16 @@ endif
 
 ifeq ($(PLATFORM),PLATFORM_WEB)
     # Emscripten required variables
-    EMSDK_PATH         ?= C:/emsdk
+    EMSDK_PATH         ?= ~/emsdk
     EMSCRIPTEN_PATH    ?= $(EMSDK_PATH)/upstream/emscripten
+    EMSCRIPTEN_INCLUDE_PATH = $(EMSCRIPTEN_PATH)/cache/sysroot/include
     CLANG_PATH          = $(EMSDK_PATH)/upstream/bin
     PYTHON_PATH         = $(EMSDK_PATH)/python/3.9.2-1_64bit
     NODE_PATH           = $(EMSDK_PATH)/node/14.15.5_64bit/bin
     export PATH         = $(EMSDK_PATH);$(EMSCRIPTEN_PATH);$(CLANG_PATH);$(NODE_PATH);$(PYTHON_PATH):$$(PATH)
 endif
+
+$(info $(EMSCRIPTEN_PATH))
 
 # Define default C compiler: CC
 #------------------------------------------------------------------------------------------------
@@ -144,6 +147,10 @@ endif
 # NOTE: Some external/extras libraries could be required (stb, physac, easings...)
 #------------------------------------------------------------------------------------------------
 INCLUDE_PATHS := -I. -I $(RAYLIB_INCLUDE_PATH) -I $(DEFAULT_INCLUDE_PATH)/physac
+
+ifeq ($(PLATFORM),PLATFORM_WEB)
+    INCLUDE_PATHS += -I $(EMSCRIPTEN_INCLUDE_PATH)
+endif
 
 $(info $(INCLUDE_PATHS))
 
@@ -231,7 +238,8 @@ endif
 
 ifeq ($(PLATFORM),PLATFORM_WEB)
     # Libraries for web (HTML5) compiling
-    LDLIBS = $(RAYLIB_LIB_PATH)/libraylib.a
+    # LDLIBS = $(RAYLIB_LIB_PATH)/libraylib.a
+    LDLIBS = -lraylib
 endif
 
 # Define source code object files required
@@ -245,12 +253,13 @@ PROJECT_SOURCE_FILES ?= \
 
 # Define processes to execute
 #------------------------------------------------------------------------------------------------
-MAKEFILE_PARAMS = $(PROJECT_NAME)
+
+# $(info $(CC) -o $(PROJECT_BUILD_PATH)$(PROJECT_NAME)-$(PROJECT_VERSION)$(EXT) $(PROJECT_SOURCE_FILES) $(CFLAGS) $(INCLUDE_PATHS) $(LDFLAGS) $(LDLIBS) -D$(PLATFORM))
 
 # Default target entry
 # NOTE: We call this Makefile target or Makefile.Android target
 all:
-	$(MAKE) $(MAKEFILE_PARAMS)
+	$(MAKE) $(PROJECT_NAME)
 
 # Project target defined by PROJECT_NAME
 $(PROJECT_NAME): $(OBJS)
