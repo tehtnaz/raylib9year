@@ -1,0 +1,5 @@
+/ pos; width; height; isStatic
+/ pos; radius; isStatic
+
+RectPhysObj     (Vector2( 10 10 )   10. 10. true )
+CirclePhysObj   (Vector2( 50 50 )   20.     STATIC )

@@ -42,7 +42,7 @@ RAYLIB_INCLUDE_PATH   ?= ./../include/raylib-4.2
 RAYLIB_LIBTYPE        ?= STATIC
 
 # Build mode for project: DEBUG or RELEASE
-BUILD_MODE            ?= RELEASE
+BUILD_MODE            ?= DEBUG
 
 # Use Wayland display server protocol on Linux desktop (by default it uses X11 windowing system)
 # NOTE: This variable is only used for PLATFORM_OS: LINUX
@@ -146,7 +146,7 @@ endif
 # Define include paths for required headers: INCLUDE_PATHS
 # NOTE: Some external/extras libraries could be required (stb, physac, easings...)
 #------------------------------------------------------------------------------------------------
-INCLUDE_PATHS := -I. -I $(RAYLIB_INCLUDE_PATH) -I $(DEFAULT_INCLUDE_PATH)/physac
+INCLUDE_PATHS := -I. -I $(RAYLIB_INCLUDE_PATH) -I $(DEFAULT_INCLUDE_PATH)/physac -I ./dataHandling
 
 ifeq ($(PLATFORM),PLATFORM_WEB)
     INCLUDE_PATHS += -I $(EMSCRIPTEN_INCLUDE_PATH)
@@ -245,7 +245,8 @@ endif
 # Define source code object files required
 #------------------------------------------------------------------------------------------------
 PROJECT_SOURCE_FILES ?= \
-    raylib_game.c
+    raylib_game.c \
+    dataHandling/dataHandling.c
 
 # Define all object files from source files
 # OBJS = $(patsubst %.c, %.o, $(PROJECT_SOURCE_FILES))

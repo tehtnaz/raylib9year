@@ -113,16 +113,20 @@ void readKeyword(TokenInfo* tokenInfo){
         printf("[DEBUG] - readKeyword - %s\n", tokenInfo->text); 
     #endif
     int tempVal = 0;
-    if(TextIsEqual(tokenInfo->text, "true")){
+    if(TextIsEqual(tokenInfo->text, "true") || TextIsEqual(tokenInfo->text, "STATIC")){
         tokenInfo->type = TRUE;
-    }else if(TextIsEqual(tokenInfo->text, "false")){
+    }else if(TextIsEqual(tokenInfo->text, "false") || TextIsEqual(tokenInfo->text, "DYNAMIC")){
         tokenInfo->type = FALSE;
     }else if(TextIsEqual(tokenInfo->text, "Vector2")){
         tokenInfo->type = VECTOR2;
     }else if(TextIsEqual(tokenInfo->text, "Rectangle")){
         tokenInfo->type = RECTANGLE;
+    }else if(TextIsEqual(tokenInfo->text, "CirclePhysObj")){
+        tokenInfo->type = CIRCLE_PHYSOBJ;
+    }else if(TextIsEqual(tokenInfo->text, "RectPhysObj")){
+        tokenInfo->type = RECTANGLE_PHYSOBJ;
     }else{
-        printf("WARNING: readFileSF[scan/readKeyword] - [line %d] Item doesn't match any keywords\n", line);
+        printf("WARNING: readFileSF[scan/readKeyword] - [line %d] Item '%s' doesn't match any keywords \n", line, tokenInfo->text);
     }
     free(tokenInfo->text);
     tokenInfo->text = NULL;
@@ -516,66 +520,68 @@ Rectangle parseRectangle(StructGroup* group){
 
 //structs
 
-// BoxCollider2D parseBoxCollider2D(StructGroup* group){
-//     BoxCollider2D box = {0};
-//     if(checkArgNumber(group, 5, "BoxCollider2D")) return box;
+TempPhysObj parsePhysObj(StructGroup* group, bool isCircle){
+    TempPhysObj obj = {0};
+    if(isCircle && checkArgNumber(group, 3, "CirclePhysObj")) return obj;
+    if(!isCircle && checkArgNumber(group, 4, "RectanglePhysObj")) return obj;
+
+    StructGroup* temp = group->child;
     
-//     StructGroup* temp = group->child;
-
-//     if(temp->token.type == RECTANGLE){
-//         box.rect = parseRectangle(temp);
-//     }else{
-//         printf("WARNING: parseStructGroupInfo[parseBoxCollider2D] - [line %d] Invalid argument type for arg 1\n", group->token.line);
-//     }
-//     temp = temp->next;
-
-//     if(temp->token.type == ITEMTYPE){
-//         box.collider.itemType = temp->token.integer;
-//     }else{
-//         printf("WARNING: parseStructGroupInfo[parseBoxCollider2D] - [line %d] Invalid argument type for arg 2\n", group->token.line);
-//     }
-//     temp = temp->next;
-
-//     box.collider.enabled = (temp->token.type == TRUE);
-//     temp = temp->next;
-    
-//     if(temp->token.type == INTEGER){
-//         box.collider.triggerGroupID = temp->token.integer;
-//     }else{
-//         printf("WARNING: parseStructGroupInfo[parseBoxCollider2D] - [line %d] Invalid argument type for arg 4\n", group->token.line);
-//     }
-//     temp = temp->next;
-
-//     if(temp->token.type == INTEGER){
-//         box.collider.tagGroupID = temp->token.integer;
-//     }else{
-//         printf("WARNING: parseStructGroupInfo[parseBoxCollider2D] - [line %d] Invalid argument type for arg 5\n", group->token.line);
-//     }
-
-//     return box;
-// }
+    if(temp->token.type == VECTOR2){
+        obj.pos = parseVector2(temp);
+    }else{
+        printf("WARNING: parseStructGroupInfo[parsePhysObj] - [line %d] Invalid argument type for arg 1\n", group->token.line);
+    }
+    temp = temp->next;
+    if(isCircle){
+        if(temp->token.type == FLOAT){
+            obj.radius = temp->token.decimal;
+        }else{
+            printf("WARNING: parseStructGroupInfo[parseCirclePhysObj] - [line %d] Invalid argument type for arg 2\n", group->token.line);
+        }
+    }else{
+        if(temp->token.type == FLOAT){
+            obj.width = temp->token.decimal;
+        }else{
+            printf("WARNING: parseStructGroupInfo[parseRectanglePhysObj] - [line %d] Invalid argument type for arg 2\n", group->token.line);
+        }
+        temp = temp->next;
+        if(temp->token.type == FLOAT){
+            obj.height = temp->token.decimal;
+        }else{
+            printf("WARNING: parseStructGroupInfo[parseRectanglePhysObj] - [line %d] Invalid argument type for arg 3\n", group->token.line);
+        }
+    }
+    temp = temp->next;
+    obj.isStatic = temp->token.type == TRUE;
+    return obj;
+}
 
 int parseStructGroupInfo(StructGroup* groupRoot){
     printf("INFO: Finalizing read with parseStructGroupInfo...\n");
 
     // BoxCollider2D leverCache[64];
 
-    int levelColID = 0;
-
 
     StructGroup* structGroup = groupRoot;
     while(structGroup != NULL){
         //printf("reading...\n");
+        TempPhysObj obj;
+        PhysicsBody body;
         switch (structGroup->token.type)
         {
-            // case BOXCOLLIDER2D:
-            //     if(levelColID >= 64){
-            //         printf("WARNING: parseStructGroupInfo - [line %d] Exceeded limit of Level Colliders. Skipping...\n", structGroup->token.line);
-            //     }else{
-            //         colliderArray[levelColID] = parseBoxCollider2D(structGroup);
-            //         levelColID++;
-            //     }
-            //     break;
+            case CIRCLE_PHYSOBJ:
+                obj = parsePhysObj(structGroup, true);
+                body = CreatePhysicsBodyCircle(obj.pos, obj.radius, 1);
+                body->freezeOrient = true;
+                body->enabled = !obj.isStatic;
+                break;
+            case RECTANGLE_PHYSOBJ:
+                obj = parsePhysObj(structGroup, false);
+                body = CreatePhysicsBodyRectangle(obj.pos, obj.width, obj.height, 1);
+                body->freezeOrient = true;
+                body->enabled = !obj.isStatic;
+                break;
             default:
                 printf("WARNING: parseStructGroupInfo - [line %d] Received non-struct as parent group. [TOKEN_TYPE: %d] Skipping...\n", structGroup->token.line, structGroup->token.type);
                 break;

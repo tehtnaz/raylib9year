@@ -4,6 +4,7 @@
 #include <math.h>
 //#include "levelStructs.h"
 #include "raylib.h"
+#include "physac.h"
 
 #pragma once
 
@@ -35,7 +36,8 @@ typedef enum TOKEN_TYPE{
         RECTANGLE,
 
         //root structs
-        COLLIDER2D
+        CIRCLE_PHYSOBJ,
+        RECTANGLE_PHYSOBJ
 
 }TOKEN_TYPE;
 
@@ -58,6 +60,16 @@ typedef struct StructGroup{
     struct StructGroup* previous;
 }StructGroup;
 
+typedef struct TempPhysObj{
+    Vector2 pos;
+    float radius;   //for circles
+    float width;    // for recs
+    float height;   // for recs
+    bool isStatic;
+} TempPhysObj;
+
 StructGroup* readFileSF(const char* path);
+
+#define DEBUG_DATA_HANDLING
 
 int parseStructGroupInfo(StructGroup* groupRoot);
