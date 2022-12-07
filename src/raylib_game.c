@@ -21,6 +21,8 @@
 #include <stdio.h>                          // Required for: printf()
 #include <stdlib.h>                         // Required for: 
 
+#include "display_text.h"
+
 
 #include "dataHandling/dataHandling.h"
 
@@ -104,6 +106,7 @@ int main(void)
 
     parseStructGroupInfo(readFileSF("./../res/first.sf"));
 
+    NewDisplayText("My name is Walter Hartwell White. I live at 308 Negra Arroyo Lane, Albuquerque, New Mexico, 87104. This is my confession. If you're watching this tape, I'm probably dead, murdered by my brother-in-law Hank Schrader. Hank has been building a Virtual Youtuber empire for over a year now and using me as his recruiter. Shortly after my 50th birthday, Hank came to me with a rather, shocking proposition. He asked that I use my Live2D knowledge to recruit talents, which he would then hire using his connections in the Japanese utaite world. Connections that he made through his career with Niconico. I was... astounded, I... I always thought that Hank was a very moral man", (Vector2){5,5},246);
 
 
 #if defined(PLATFORM_WEB)
@@ -122,6 +125,7 @@ int main(void)
     // De-Initialization
     //--------------------------------------------------------------------------------------
     UnloadRenderTexture(target);
+    ClearDisplayText();
     CloseWindow();        // Close window and OpenGL context
 
 
@@ -243,6 +247,8 @@ void UpdateDrawFrame(void)
             // Draw equivalent mouse position on the target render-texture
             DrawCircleLines(GetMouseX(), GetMouseY(), 10, MAROON);
         #endif
+
+        UpdateAndDrawTypingText(BLACK);
 
     EndTextureMode();
     
