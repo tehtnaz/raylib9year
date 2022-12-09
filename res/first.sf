@@ -1,5 +1,5 @@
-/ pos; width; height; isStatic
-/ pos; radius; isStatic
+/ pos; width; height; isStatic; tag; trigger
+/ pos; radius; isStatic; tag; trigger
 
-RectPhysObj     (Vector2( 10 10 )   10. 10. true )
-CirclePhysObj   (Vector2( 50 50 )   20.     STATIC )
+RectPhysObj     (Vector2( 10 10 )   10. 10. DYNAMIC 1 0)
+CirclePhysObj   (Vector2( 50 50 )   20.     STATIC  0 1)

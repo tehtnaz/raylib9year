@@ -72,6 +72,8 @@
 #if !defined(PHYSAC_H)
 #define PHYSAC_H
 
+#include "../raylib-4.2/raylib.h"
+
 // Function specifiers in case library is build/used as a shared library (Windows)
 // NOTE: Microsoft specifiers to tell compiler that symbols are imported/exported from a .dll
 #if defined(_WIN32)
@@ -174,6 +176,9 @@ typedef struct PhysicsBodyData {
     bool isGrounded;                            // Physics grounded on other body state
     bool freezeOrient;                          // Physics rotation constraint
     PhysicsShape shape;                         // Physics body shape information (type, radius, vertices, transform)
+
+    unsigned int tag;
+    unsigned int trigger;
 } PhysicsBodyData;
 
 typedef struct PhysicsManifoldData {
@@ -203,11 +208,12 @@ PHYSACDEF void ResetPhysics(void);                                              
 PHYSACDEF void ClosePhysics(void);                                                                          // Close physics system and unload used memory
 PHYSACDEF void SetPhysicsTimeStep(double delta);                                                            // Sets physics fixed time step in milliseconds. 1.666666 by default
 PHYSACDEF void SetPhysicsGravity(float x, float y);                                                         // Sets physics global gravity force
+PHYSACDEF void SetPhysicsAirFriction(float x, float y);
 
 // Physic body creation/destroy
-PHYSACDEF PhysicsBody CreatePhysicsBodyCircle(Vector2 pos, float radius, float density);                    // Creates a new circle physics body with generic parameters
-PHYSACDEF PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, float density);    // Creates a new rectangle physics body with generic parameters
-PHYSACDEF PhysicsBody CreatePhysicsBodyPolygon(Vector2 pos, float radius, int sides, float density);        // Creates a new polygon physics body with generic parameters
+PHYSACDEF PhysicsBody CreatePhysicsBodyCircle(Vector2 pos, float radius, float density, unsigned int tag, unsigned int trigger);                    // Creates a new circle physics body with generic parameters
+PHYSACDEF PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, float density, unsigned int tag, unsigned int trigger);    // Creates a new rectangle physics body with generic parameters
+PHYSACDEF PhysicsBody CreatePhysicsBodyPolygon(Vector2 pos, float radius, int sides, float density, unsigned int tag, unsigned int trigger);        // Creates a new polygon physics body with generic parameters
 PHYSACDEF void DestroyPhysicsBody(PhysicsBody body);                                                        // Destroy a physics body
 
 // Physic body forces
@@ -222,6 +228,11 @@ PHYSACDEF int GetPhysicsBodiesCount(void);                                      
 PHYSACDEF int GetPhysicsShapeType(int index);                                                               // Returns the physics body shape type (PHYSICS_CIRCLE or PHYSICS_POLYGON)
 PHYSACDEF int GetPhysicsShapeVerticesCount(int index);                                                      // Returns the amount of vertices of a physics body shape
 PHYSACDEF Vector2 GetPhysicsShapeVertex(PhysicsBody body, int vertex);                                      // Returns transformed position of a body shape (body position + vertex transformed position)
+
+// Get manifold data
+PHYSACDEF PhysicsManifold GetPhysicsManifold(int index);
+PHYSACDEF int GetPhysicsManifoldCount(void);
+
 #if defined(__cplusplus)
 }
 #endif
@@ -311,6 +322,7 @@ static PhysicsManifold contacts[PHYSAC_MAX_MANIFOLDS];      // Physics bodies po
 static unsigned int physicsManifoldsCount = 0;              // Physics world current manifolds counter
 
 static Vector2 gravityForce = { 0.0f, 9.81f };              // Physics world gravity force
+static Vector2 airFrictionCoeffecient = { 0.0f, 0.0f };     // 1/(x+1)
 
 // Utilities variables
 static unsigned int usedMemory = 0;                         // Total allocated dynamic memory
@@ -385,15 +397,20 @@ void SetPhysicsGravity(float x, float y)
     gravityForce.y = y;
 }
 
+void SetPhysicsAirFriction(float x, float y){
+    airFrictionCoeffecient.x = 1 / (x+1);
+    airFrictionCoeffecient.y = 1 / (y+1);
+}
+
 // Creates a new circle physics body with generic parameters
-PhysicsBody CreatePhysicsBodyCircle(Vector2 pos, float radius, float density)
+PhysicsBody CreatePhysicsBodyCircle(Vector2 pos, float radius, float density, unsigned int tag, unsigned int trigger)
 {
-    PhysicsBody body = CreatePhysicsBodyPolygon(pos, radius, PHYSAC_DEFAULT_CIRCLE_VERTICES, density);
+    PhysicsBody body = CreatePhysicsBodyPolygon(pos, radius, PHYSAC_DEFAULT_CIRCLE_VERTICES, density, tag, trigger);
     return body;
 }
 
 // Creates a new rectangle physics body with generic parameters
-PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, float density)
+PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, float density, unsigned int tag, unsigned int trigger)
 {
     // NOTE: Make sure body data is initialized to 0
     PhysicsBody body = (PhysicsBody)PHYSAC_CALLOC(sizeof(PhysicsBodyData), 1);
@@ -402,6 +419,9 @@ PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, f
     int id = FindAvailableBodyIndex();
     if (id != -1)
     {
+        body->tag = tag;
+        body->trigger = trigger;
+
         // Initialize new body with generic values
         body->id = id;
         body->enabled = true;
@@ -471,7 +491,7 @@ PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, f
 }
 
 // Creates a new polygon physics body with generic parameters
-PhysicsBody CreatePhysicsBodyPolygon(Vector2 pos, float radius, int sides, float density)
+PhysicsBody CreatePhysicsBodyPolygon(Vector2 pos, float radius, int sides, float density, unsigned int tag, unsigned int trigger)
 {
     PhysicsBody body = (PhysicsBody)PHYSAC_MALLOC(sizeof(PhysicsBodyData));
     usedMemory += sizeof(PhysicsBodyData);
@@ -479,6 +499,9 @@ PhysicsBody CreatePhysicsBodyPolygon(Vector2 pos, float radius, int sides, float
     int id = FindAvailableBodyIndex();
     if (id != -1)
     {
+        body->tag = tag;
+        body->trigger = trigger;
+
         // Initialize new body with generic values
         body->id = id;
         body->enabled = true;
@@ -615,7 +638,7 @@ void PhysicsShatter(PhysicsBody body, Vector2 position, float force)
                     center = MathVector2Add(bodyPos, center);
                     Vector2 offset = MathVector2Subtract(center, bodyPos);
 
-                    PhysicsBody body = CreatePhysicsBodyPolygon(center, 10, 3, 10);     // Create polygon physics body with relevant values
+                    PhysicsBody body = CreatePhysicsBodyPolygon(center, 10, 3, 10, body->tag, body->trigger);     // Create polygon physics body with relevant values
 
                     PhysicsVertexData vertexData = { 0 };
                     vertexData.vertexCount = 3;
@@ -922,10 +945,10 @@ void UpdatePhysics(void)
     static double deltaTimeAccumulator = 0.0;
 
     // Calculate current time (ms)
-    currentTime = GetCurrentTime();
+    // currentTime = GetCurrentTime();
 
     // Calculate current delta time (ms)
-    const double delta = currentTime - startTime;
+    const double delta = GetFrameTime() * 1000;//currentTime - startTime;
 
     // Store the time elapsed since the last frame began
     deltaTimeAccumulator += delta;
@@ -947,6 +970,24 @@ void UpdatePhysics(void)
 void SetPhysicsTimeStep(double delta)
 {
     deltaTime = delta;
+}
+
+PhysicsManifold GetPhysicsManifold(int index){
+    PhysicsManifold manifold = NULL;
+
+    if (index < (int)physicsManifoldsCount)
+    {
+        manifold = contacts[index];
+
+        if (manifold == NULL) TRACELOG("[PHYSAC] WARNING: GetPhysicsManifold: NULL physic manifold\n");
+    }
+    else TRACELOG("[PHYSAC] WARNING: Physic manifold index is out of bounds\n");
+
+    return manifold;
+}
+
+int GetPhysicsManifoldCount(void){
+    return physicsManifoldsCount;
 }
 
 //----------------------------------------------------------------------------------
@@ -1054,6 +1095,9 @@ static void UpdatePhysicsStep(void)
                     }
                 }
             }
+
+            bodyA->velocity.x *= airFrictionCoeffecient.x;
+            bodyA->velocity.y *= airFrictionCoeffecient.y;
         }
     }
 
@@ -1658,14 +1702,14 @@ static void IntegratePhysicsImpulses(PhysicsManifold manifold)
         // Apply impulse to each physics body
         Vector2 impulseV = { manifold->normal.x*impulse, manifold->normal.y*impulse };
 
-        if (bodyA->enabled)
+        if (bodyA->enabled && bodyB->trigger == 0)
         {
             bodyA->velocity.x += bodyA->inverseMass*(-impulseV.x);
             bodyA->velocity.y += bodyA->inverseMass*(-impulseV.y);
             if (!bodyA->freezeOrient) bodyA->angularVelocity += bodyA->inverseInertia*MathVector2CrossProduct(radiusA, CLITERAL(Vector2){ -impulseV.x, -impulseV.y });
         }
 
-        if (bodyB->enabled)
+        if (bodyB->enabled && bodyA->trigger == 0)
         {
             bodyB->velocity.x += bodyB->inverseMass*(impulseV.x);
             bodyB->velocity.y += bodyB->inverseMass*(impulseV.y);
@@ -1695,7 +1739,7 @@ static void IntegratePhysicsImpulses(PhysicsManifold manifold)
         else tangentImpulse = CLITERAL(Vector2){ tangent.x*-impulse*manifold->dynamicFriction, tangent.y*-impulse*manifold->dynamicFriction };
 
         // Apply friction impulse
-        if (bodyA->enabled)
+        if (bodyA->enabled && bodyB->trigger == 0)
         {
             bodyA->velocity.x += bodyA->inverseMass*(-tangentImpulse.x);
             bodyA->velocity.y += bodyA->inverseMass*(-tangentImpulse.y);
@@ -1703,7 +1747,7 @@ static void IntegratePhysicsImpulses(PhysicsManifold manifold)
             if (!bodyA->freezeOrient) bodyA->angularVelocity += bodyA->inverseInertia*MathVector2CrossProduct(radiusA, CLITERAL(Vector2){ -tangentImpulse.x, -tangentImpulse.y });
         }
 
-        if (bodyB->enabled)
+        if (bodyB->enabled && bodyA->trigger == 0)
         {
             bodyB->velocity.x += bodyB->inverseMass*(tangentImpulse.x);
             bodyB->velocity.y += bodyB->inverseMass*(tangentImpulse.y);
@@ -1739,13 +1783,13 @@ static void CorrectPhysicsPositions(PhysicsManifold manifold)
     correction.x = (PHYSAC_MAX(manifold->penetration - PHYSAC_PENETRATION_ALLOWANCE, 0.0f)/(bodyA->inverseMass + bodyB->inverseMass))*manifold->normal.x*PHYSAC_PENETRATION_CORRECTION;
     correction.y = (PHYSAC_MAX(manifold->penetration - PHYSAC_PENETRATION_ALLOWANCE, 0.0f)/(bodyA->inverseMass + bodyB->inverseMass))*manifold->normal.y*PHYSAC_PENETRATION_CORRECTION;
 
-    if (bodyA->enabled)
+    if (bodyA->enabled && bodyB->trigger == 0)
     {
         bodyA->position.x -= correction.x*bodyA->inverseMass;
         bodyA->position.y -= correction.y*bodyA->inverseMass;
     }
 
-    if (bodyB->enabled)
+    if (bodyB->enabled && bodyA->trigger == 0)
     {
         bodyB->position.x += correction.x*bodyB->inverseMass;
         bodyB->position.y += correction.y*bodyB->inverseMass;

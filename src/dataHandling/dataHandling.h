@@ -66,10 +66,14 @@ typedef struct TempPhysObj{
     float width;    // for recs
     float height;   // for recs
     bool isStatic;
+    unsigned int tag;
+    unsigned int trigger;
 } TempPhysObj;
 
 StructGroup* readFileSF(const char* path);
 
+#ifdef _DEBUG
 #define DEBUG_DATA_HANDLING
+#endif
 
 int parseStructGroupInfo(StructGroup* groupRoot);

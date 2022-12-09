@@ -522,8 +522,8 @@ Rectangle parseRectangle(StructGroup* group){
 
 TempPhysObj parsePhysObj(StructGroup* group, bool isCircle){
     TempPhysObj obj = {0};
-    if(isCircle && checkArgNumber(group, 3, "CirclePhysObj")) return obj;
-    if(!isCircle && checkArgNumber(group, 4, "RectanglePhysObj")) return obj;
+    if(isCircle && checkArgNumber(group, 5, "CirclePhysObj")) return obj;
+    if(!isCircle && checkArgNumber(group, 6, "RectanglePhysObj")) return obj;
 
     StructGroup* temp = group->child;
     
@@ -554,6 +554,26 @@ TempPhysObj parsePhysObj(StructGroup* group, bool isCircle){
     }
     temp = temp->next;
     obj.isStatic = temp->token.type == TRUE;
+    temp = temp->next;
+    if(temp->token.type == INTEGER){
+        if(temp->token.integer >= 0){
+            obj.tag = temp->token.integer;
+        }else{
+            printf("WARNING: parseStructGroupInfo[parsePhysObj] - [line %d] Tag cannot be negative\n", group->token.line);
+        }
+    }else{
+        printf("WARNING: parseStructGroupInfo[parsePhysObj] - [line %d] Invalid argument type for second to last arg\n", group->token.line);
+    }
+    temp = temp->next;
+    if(temp->token.type == INTEGER){
+        if(temp->token.integer >= 0){
+            obj.trigger = temp->token.integer;
+        }else{
+            printf("WARNING: parseStructGroupInfo[parsePhysObj] - [line %d] Trigger cannot be negative\n", group->token.line);
+        }
+    }else{
+        printf("WARNING: parseStructGroupInfo[parsePhysObj] - [line %d] Invalid argument type for last arg\n", group->token.line);
+    }
     return obj;
 }
 
@@ -572,13 +592,13 @@ int parseStructGroupInfo(StructGroup* groupRoot){
         {
             case CIRCLE_PHYSOBJ:
                 obj = parsePhysObj(structGroup, true);
-                body = CreatePhysicsBodyCircle(obj.pos, obj.radius, 1);
+                body = CreatePhysicsBodyCircle(obj.pos, obj.radius, 1, obj.tag, obj.trigger);
                 body->freezeOrient = true;
                 body->enabled = !obj.isStatic;
                 break;
             case RECTANGLE_PHYSOBJ:
                 obj = parsePhysObj(structGroup, false);
-                body = CreatePhysicsBodyRectangle(obj.pos, obj.width, obj.height, 1);
+                body = CreatePhysicsBodyRectangle(obj.pos, obj.width, obj.height, 1, obj.tag, obj.trigger);
                 body->freezeOrient = true;
                 body->enabled = !obj.isStatic;
                 break;

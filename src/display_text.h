@@ -4,6 +4,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+// Constants
+#define MinTimeBetween 0.03f
+#define DefaultFontSize 10.0f
+#define DefaultLineSpacing 1.15f;
+static const float spaceBetweenLines = DefaultFontSize * DefaultLineSpacing;
+static const float spacing = DefaultFontSize / 10;
+
+// Static Variables
 static char* cachedText = NULL;
 static char* displayText = NULL;
 static float maxTextWidth = 0;
@@ -11,12 +19,8 @@ static bool displayTextEnabled = false;
 static Vector2 textPosition = {0, 0};
 static float currentTimeBetween = 0;
 
-#define MinTimeBetween 0.03f
-#define DefaultFontSize 10.0f
-#define DefaultLineSpacing 1.15f;
-static const float spaceBetweenLines = DefaultFontSize * DefaultLineSpacing;
-static const float spacing = DefaultFontSize / 10;
-
+// MUST BE RUN ON EVERY FRAME
+// Word wraps text with current width
 void UpdateAndDrawTypingText(Color color){
     if(!displayTextEnabled) return;
 
@@ -62,6 +66,7 @@ void UpdateAndDrawTypingText(Color color){
     }
 }
 
+// Allocate new text to be shown across the screen
 void NewDisplayText(const char* text, Vector2 pos, int maxWidth){
     if(cachedText != NULL) free(cachedText);
     if(displayText != NULL) free(displayText);
@@ -73,6 +78,7 @@ void NewDisplayText(const char* text, Vector2 pos, int maxWidth){
     displayTextEnabled = true;
 }
 
+// Clear existing text
 void ClearDisplayText(){
     free(displayText);
     free(cachedText);

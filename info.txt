@@ -1,0 +1,6 @@
+Triggers: Set trigger to > 0, disable dynamics
+
+Pre-define tags / trigger
+    (1):
+        Tag: Crate (grabbable object)
+        Trigger: Player grab area
