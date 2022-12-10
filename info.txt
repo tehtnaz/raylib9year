@@ -1,6 +1,48 @@
 Triggers: Set trigger to > 0, disable dynamics
 
+Tag = item entering a trigger
 Pre-define tags / trigger
     (1):
-        Tag: Crate (grabbable object)
-        Trigger: Player grab area
+        Tag     -> Crate (grabbable object)
+        Trigger -> Player grab area
+    (2):
+        Tag     -> Player
+        Trigger -> Test text event
+    (3):
+        Tag     -> Player
+        Trigger -> Next level
+
+    (9-17)
+        Tag     -> Player
+        Trigger -> Button
+
+
+
+bolded font ->: final statement (click to dismiss)
+red = default
+
+bridge: L3
+
+death triggers:
+    L3: die in gap
+
+YOU STAY IN A DIMENSION AFTER DEATH
+
+
+phase -> move item DIMENSION
+
+unexepcted key changes after each level
+
+DIMENSIONS COLLAPSE AFTER 15 SECONDS
+
+/usr/share/apport/apport -p%p -s%s -c%c -d%d -P%P -u%u -g%g -- %E
+
+
+
+TODO: Press any key to cancel textBox
+
+boss will have boss bar
+how attack work - spacebar to cycle DIMENSIONS
+
+
+VOID DEATH = FADE BLACK

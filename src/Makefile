@@ -126,6 +126,10 @@ endif
 #  -D_DEFAULT_SOURCE    use with -std=c99 on Linux and PLATFORM_WEB, required for timespec
 CFLAGS = -std=c99 -Wall -Wextra -Wmissing-braces -Wunused-result -Wno-sign-compare -D_DEFAULT_SOURCE
 
+ifeq ($(BUILD_MODE), A)
+    CFLAGS += -fno-exceptions -fno-web -fno-var-tracking-assignments -fno-var-tracking -fno-unwind-tables -fno-tree-scev-cprop  -fno-tree-reassoc -fno-tree-phiprop -fno-tree-loop-optimize -fno-tree-loop-ivcanon -fno-tree-loop-im -fno-tree-loop-if-convert -fno-tree-forwprop -fno-tree-cselim -fno-trapping-math -fthreadsafe-statics -fno-strict-volatile-bitfields -fno-stdarg-opt -fno-ssa-backprop  -fno-split-ivs-in-unroller -fno-signed-zeros -fno-shrink-wrap-separate -fno-short-enums -fno-schedule-fusion -fno-sched-stalled-insns-dep -fno-sched-spec-insn-heuristic -fno-sched-spec -fno-sched-rank-heuristic -fno-sched-last-insn-heuristic -fno-sched-interblock  -fno-sched-group-heuristic -fno-sched-dep-count-heuristic -fno-sched-critical-path-heuristic -fno-rtti -fno-rename-registers -fno-reg-struct-return -fno-printf-return-value -fno-prefetch-loop-arrays -fno-plt  -fno-peephole -fno-math-errno -fno-lifetime-dse -fno-jump-tables -fno-ivopts -fno-ira-share-spill-slots -fno-ira-share-save-slots -fno-ira-hoist-pressure -fno-inline-atomics -fno-inline -fno-gcse-lm -fno-function-cse -fno-fp-int-builtin-inexact -fno-early-inlining -fno-dse -fno-delete-null-pointer-checks -fno-dce -fno-auto-inc-dec -fno-asynchronous-unwind-tables -fno-aggressive-loop-optimizations
+endif
+
 ifeq ($(BUILD_MODE),DEBUG)
     CFLAGS += -g -D_DEBUG
 else
@@ -146,7 +150,7 @@ endif
 # Define include paths for required headers: INCLUDE_PATHS
 # NOTE: Some external/extras libraries could be required (stb, physac, easings...)
 #------------------------------------------------------------------------------------------------
-INCLUDE_PATHS := -I. -I $(RAYLIB_INCLUDE_PATH) -I $(DEFAULT_INCLUDE_PATH)/physac -I ./dataHandling
+INCLUDE_PATHS := -I. -I $(RAYLIB_INCLUDE_PATH) -I $(DEFAULT_INCLUDE_PATH)/physac -I ./dataHandling -I ./animation
 
 ifeq ($(PLATFORM),PLATFORM_WEB)
     INCLUDE_PATHS += -I $(EMSCRIPTEN_INCLUDE_PATH)

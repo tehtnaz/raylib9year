@@ -1,16 +1,3 @@
-/*******************************************************************************************
-*
-*   raylib 9years gamejam template
-*
-*   Template originally created with raylib 4.5-dev, last time updated with raylib 4.5-dev
-*
-*   Template licensed under an unmodified zlib/libpng license, which is an OSI-certified,
-*   BSD-like license that allows static linking with closed source software
-*
-*   Copyright (c) 2022 Ramon Santamaria (@raysan5)
-*
-********************************************************************************************/
-
 #include "raylib.h"
 
 #if defined(PLATFORM_WEB)
@@ -23,6 +10,7 @@
 
 #include "display_text.h"
 #include "triggers.h"
+#include "animation.h"
 
 
 #include "dataHandling/dataHandling.h"
@@ -32,7 +20,7 @@
 #include "physac.h"
 
 //----------------------------------------------------------------------------------
-// Defines and Macros
+// Defines and Macros (Constant values)
 //----------------------------------------------------------------------------------
 // Simple log system to avoid printf() calls if required
 // NOTE: Avoiding those calls, also avoids const strings memory usage
@@ -43,6 +31,9 @@
     #define LOG(...)
 #endif
 
+#define INPUT_VELOCITY 0.1f
+#define MAX_BUTTONS 8
+
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
@@ -51,12 +42,6 @@ typedef enum {
     SCREEN_GAMEPLAY, 
     SCREEN_ENDING
 } GameScreen;
-
-//----------------------------------------------------------------------------------
-// Constant values (#define)
-//----------------------------------------------------------------------------------
-
-#define INPUT_VELOCITY 0.1f
 
 //----------------------------------------------------------------------------------
 // Global Variables Definition
@@ -72,6 +57,17 @@ static RenderTexture2D target = { 0 };  // Initialized at init
 static PhysicsBody player;
 static PhysicsBody playerGrabZone;
 
+static Animation haroldTextBox;
+
+static int buttonCount;
+static Animation buttonArray[MAX_BUTTONS];
+static Vector2 buttonPosition[MAX_BUTTONS];
+
+
+static int levelSelect = 0;
+static Texture2D levelBackground;
+
+
 //----------------------------------------------------------------------------------
 // Module Functions Declaration
 //----------------------------------------------------------------------------------
@@ -86,21 +82,22 @@ void DrawPhysicsBody(int index, Color color);
 //--------------------------------------------------------------------------------------------
 
 void AddPlayerInputForce(PhysicsBody body);
+void DrawHaroldText(const char* text);
+void LoadNextLevel();
 
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
 
-
-
 int main(void){
     #if !defined(_DEBUG)
         SetTraceLogLevel(LOG_NONE);         // Disable raylib trace log messsages
     #endif
+    printf("%s\n", GetApplicationDirectory());
 
     // Initialization
-    //--------------------------------------a------------------------------------------------
-    InitWindow(screenWidth, screenHeight, "raylib 9yr gamejam");
+    //--------------------------------------------------------------------------------------
+    InitWindow(screenWidth, screenHeight, "Grayzone");
     InitPhysics();
 
     // Render texture to draw full screen, enables screen scaling
@@ -115,7 +112,7 @@ int main(void){
     NewTriggerEvent(1, false, CreateTriggerEventFunctionData_SetForce(AddPlayerInputForce));
 
     // Init player, disable dynamics
-    player = CreatePhysicsBodyCircle((Vector2){ screenWidth/2.0f, screenHeight/2.0f }, 8, 1, 0, 0);
+    player = CreatePhysicsBodyCircle((Vector2){ screenWidth/2.0f, screenHeight/2.0f }, 8, 1, 2, 0);
     player->enabled = true;
     player->freezeOrient = true;
 
@@ -123,12 +120,21 @@ int main(void){
     playerGrabZone->enabled = false;
     playerGrabZone->freezeOrient = true;
 
-    //PhysicsAddTorque(CreatePhysicsBodyRectangle((Vector2){75, 20}, 20, 20, 1, 0, 0), 100);
+    CreatePhysicsBodyCircle((Vector2){ screenWidth, screenHeight/2.0f }, 8, 1, 0, 2)->enabled = false;
+
+    NewTriggerEvent(2, true, CreateTriggerEventFunctionData_TextPrompt("Raining tacos", DrawHaroldText));
+
+    NewTriggerEvent(3, true, CreateTriggerEventFunctionData_Function(LoadNextLevel));
 
     parseStructGroupInfo(readFileSF("./../res/first.sf"));
 
+    haroldTextBox = assignProperties(0, 0, 2, true, 2, true);
+    haroldTextBox = getFromFolder(haroldTextBox, "./../res/text/harold/", true);
+    
+
     //NewDisplayText("My name is Walter Hartwell White. I live at 308 Negra Arroyo Lane, Albuquerque, New Mexico, 87104. This is my confession. If you're watching this tape, I'm probably dead, murdered by my brother-in-law Hank Schrader. Hank has been building a Virtual Youtuber empire for over a year now and using me as his recruiter. Shortly after my 50th birthday, Hank came to me with a rather, shocking proposition. He asked that I use my Live2D knowledge to recruit talents, which he would then hire using his connections in the Japanese utaite world. Connections that he made through his career with Niconico. I was... astounded, I... I always thought that Hank was a very moral man", (Vector2){5,5},246);
 
+    LoadNextLevel();
 
     #if defined(PLATFORM_WEB)
         emscripten_set_main_loop(UpdateDrawFrame, 60, 1);
@@ -147,8 +153,6 @@ int main(void){
     UnloadRenderTexture(target);
     ClearDisplayText();
     CloseWindow();        // Close window and OpenGL context
-
-
     //--------------------------------------------------------------------------------------
 
     return 0;
@@ -192,31 +196,31 @@ static void UpdateDrawFrame(void)
     }
     //Physics
     ActivateAllContactedTriggers();
-    //printf("\n");
     UpdatePhysics();
-    //LOG("%f %f\n", player->velocity.x, player->velocity.y);
 
     // Draw
     //----------------------------------------------------------------------------------
     // Render all screen to texture (for scaling)
     BeginTextureMode(target);
         ClearBackground(RAYWHITE);
+        DrawTexture(levelBackground, 0, 0, WHITE);
         
-        // TODO: Draw screen at 256x256
-        DrawRectangle(10, 10, screenWidth - 20, screenHeight - 20, SKYBLUE);
-        
+        for(int i = 0; i < buttonCount; i++){
+            DrawAnimationPro(&(buttonArray[i]), buttonPosition[i], 1, WHITE, CYCLE_NONE);
+        }
+
         bodyCount = GetPhysicsBodiesCount();
         for(int i = 0; i < bodyCount; i++){
             DrawPhysicsBody(i, (Color){ 230, 41, 55, 127 });
         }
 
+        if(displayTextEnabled) DrawAnimationPro(&haroldTextBox, (Vector2){21, 2}, 1, WHITE, CYCLE_FORWARD);
+        UpdateAndDrawTypingText(WHITE);
+
         #if defined(_DEBUG)
             // Draw equivalent mouse position on the target render-texture
             DrawCircleLines(GetMouseX(), GetMouseY(), 10, MAROON);
         #endif
-
-        UpdateAndDrawTypingText(BLACK);
-
     EndTextureMode();
     
     BeginDrawing();
@@ -298,4 +302,15 @@ void DrawPhysicsBody(int index, Color color){
 
 void AddPlayerInputForce(PhysicsBody body){
     if(IsKeyDown(KEY_E))body->velocity = player->velocity;
+}
+
+void DrawHaroldText(const char* text){
+    NewDisplayText(text, (Vector2){79, 9}, 150);
+}
+
+void LoadNextLevel(){
+    if(levelSelect != 0) UnloadTexture(levelBackground);
+    levelBackground = LoadTexture(TextFormat("./../res/Levels/grayzone_level%d.png", levelSelect + 1));
+
+    levelSelect++;
 }

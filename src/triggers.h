@@ -9,26 +9,31 @@
 typedef enum TriggerType{
     TRIGGER_FUNCTION,
     TRIGGER_SET_FORCE,
-    TRIGGER_SOUND,
+    TRIGGER_TEXT_PROMPT,
 
 }TriggerType;
 
-typedef struct TriggerEventData *TriggerEvent;
+//typedef struct TriggerEventData *TriggerEvent;
 
 typedef struct TriggerEventFunctionData{
     TriggerType type;
 
+    void (*function_function)();
+
     void (*function_add_force)(PhysicsBody body);
+
+    char* text;
+    void (*function_text_prompt)(const char* text);
 
 }TriggerEventFunctionData;
 
-typedef struct TriggerEventData{
+typedef struct TriggerEvent{
     unsigned int triggerID;
     bool oneTimeUse;
     bool wasUsed;
 
     TriggerEventFunctionData data;
-}TriggerEventData;
+}TriggerEvent;
 
 #define MAX_TRIGGER_COUNT 8
 
@@ -41,17 +46,31 @@ TriggerEventFunctionData CreateTriggerEventFunctionData_SetForce(void (*function
     data.function_add_force = function_add_force;
     return data;
 }
+TriggerEventFunctionData CreateTriggerEventFunctionData_TextPrompt(const char* text, void (*function_text_prompt)(const char* text)){
+    TriggerEventFunctionData data;
+    data.type = TRIGGER_TEXT_PROMPT;
+    data.function_text_prompt = function_text_prompt;
+    data.text = calloc(TextLength(text), sizeof(char));
+    TextCopy(data.text, text);
+    return data;
+}
+TriggerEventFunctionData CreateTriggerEventFunctionData_Function(void (*function_function)()){
+    TriggerEventFunctionData data;
+    data.type = TRIGGER_FUNCTION;
+    data.function_function = function_function;
+    return data;
+}
 
 void NewTriggerEvent(unsigned int triggerID, bool oneTimeUse, TriggerEventFunctionData data){
     if(triggerEventCount == MAX_TRIGGER_COUNT){
         printf("TRIGGER_H: Error - Could not create more trigger events (max reached)\n");
         return;
     }
-    TriggerEvent event = calloc(sizeof(TriggerEvent), 1);
-    event->triggerID = triggerID;
-    event->oneTimeUse = oneTimeUse;
-    event->wasUsed = false;
-    event->data = data;
+    TriggerEvent event;
+    event.triggerID = triggerID;
+    event.oneTimeUse = oneTimeUse;
+    event.wasUsed = false;
+    event.data = data;
 
     triggerEventArray[triggerEventCount] = event;
     triggerEventCount++;
@@ -60,23 +79,25 @@ void NewTriggerEvent(unsigned int triggerID, bool oneTimeUse, TriggerEventFuncti
 void ActivateTrigger(PhysicsBody body, int triggerID){
     int i = 0;
     for(int j = 0; j < triggerEventCount; j++){
-        if(triggerEventArray[j]->triggerID == triggerID) {
+        if(triggerEventArray[j].triggerID == triggerID) {
             i = j;
             break;
         }
     }
 
-    if(triggerEventArray[i]->oneTimeUse && triggerEventArray[i]->wasUsed){
+    if(triggerEventArray[i].oneTimeUse && triggerEventArray[i].wasUsed){
         #ifdef _DEBUG
-        printf("TRIGGER_H: Debug - Tried activating already activated one time use trigger\n");
+        printf("TRIGGER_H: Debug - Tried activating already activated one time use trigger\r");
         #endif
         return;
     }
-    triggerEventArray[i]->wasUsed = true;
-    TriggerEventFunctionData data = triggerEventArray[i]->data;
-    
+    triggerEventArray[i].wasUsed = true;
+    TriggerEventFunctionData data = triggerEventArray[i].data;
+    //printf("lets make love %p a\n", data.function_text_prompt);
     switch (data.type){
+        case TRIGGER_FUNCTION: data.function_function(); break;
         case TRIGGER_SET_FORCE: data.function_add_force(body); break;
+        case TRIGGER_TEXT_PROMPT: data.function_text_prompt(data.text); break;
         default: printf("Invalid dataType\n");
     }
 
