@@ -204,6 +204,7 @@ StructGroup* readFileSF(const char* path){
             case '[': case '(': tokenInfo->type = LEFT_PAREN;     break;
             case ']': case ')': tokenInfo->type = RIGHT_PAREN;    break;
 
+            case '~': tokenInfo->type = PROPERTY; break;
             case '-': tokenInfo->type = MINUS;    break;
             case ',': /* ignore */ break;
 
@@ -638,7 +639,9 @@ TextBoxTrigger parseTrigger(StructGroup* group){
     return textBox;
 }
 
-int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(const char** texts, int textCount)){
+
+
+int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(const char** texts, int textCount), Vector2 *startingPos){
     printf("INFO: Finalizing read with parseStructGroupInfo...\n");
 
     StructGroup* structGroup = groupRoot;
@@ -660,9 +663,12 @@ int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(
                 body->freezeOrient = true;
                 body->enabled = !obj.isStatic;
                 break;
-            case TEXT_TRIGGER:
+            case TEXT_TRIGGER:; //dumb semicolon again!!! thanks emscripten!
                 TextBoxTrigger textBox = parseTrigger(structGroup);
                 NewTriggerEvent(textBox.trigger, true, CreateTriggerEventFunctionData_TextPrompt(textBox.texts, textBox.textCount, function_harold_prompt));
+                break;
+            case PROPERTY:
+                *startingPos = parseVector2(structGroup);
                 break;
             default:
                 printf("WARNING: parseStructGroupInfo - [line %d] Received non-struct as parent group. [TOKEN_TYPE: %d] Skipping...\n", structGroup->token.line, structGroup->token.type);

@@ -1,10 +1,17 @@
 / pos; width; height; isStatic; tag; trigger
 / pos; radius; isStatic; tag; trigger
 
-RectPhysObj     (Vector2( 10 10 )   10.0 10.0 DYNAMIC 1 0)
-CirclePhysObj   (Vector2( 50 50 )   20.0     STATIC  0 1)
+/ RectPhysObj     (Vector2( 10 10 )   10.0 10.0 DYNAMIC 1 0)
+/ CirclePhysObj   (Vector2( 50 50 )   20.0     STATIC  0 1)
 
-RectPhysObj(Vector2(0,0), 255.0, 4.0, STATIC, 0, 3)
+// Level Boundaries
+RectPhysObj     (Vector2( 0 128 )     1.0 256.0 STATIC 0 0)
+RectPhysObj     (Vector2( 256 128 )   1.0 256.0 STATIC 0 0)
+RectPhysObj     (Vector2( 128 0 )     256.0 1.0 STATIC 0 0)
+RectPhysObj     (Vector2( 128 256 )   256.0 1.0 STATIC 0 0)
+
+//Win Trigger
+RectPhysObj(Vector2( 128 5 ), 250.0, 4.0, STATIC, 0, 3)
 
 / Text trigger + physobj group forms a fully functional trigger
 / text trigger arg 2 = string array (remember, "[]" and "()" are interchangeable )
@@ -13,6 +20,9 @@ TextTrigger     (2,
     ["Hello fellow adventurer! My name is Harold, and I like cats!"
     "As you can see, you are in our newest institution! THE 1J7B!"
     "Well, I guess you can't see since you're stuck inside."
-    "Guess I'll have to help you then."
+    "Guess I'll have to help you \nthen."
     "USE WASD TO MOVE"])
-CirclePhysObj   (Vector2( 255 128 ) 8.0 STATIC 0 2)
+CirclePhysObj   (Vector2( 128 250 ) 8.0 STATIC 0 2)
+
+// Spawn point
+~(128, 250)

@@ -107,7 +107,7 @@
 #define PHYSAC_MAX_VERTICES             24          // Maximum number of vertex for polygons shapes
 #define PHYSAC_DEFAULT_CIRCLE_VERTICES  24          // Default number of vertices for circle shapes
 
-#define PHYSAC_MAX_TAG_COUNT            8
+#define PHYSAC_MAX_TAG_COUNT            32
 
 #define PHYSAC_COLLISION_ITERATIONS     100
 #define PHYSAC_PENETRATION_ALLOWANCE    0.05f
@@ -219,6 +219,9 @@ PHYSACDEF PhysicsBody CreatePhysicsBodyCircle(Vector2 pos, float radius, float d
 PHYSACDEF PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, float density, unsigned int tag[PHYSAC_MAX_TAG_COUNT], int tagCount, unsigned int trigger);    // Creates a new rectangle physics body with generic parameters
 PHYSACDEF PhysicsBody CreatePhysicsBodyPolygon(Vector2 pos, float radius, int sides, float density, unsigned int tag[PHYSAC_MAX_TAG_COUNT], int tagCount, unsigned int trigger);        // Creates a new polygon physics body with generic parameters
 PHYSACDEF void DestroyPhysicsBody(PhysicsBody body);                                                        // Destroy a physics body
+
+PHYSACDEF void AddTagToPhysicsBody(PhysicsBody body, int tag);
+PHYSACDEF void RemoveTagFromPhysicsBody(PhysicsBody body, int tag);
 
 // Physic body forces
 PHYSACDEF void PhysicsAddForce(PhysicsBody body, Vector2 force);                                            // Adds a force to a physics body
@@ -882,6 +885,25 @@ void DestroyPhysicsBody(PhysicsBody body)
         TRACELOG("[PHYSAC] Physic body destroyed successfully (id: %i)\n", id);
     }
     else TRACELOG("[PHYSAC] WARNING: DestroyPhysicsBody: NULL physic body\n");
+}
+
+void AddTagToPhysicsBody(PhysicsBody body, int tag){
+    body->tags[body->tagCount] = tag;
+    body->tagCount++;
+}
+void RemoveTagFromPhysicsBody(PhysicsBody body, int tag){
+    int i = 0;
+    for(;i < body->tagCount; i++){
+        if(body->tags[i] == tag) break;
+    }
+    if(body->tagCount == i){
+        printf("[PHYSAC] non-existant tag attempted to be removed\n");
+        return;
+    }
+    body->tagCount--;
+    for(int j = i; j < body->tagCount; j++){
+        body->tags[i] = body->tags[i+1];
+    }
 }
 
 // Destroys created physics bodies and manifolds and resets global values

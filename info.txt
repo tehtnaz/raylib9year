@@ -46,8 +46,12 @@ DIMENSIONS COLLAPSE AFTER 15 SECONDS
 /usr/share/apport/apport -p%p -s%s -c%c -d%d -P%P -u%u -g%g -- %E
 
 
+lvl7 -> fade to black "do you really think you can escape you can't" fade out to "the end"
+
 
 TODO: Press any key to cancel textBox
 
 boss will have boss bar
 how attack work - spacebar to cycle DIMENSIONS
+
+AddTag / RemoveTag

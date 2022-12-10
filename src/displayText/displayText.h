@@ -12,6 +12,7 @@ void UpdateAndDrawTypingText(Color color);
 void QueueDisplayText(const char* item, Vector2 pos, int maxWidth);
 
 // Clear existing text
+void ClearDisplayTextQueue();
 void ClearDisplayText();
 
 bool GetDisplayTextEnabled();

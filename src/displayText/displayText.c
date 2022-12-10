@@ -75,6 +75,13 @@ void ClearDisplayText(){
     defaultFont.baseSize = 0;
 }
 
+void ClearDisplayTextQueue(){
+    for(int i = 0; i < queuedTextCount; i++){
+        free(queuedText[i]);
+    }
+    queuedTextCount = 0;
+}
+
 bool GetDisplayTextEnabled(){
     return displayTextEnabled;
 }

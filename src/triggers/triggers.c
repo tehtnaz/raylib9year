@@ -96,3 +96,21 @@ void ActivateAllContactedTriggers(){
         }
     }
 }
+
+void ClearTriggerEventFunctionData(TriggerEvent event){
+    if(event.data.type == TRIGGER_TEXT_PROMPT){
+        for(int i = 0; i < event.data.textCount; i++){
+            free(event.data.texts[i]);
+        }
+        free(event.data.texts);
+    }
+    event.data = (TriggerEventFunctionData){0};
+}
+
+void ResetAllTriggers(){
+    for(int i = 0; i < triggerEventCount; i++){
+        ClearTriggerEventFunctionData(triggerEventArray[i]);
+        triggerEventArray[i] = (TriggerEvent){};
+    }
+    triggerEventCount = 0;
+}

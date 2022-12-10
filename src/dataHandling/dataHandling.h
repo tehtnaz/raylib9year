@@ -37,7 +37,8 @@ typedef enum TOKEN_TYPE{
         //root structs
         CIRCLE_PHYSOBJ,
         RECTANGLE_PHYSOBJ,
-        TEXT_TRIGGER
+        TEXT_TRIGGER,
+        PROPERTY
 
 }TOKEN_TYPE;
 
@@ -83,4 +84,4 @@ StructGroup* readFileSF(const char* path);
 #define DEBUG_DATA_HANDLING
 #endif
 
-int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(const char** texts, int textCount));
+int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(const char** texts, int textCount), Vector2 *startingPos);

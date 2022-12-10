@@ -42,6 +42,8 @@ void NewTriggerEvent(unsigned int triggerID, bool oneTimeUse, TriggerEventFuncti
 
 void ActivateTrigger(PhysicsBody body, int triggerID);
 
+void ResetAllTriggers();
+
 void ActivateAllContactedTriggers();
 
 #endif

@@ -54,10 +54,13 @@ static unsigned int prevScreenScale = 1;
 
 static RenderTexture2D target = { 0 };  // Initialized at init
 
+static Vector2 startingPos = {128, 128};
+static Texture2D playerTexture;
 static PhysicsBody player;
 static PhysicsBody playerGrabZone;
 
 static Animation haroldTextBox;
+static Animation menuAnimation;
 
 static int buttonCount;
 static Animation buttonArray[MAX_BUTTONS];
@@ -66,6 +69,8 @@ static Vector2 buttonPosition[MAX_BUTTONS];
 
 static int levelSelect = 0;
 static Texture2D levelBackground;
+
+static GameScreen currentScreen = SCREEN_TITLE;
 
 
 //----------------------------------------------------------------------------------
@@ -108,10 +113,6 @@ int main(void){
     // Init physics
     SetPhysicsGravity(0, 0);
     SetPhysicsAirFriction(0.01f, 0.01f);
-    
-    // Pre defined TriggerEvents
-    NewTriggerEvent(1, false, CreateTriggerEventFunctionData_SetForce(AddPlayerInputForce));
-    NewTriggerEvent(3, true, CreateTriggerEventFunctionData_Function(LoadNextLevel));
 
     // Init player, disable dynamics
     int tags[8] = {0};
@@ -129,10 +130,13 @@ int main(void){
 
     
 
-    
+    playerTexture = LoadTexture("./../res/Characters/player/front.png");
 
     haroldTextBox = assignProperties(0, 0, 2, true, 2, true);
     haroldTextBox = getFromFolder(haroldTextBox, "./../res/text/harold/", true);
+
+    menuAnimation = assignProperties(0, 0, 1, true, 5, true);
+    menuAnimation = getFromFolder(menuAnimation, "./../res/Levels/progression/", true);
     
 
     //QueueDisplayText("My name is Walter Hartwell White. I live at 308 Negra Arroyo Lane, Albuquerque, New Mexico, 87104. This is my confession. If you're watching this tape, I'm probably dead, murdered by my brother-in-law Hank Schrader. Hank has been building a Virtual Youtuber empire for over a year now and using me as his recruiter. Shortly after my 50th birthday, Hank came to me with a rather, shocking proposition. He asked that I use my Live2D knowledge to recruit talents, which he would then hire using his connections in the Japanese utaite world. Connections that he made through his career with Niconico. I was... astounded, I... I always thought that Hank was a very moral man", (Vector2){5,5},246);
@@ -146,7 +150,7 @@ int main(void){
         //--------------------------------------------------------------------------------------
 
         // Main game loop
-            while (!WindowShouldClose()){
+        while (!WindowShouldClose()){
             UpdateDrawFrame();
         }
     #endif
@@ -186,48 +190,66 @@ static void UpdateDrawFrame(void)
         prevScreenScale = screenScale;
     }
 
-    if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-        ClearDisplayText();
-    }
+
     
-    // 
-    //----------------------------------------------------------------------------------
-    player->velocity = GetKeyInputForce(player->velocity);
-    playerGrabZone->position = player->position;
-    int bodyCount = GetPhysicsBodiesCount();
-    for (int i = bodyCount - 1; i >= 0; i--)
-    {
-        PhysicsBody body = GetPhysicsBody(i);
-        if (body != NULL && (body->position.y > screenHeight*2 || body->position.y < -256)) body->position = (Vector2){128, 128};
-        // DestroyPhysicsBody(body);
+    
+    if(currentScreen == SCREEN_TITLE){
+        if(IsKeyPressed(KEY_SPACE)){
+            currentScreen = SCREEN_GAMEPLAY;
+        }
     }
-    //Physics
-    ActivateAllContactedTriggers();
-    UpdatePhysics();
+    if(currentScreen == SCREEN_GAMEPLAY){
+        if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) || IsKeyPressed(KEY_SPACE)){
+            ClearDisplayText();
+        }
+        // 
+        //----------------------------------------------------------------------------------
+        player->velocity = GetKeyInputForce(player->velocity);
+        playerGrabZone->position = player->position;
+        int bodyCount = GetPhysicsBodiesCount();
+        for (int i = bodyCount - 1; i >= 0; i--)
+        {
+            PhysicsBody body = GetPhysicsBody(i);
+            if (body != NULL && (body->position.y > screenHeight*2 || body->position.y < -256)) body->position = (Vector2){128, 128};
+            // DestroyPhysicsBody(body);
+        }
+        //Physics
+        ActivateAllContactedTriggers();
+        UpdatePhysics();
+    }
 
     // Draw
     //----------------------------------------------------------------------------------
     // Render all screen to texture (for scaling)
     BeginTextureMode(target);
         ClearBackground(RAYWHITE);
-        DrawTexture(levelBackground, 0, 0, WHITE);
-        
-        for(int i = 0; i < buttonCount; i++){
-            DrawAnimationPro(&(buttonArray[i]), buttonPosition[i], 1, WHITE, CYCLE_NONE);
+        if(currentScreen == SCREEN_TITLE){
+            DrawAnimationPro(&menuAnimation,(Vector2){0,0}, 1, WHITE, CYCLE_FORWARD);
+            DrawRectangle(0, 0, 256, 256, (Color){15, 15, 15, 240});
+            DrawText("Grayzone", 10, 10, 40, GRAY);
+            DrawText("Press space to start", 10, 55, 10, WHITE);
         }
+        if(currentScreen == SCREEN_GAMEPLAY){
+            DrawTexture(levelBackground, 0, 0, WHITE);
+            
+            for(int i = 0; i < buttonCount; i++){
+                DrawAnimationPro(&(buttonArray[i]), buttonPosition[i], 1, WHITE, CYCLE_NONE);
+            }
 
-        bodyCount = GetPhysicsBodiesCount();
-        for(int i = 0; i < bodyCount; i++){
-            DrawPhysicsBody(i, (Color){ 230, 41, 55, 127 });
+            int bodyCount = GetPhysicsBodiesCount();
+            for(int i = 0; i < bodyCount; i++){
+                DrawPhysicsBody(i, (Color){ 230, 41, 55, 127 });
+            }
+            DrawTextureEx(playerTexture, (Vector2){player->position.x - 7, player->position.y - 15}, 0, 1, WHITE);
+
+            if(GetDisplayTextEnabled()) DrawAnimationPro(&haroldTextBox, (Vector2){21, 2}, 1, WHITE, CYCLE_FORWARD);
+            UpdateAndDrawTypingText(WHITE);
+
+            #if defined(_DEBUG)
+                // Draw equivalent mouse position on the target render-texture
+                DrawCircleLines(GetMouseX(), GetMouseY(), 10, MAROON);
+            #endif
         }
-
-        if(GetDisplayTextEnabled()) DrawAnimationPro(&haroldTextBox, (Vector2){21, 2}, 1, WHITE, CYCLE_FORWARD);
-        UpdateAndDrawTypingText(WHITE);
-
-        #if defined(_DEBUG)
-            // Draw equivalent mouse position on the target render-texture
-            DrawCircleLines(GetMouseX(), GetMouseY(), 10, MAROON);
-        #endif
     EndTextureMode();
     
     BeginDrawing();
@@ -272,7 +294,9 @@ float Vector2Mag(Vector2 v2){
     return sqrtf(v2.x * v2.x + v2.y * v2.y);
 }
 
+
 void DrawPhysicsBody(int index, Color color){
+    #ifdef _DEBUG
     PhysicsBody body = GetPhysicsBody(index);
     if(body->shape.type == PHYSICS_CIRCLE){
         
@@ -285,7 +309,7 @@ void DrawPhysicsBody(int index, Color color){
         
         DrawPoly(body->position, body->shape.vertexData.vertexCount, Vector2Mag(vertex), rotation * RAD2DEG + 45, color);
 
-        #ifdef _DEBUG
+        
             int vertexCount = GetPhysicsShapeVerticesCount(index);
             for (int j = 0; j < vertexCount; j++)
             {
@@ -298,8 +322,9 @@ void DrawPhysicsBody(int index, Color color){
 
                 DrawLineV(vertexA, vertexB, GREEN);     // Draw a line between two vertex positions
             }
-        #endif
+        
     }
+    #endif
 }
 
 
@@ -323,7 +348,22 @@ void LoadNextLevel(){
     if(levelSelect != 0) UnloadTexture(levelBackground);
     levelBackground = LoadTexture(TextFormat("./../res/Levels/grayzone_level%d.png", levelSelect + 1));
 
-    parseStructGroupInfo(readFileSF(TextFormat("./../res/level-files/%d.sf", levelSelect + 1)), DrawHaroldText);
+    int bodyCount = GetPhysicsBodiesCount();
+    for(int i = 0; i < bodyCount - 2; i++){
+        DestroyPhysicsBody(GetPhysicsBody(2));
+    }
+    ClearDisplayTextQueue();
+    ClearDisplayText();
+
+    ResetAllTriggers();
+
+    // Pre defined TriggerEvents
+    NewTriggerEvent(1, false, CreateTriggerEventFunctionData_SetForce(AddPlayerInputForce));
+    NewTriggerEvent(3, true, CreateTriggerEventFunctionData_Function(LoadNextLevel));
+
+    parseStructGroupInfo(readFileSF(TextFormat("./../res/level-files/%d.sf", levelSelect + 1)), DrawHaroldText, &startingPos);
+
+    player->position = startingPos;
 
     levelSelect++;
 }

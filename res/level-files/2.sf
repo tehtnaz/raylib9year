@@ -1,0 +1,11 @@
+// Level Boundaries
+RectPhysObj     (Vector2( 0 128 )     1.0 256.0 STATIC 0 0)
+RectPhysObj     (Vector2( 256 128 )   1.0 256.0 STATIC 0 0)
+RectPhysObj     (Vector2( 128 0 )     256.0 1.0 STATIC 0 0)
+RectPhysObj     (Vector2( 128 256 )   256.0 1.0 STATIC 0 0)
+
+// Win Trigger
+RectPhysObj(Vector2( 128 5 ), 250.0, 4.0, STATIC, 0, 3)
+
+// Spawn point
+~(128, 250)

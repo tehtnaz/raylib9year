@@ -26,7 +26,7 @@
 # Define required environment variables
 #------------------------------------------------------------------------------------------------
 # Define target platform: PLATFORM_DESKTOP, PLATFORM_WEB
-PLATFORM              ?= PLATFORM_DESKTOP
+PLATFORM              ?= PLATFORM_WEB
 
 # Define project variables
 PROJECT_NAME          ?= raylib_game
@@ -42,7 +42,7 @@ RAYLIB_INCLUDE_PATH   ?= ./../include/raylib-4.2
 RAYLIB_LIBTYPE        ?= STATIC
 
 # Build mode for project: DEBUG or RELEASE
-BUILD_MODE            ?= DEBUG
+BUILD_MODE            ?= RELEASE
 
 # Use Wayland display server protocol on Linux desktop (by default it uses X11 windowing system)
 # NOTE: This variable is only used for PLATFORM_OS: LINUX
