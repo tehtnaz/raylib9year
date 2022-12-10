@@ -70,7 +70,7 @@ void ActivateTrigger(PhysicsBody body, int triggerID){
     switch (data.type){
         case TRIGGER_FUNCTION: data.function_function(); break;
         case TRIGGER_SET_FORCE: data.function_add_force(body); break;
-        case TRIGGER_TEXT_PROMPT: data.function_text_prompt(data.texts, data.textCount); break;
+        case TRIGGER_TEXT_PROMPT: data.function_text_prompt((const char**)data.texts, data.textCount); break;
         default: printf("Invalid dataType\n");
     }
 

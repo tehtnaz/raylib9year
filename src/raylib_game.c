@@ -72,6 +72,9 @@ static Texture2D levelBackground;
 
 static GameScreen currentScreen = SCREEN_TITLE;
 
+static Music titleMusic;
+static Music gameMusic;
+
 
 //----------------------------------------------------------------------------------
 // Module Functions Declaration
@@ -103,6 +106,7 @@ int main(void){
     // Initialization
     //--------------------------------------------------------------------------------------
     InitWindow(screenWidth, screenHeight, "Grayzone");
+    InitAudioDevice();
     InitPhysics();
 
     // Render texture to draw full screen, enables screen scaling
@@ -115,14 +119,13 @@ int main(void){
     SetPhysicsAirFriction(0.01f, 0.01f);
 
     // Init player, disable dynamics
-    int tags[8] = {0};
-    tags[0] = 2;
-    tags[1] = 3;
-    player = CreatePhysicsBodyCircle((Vector2){ screenWidth/2.0f, screenHeight/2.0f }, 8, 1, tags, 2, 0);
+    player = CreatePhysicsBodyCircle((Vector2){ screenWidth/2.0f, screenHeight/2.0f }, 8, 1, 0);
+    AddTagToPhysicsBody(player, 2);
+    AddTagToPhysicsBody(player, 3);
     player->enabled = true;
     player->freezeOrient = true;
 
-    playerGrabZone = CreatePhysicsBodyCircle(player->position, 22, 1, 0, 0, 1);
+    playerGrabZone = CreatePhysicsBodyCircle(player->position, 22, 1, 1);
     playerGrabZone->enabled = false;
     playerGrabZone->freezeOrient = true;
 
@@ -133,11 +136,13 @@ int main(void){
     playerTexture = LoadTexture("./../res/Characters/player/front.png");
 
     haroldTextBox = assignProperties(0, 0, 2, true, 2, true);
-    haroldTextBox = getFromFolder(haroldTextBox, "./../res/text/harold/", true);
+    haroldTextBox = getFromFolder(haroldTextBox, "./../res/Text/harold/", true);
 
     menuAnimation = assignProperties(0, 0, 1, true, 5, true);
     menuAnimation = getFromFolder(menuAnimation, "./../res/Levels/progression/", true);
-    
+
+    titleMusic = LoadMusicStream("./../res/Music/bosstheme.mp3");
+    gameMusic = LoadMusicStream("./../res/Music/normallevel.mp3");
 
     //QueueDisplayText("My name is Walter Hartwell White. I live at 308 Negra Arroyo Lane, Albuquerque, New Mexico, 87104. This is my confession. If you're watching this tape, I'm probably dead, murdered by my brother-in-law Hank Schrader. Hank has been building a Virtual Youtuber empire for over a year now and using me as his recruiter. Shortly after my 50th birthday, Hank came to me with a rather, shocking proposition. He asked that I use my Live2D knowledge to recruit talents, which he would then hire using his connections in the Japanese utaite world. Connections that he made through his career with Niconico. I was... astounded, I... I always thought that Hank was a very moral man", (Vector2){5,5},246);
 
@@ -196,9 +201,21 @@ static void UpdateDrawFrame(void)
     if(currentScreen == SCREEN_TITLE){
         if(IsKeyPressed(KEY_SPACE)){
             currentScreen = SCREEN_GAMEPLAY;
+        }else{
+            if(!IsMusicStreamPlaying(titleMusic)){
+                PlayMusicStream(titleMusic);
+            }
+            UpdateMusicStream(titleMusic);
         }
     }
     if(currentScreen == SCREEN_GAMEPLAY){
+        if(IsMusicStreamPlaying(titleMusic)){
+            StopMusicStream(titleMusic);
+        }
+        if(!IsMusicStreamPlaying(gameMusic)){
+            PlayMusicStream(gameMusic);
+        }
+        UpdateMusicStream(gameMusic);
         if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) || IsKeyPressed(KEY_SPACE)){
             ClearDisplayText();
         }
@@ -240,7 +257,7 @@ static void UpdateDrawFrame(void)
             for(int i = 0; i < bodyCount; i++){
                 DrawPhysicsBody(i, (Color){ 230, 41, 55, 127 });
             }
-            DrawTextureEx(playerTexture, (Vector2){player->position.x - 7, player->position.y - 15}, 0, 1, WHITE);
+            DrawTextureEx(playerTexture, (Vector2){player->position.x - 7, player->position.y - 25}, 0, 1, WHITE);
 
             if(GetDisplayTextEnabled()) DrawAnimationPro(&haroldTextBox, (Vector2){21, 2}, 1, WHITE, CYCLE_FORWARD);
             UpdateAndDrawTypingText(WHITE);

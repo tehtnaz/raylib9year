@@ -215,9 +215,9 @@ PHYSACDEF void SetPhysicsGravity(float x, float y);                             
 PHYSACDEF void SetPhysicsAirFriction(float x, float y);
  
 // Physic body creation/destroy
-PHYSACDEF PhysicsBody CreatePhysicsBodyCircle(Vector2 pos, float radius, float density, unsigned int tag[PHYSAC_MAX_TAG_COUNT], int tagCount, unsigned int trigger);                    // Creates a new circle physics body with generic parameters
-PHYSACDEF PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, float density, unsigned int tag[PHYSAC_MAX_TAG_COUNT], int tagCount, unsigned int trigger);    // Creates a new rectangle physics body with generic parameters
-PHYSACDEF PhysicsBody CreatePhysicsBodyPolygon(Vector2 pos, float radius, int sides, float density, unsigned int tag[PHYSAC_MAX_TAG_COUNT], int tagCount, unsigned int trigger);        // Creates a new polygon physics body with generic parameters
+PHYSACDEF PhysicsBody CreatePhysicsBodyCircle(Vector2 pos, float radius, float density, unsigned int trigger);                    // Creates a new circle physics body with generic parameters
+PHYSACDEF PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, float density, unsigned int trigger);    // Creates a new rectangle physics body with generic parameters
+PHYSACDEF PhysicsBody CreatePhysicsBodyPolygon(Vector2 pos, float radius, int sides, float density, unsigned int trigger);        // Creates a new polygon physics body with generic parameters
 PHYSACDEF void DestroyPhysicsBody(PhysicsBody body);                                                        // Destroy a physics body
 
 PHYSACDEF void AddTagToPhysicsBody(PhysicsBody body, int tag);
@@ -410,14 +410,14 @@ void SetPhysicsAirFriction(float x, float y){
 }
 
 // Creates a new circle physics body with generic parameters
-PhysicsBody CreatePhysicsBodyCircle(Vector2 pos, float radius, float density, unsigned int tag[PHYSAC_MAX_TAG_COUNT], int tagCount, unsigned int trigger)
+PhysicsBody CreatePhysicsBodyCircle(Vector2 pos, float radius, float density, unsigned int trigger)
 {
-    PhysicsBody body = CreatePhysicsBodyPolygon(pos, radius, PHYSAC_DEFAULT_CIRCLE_VERTICES, density, tag, tagCount, trigger);
+    PhysicsBody body = CreatePhysicsBodyPolygon(pos, radius, PHYSAC_DEFAULT_CIRCLE_VERTICES, density, trigger);
     return body;
 }
 
 // Creates a new rectangle physics body with generic parameters
-PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, float density, unsigned int tag[PHYSAC_MAX_TAG_COUNT], int tagCount, unsigned int trigger)
+PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, float density, unsigned int trigger)
 {
     // NOTE: Make sure body data is initialized to 0
     PhysicsBody body = (PhysicsBody)PHYSAC_CALLOC(sizeof(PhysicsBodyData), 1);
@@ -426,13 +426,9 @@ PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, f
     int id = FindAvailableBodyIndex();
     if (id != -1)
     {
-        if(tagCount > PHYSAC_MAX_TAG_COUNT){
-            printf("[PHYSAC] - WARNING: Tag count greater mac, Result will be truncated");
+        for(int i = 0; i < PHYSAC_MAX_TAG_COUNT; i++){
+            body->tags[i] = 0;
         }
-        for(int i = 0; i < tagCount && i < PHYSAC_MAX_TAG_COUNT; i++){
-            body->tags[i] = tag[i];
-        }
-        body->tagCount = tagCount;
         body->trigger = trigger;
 
         // Initialize new body with generic values
@@ -504,7 +500,7 @@ PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, f
 }
 
 // Creates a new polygon physics body with generic parameters
-PhysicsBody CreatePhysicsBodyPolygon(Vector2 pos, float radius, int sides, float density, unsigned int tag[PHYSAC_MAX_TAG_COUNT], int tagCount, unsigned int trigger)
+PhysicsBody CreatePhysicsBodyPolygon(Vector2 pos, float radius, int sides, float density, unsigned int trigger)
 {
     PhysicsBody body = (PhysicsBody)PHYSAC_MALLOC(sizeof(PhysicsBodyData));
     usedMemory += sizeof(PhysicsBodyData);
@@ -512,13 +508,9 @@ PhysicsBody CreatePhysicsBodyPolygon(Vector2 pos, float radius, int sides, float
     int id = FindAvailableBodyIndex();
     if (id != -1)
     {
-        if(tagCount > PHYSAC_MAX_TAG_COUNT){
-            printf("[PHYSAC] - WARNING: Tag count greater mac, Result will be truncated");
+        for(int i = 0; i < PHYSAC_MAX_TAG_COUNT; i++){
+            body->tags[i] = 0;
         }
-        for(int i = 0; i < tagCount && i < PHYSAC_MAX_TAG_COUNT; i++){
-            body->tags[i] = tag[i];
-        }
-        body->tagCount = tagCount;
         body->trigger = trigger;
 
         // Initialize new body with generic values
@@ -657,7 +649,7 @@ void PhysicsShatter(PhysicsBody body, Vector2 position, float force)
                     center = MathVector2Add(bodyPos, center);
                     Vector2 offset = MathVector2Subtract(center, bodyPos);
 
-                    PhysicsBody body = CreatePhysicsBodyPolygon(center, 10, 3, 10, body->tags, body->tagCount, body->trigger);     // Create polygon physics body with relevant values
+                    PhysicsBody body = CreatePhysicsBodyPolygon(center, 10, 3, 10, body->trigger);     // Create polygon physics body with relevant values
 
                     PhysicsVertexData vertexData = { 0 };
                     vertexData.vertexCount = 3;

@@ -653,19 +653,25 @@ int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(
         {
             case CIRCLE_PHYSOBJ:
                 obj = parsePhysObj(structGroup, true);
-                body = CreatePhysicsBodyCircle(obj.pos, obj.radius, 1, obj.tags, obj.tagCount, obj.trigger);
+                body = CreatePhysicsBodyCircle(obj.pos, obj.radius, 1, obj.trigger);
+                for(int i = 0; i < obj.tagCount; i++){
+                    AddTagToPhysicsBody(body, obj.tags[i]);
+                }
                 body->freezeOrient = true;
                 body->enabled = !obj.isStatic;
                 break;
             case RECTANGLE_PHYSOBJ:
                 obj = parsePhysObj(structGroup, false);
-                body = CreatePhysicsBodyRectangle(obj.pos, obj.width, obj.height, 1, obj.tags, obj.tagCount, obj.trigger);
+                body = CreatePhysicsBodyRectangle(obj.pos, obj.width, obj.height, 1, obj.trigger);
+                for(int i = 0; i < obj.tagCount; i++){
+                    AddTagToPhysicsBody(body, obj.tags[i]);
+                }
                 body->freezeOrient = true;
                 body->enabled = !obj.isStatic;
                 break;
             case TEXT_TRIGGER:; //dumb semicolon again!!! thanks emscripten!
                 TextBoxTrigger textBox = parseTrigger(structGroup);
-                NewTriggerEvent(textBox.trigger, true, CreateTriggerEventFunctionData_TextPrompt(textBox.texts, textBox.textCount, function_harold_prompt));
+                NewTriggerEvent(textBox.trigger, true, CreateTriggerEventFunctionData_TextPrompt((const char**)textBox.texts, textBox.textCount, function_harold_prompt));
                 break;
             case PROPERTY:
                 *startingPos = parseVector2(structGroup);
