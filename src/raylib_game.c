@@ -109,7 +109,9 @@ int main(void){
     SetPhysicsGravity(0, 0);
     SetPhysicsAirFriction(0.01f, 0.01f);
     
+    // Pre defined TriggerEvents
     NewTriggerEvent(1, false, CreateTriggerEventFunctionData_SetForce(AddPlayerInputForce));
+    NewTriggerEvent(3, true, CreateTriggerEventFunctionData_Function(LoadNextLevel));
 
     // Init player, disable dynamics
     player = CreatePhysicsBodyCircle((Vector2){ screenWidth/2.0f, screenHeight/2.0f }, 8, 1, 2, 0);
@@ -120,13 +122,11 @@ int main(void){
     playerGrabZone->enabled = false;
     playerGrabZone->freezeOrient = true;
 
-    CreatePhysicsBodyCircle((Vector2){ screenWidth, screenHeight/2.0f }, 8, 1, 0, 2)->enabled = false;
+    //CreatePhysicsBodyCircle((Vector2){ screenWidth, screenHeight/2.0f }, 8, 1, 0, 2)->enabled = false;
 
-    NewTriggerEvent(2, true, CreateTriggerEventFunctionData_TextPrompt("Raining tacos", DrawHaroldText));
+    
 
-    NewTriggerEvent(3, true, CreateTriggerEventFunctionData_Function(LoadNextLevel));
-
-    parseStructGroupInfo(readFileSF("./../res/first.sf"));
+    
 
     haroldTextBox = assignProperties(0, 0, 2, true, 2, true);
     haroldTextBox = getFromFolder(haroldTextBox, "./../res/text/harold/", true);
@@ -311,6 +311,8 @@ void DrawHaroldText(const char* text){
 void LoadNextLevel(){
     if(levelSelect != 0) UnloadTexture(levelBackground);
     levelBackground = LoadTexture(TextFormat("./../res/Levels/grayzone_level%d.png", levelSelect + 1));
+
+    parseStructGroupInfo(readFileSF(TextFormat("./../res/level-files/%d.sf", levelSelect + 1)), DrawHaroldText);
 
     levelSelect++;
 }

@@ -1,4 +1,6 @@
 #include "dataHandling.h"
+#include "triggers.h"
+#include "physac.h"
 
 // --- Helpers ---
 
@@ -125,6 +127,8 @@ void readKeyword(TokenInfo* tokenInfo){
         tokenInfo->type = CIRCLE_PHYSOBJ;
     }else if(TextIsEqual(tokenInfo->text, "RectPhysObj")){
         tokenInfo->type = RECTANGLE_PHYSOBJ;
+    }else if(TextIsEqual(tokenInfo->text, "TextTrigger")){
+        tokenInfo->type = TEXT_TRIGGER;
     }else{
         printf("WARNING: readFileSF[scan/readKeyword] - [line %d] Item '%s' doesn't match any keywords \n", line, tokenInfo->text);
     }
@@ -577,11 +581,29 @@ TempPhysObj parsePhysObj(StructGroup* group, bool isCircle){
     return obj;
 }
 
-int parseStructGroupInfo(StructGroup* groupRoot){
+TextBoxTrigger parseTrigger(StructGroup* group){
+    TextBoxTrigger textBox = {0};
+    if(checkArgNumber(group, 2, "TextBoxTrigger")) return textBox;
+
+    StructGroup* temp = group->child;
+    
+    if(temp->token.type == INTEGER){
+        textBox.trigger = temp->token.integer;
+    }else{
+        printf("WARNING: parseStructGroupInfo[parseTrigger] - [line %d] Invalid argument type for arg 1\n", group->token.line);
+    }
+    temp = temp->next;
+    if(temp->token.type == STRING){
+        textBox.text = malloc(TextLength(temp->token.text) * sizeof(char));
+        TextCopy(textBox.text, temp->token.text);
+    }else{
+        printf("WARNING: parseStructGroupInfo[parseTrigger] - [line %d] Invalid argument type for arg 2\n", group->token.line);
+    }
+    return textBox;
+}
+
+int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(const char* text)){
     printf("INFO: Finalizing read with parseStructGroupInfo...\n");
-
-    // BoxCollider2D leverCache[64];
-
 
     StructGroup* structGroup = groupRoot;
     while(structGroup != NULL){
@@ -601,6 +623,10 @@ int parseStructGroupInfo(StructGroup* groupRoot){
                 body = CreatePhysicsBodyRectangle(obj.pos, obj.width, obj.height, 1, obj.tag, obj.trigger);
                 body->freezeOrient = true;
                 body->enabled = !obj.isStatic;
+                break;
+            case TEXT_TRIGGER:
+                TextBoxTrigger textBox = parseTrigger(structGroup);
+                NewTriggerEvent(textBox.trigger, true, CreateTriggerEventFunctionData_TextPrompt(textBox.text, function_harold_prompt));
                 break;
             default:
                 printf("WARNING: parseStructGroupInfo - [line %d] Received non-struct as parent group. [TOKEN_TYPE: %d] Skipping...\n", structGroup->token.line, structGroup->token.type);

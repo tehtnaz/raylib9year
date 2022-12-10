@@ -6,15 +6,23 @@ Pre-define tags / trigger
         Tag     -> Crate (grabbable object)
         Trigger -> Player grab area
     (2):
-        Tag     -> Player
-        Trigger -> Test text event
+        Tag     -> NONE
+        Trigger -> NONE
     (3):
         Tag     -> Player
         Trigger -> Next level
+    (4): (NOT IMPLEMENTED)
+        Tag     -> Player
+        Trigger -> Death trigger
+            Fade to black
 
     (9-17)
         Tag     -> Player
         Trigger -> Button
+
+    (65-129)
+        Tag     -> Player
+        Trigger -> Text prompt
 
 
 
@@ -43,6 +51,3 @@ TODO: Press any key to cancel textBox
 
 boss will have boss bar
 how attack work - spacebar to cycle DIMENSIONS
-
-
-VOID DEATH = FADE BLACK

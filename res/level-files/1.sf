@@ -3,3 +3,6 @@
 
 RectPhysObj     (Vector2( 10 10 )   10. 10. DYNAMIC 1 0)
 CirclePhysObj   (Vector2( 50 50 )   20.     STATIC  0 1)
+TextTrigger     (2, "Hello")
+
+CirclePhysObj   (Vector2( 256 128 ) 8. STATIC 0 2)

@@ -150,7 +150,7 @@ endif
 # Define include paths for required headers: INCLUDE_PATHS
 # NOTE: Some external/extras libraries could be required (stb, physac, easings...)
 #------------------------------------------------------------------------------------------------
-INCLUDE_PATHS := -I. -I $(RAYLIB_INCLUDE_PATH) -I $(DEFAULT_INCLUDE_PATH)/physac -I ./dataHandling -I ./animation
+INCLUDE_PATHS := -I. -I $(RAYLIB_INCLUDE_PATH) -I $(DEFAULT_INCLUDE_PATH)/physac -I ./dataHandling -I ./animation -I ./triggers
 
 ifeq ($(PLATFORM),PLATFORM_WEB)
     INCLUDE_PATHS += -I $(EMSCRIPTEN_INCLUDE_PATH)
@@ -251,7 +251,8 @@ endif
 PROJECT_SOURCE_FILES ?= \
     raylib_game.c \
     dataHandling/dataHandling.c \
-    animation/animation.c
+    animation/animation.c \
+    triggers/triggers.c
 
 # Define all object files from source files
 # OBJS = $(patsubst %.c, %.o, $(PROJECT_SOURCE_FILES))

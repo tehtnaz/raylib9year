@@ -4,7 +4,6 @@
 #include <math.h>
 //#include "levelStructs.h"
 #include "raylib.h"
-#include "physac.h"
 
 #pragma once
 
@@ -37,7 +36,8 @@ typedef enum TOKEN_TYPE{
 
         //root structs
         CIRCLE_PHYSOBJ,
-        RECTANGLE_PHYSOBJ
+        RECTANGLE_PHYSOBJ,
+        TEXT_TRIGGER
 
 }TOKEN_TYPE;
 
@@ -70,10 +70,15 @@ typedef struct TempPhysObj{
     unsigned int trigger;
 } TempPhysObj;
 
+typedef struct TextBoxTrigger{
+    int trigger;
+    char* text;
+}TextBoxTrigger;
+
 StructGroup* readFileSF(const char* path);
 
 #ifdef _DEBUG
 #define DEBUG_DATA_HANDLING
 #endif
 
-int parseStructGroupInfo(StructGroup* groupRoot);
+int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(const char* text));
