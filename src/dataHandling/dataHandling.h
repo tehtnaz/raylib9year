@@ -66,13 +66,15 @@ typedef struct TempPhysObj{
     float width;    // for recs
     float height;   // for recs
     bool isStatic;
-    unsigned int tag;
+    unsigned int* tags;
+    int tagCount;
     unsigned int trigger;
 } TempPhysObj;
 
 typedef struct TextBoxTrigger{
     int trigger;
-    char* text;
+    char** texts;
+    int textCount;
 }TextBoxTrigger;
 
 StructGroup* readFileSF(const char* path);
@@ -81,4 +83,4 @@ StructGroup* readFileSF(const char* path);
 #define DEBUG_DATA_HANDLING
 #endif
 
-int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(const char* text));
+int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(const char** texts, int textCount));

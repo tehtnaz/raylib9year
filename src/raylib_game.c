@@ -8,7 +8,7 @@
 #include <stdio.h>                          // Required for: printf()
 #include <stdlib.h>                         // Required for: 
 
-#include "display_text.h"
+#include "displayText.h"
 #include "triggers.h"
 #include "animation.h"
 
@@ -82,7 +82,7 @@ void DrawPhysicsBody(int index, Color color);
 //--------------------------------------------------------------------------------------------
 
 void AddPlayerInputForce(PhysicsBody body);
-void DrawHaroldText(const char* text);
+void DrawHaroldText(const char** texts, int textCount);
 void LoadNextLevel();
 
 //------------------------------------------------------------------------------------
@@ -114,11 +114,14 @@ int main(void){
     NewTriggerEvent(3, true, CreateTriggerEventFunctionData_Function(LoadNextLevel));
 
     // Init player, disable dynamics
-    player = CreatePhysicsBodyCircle((Vector2){ screenWidth/2.0f, screenHeight/2.0f }, 8, 1, 2, 0);
+    int tags[8] = {0};
+    tags[0] = 2;
+    tags[1] = 3;
+    player = CreatePhysicsBodyCircle((Vector2){ screenWidth/2.0f, screenHeight/2.0f }, 8, 1, tags, 2, 0);
     player->enabled = true;
     player->freezeOrient = true;
 
-    playerGrabZone = CreatePhysicsBodyCircle(player->position, 22, 1, 0, 1);
+    playerGrabZone = CreatePhysicsBodyCircle(player->position, 22, 1, 0, 0, 1);
     playerGrabZone->enabled = false;
     playerGrabZone->freezeOrient = true;
 
@@ -132,7 +135,7 @@ int main(void){
     haroldTextBox = getFromFolder(haroldTextBox, "./../res/text/harold/", true);
     
 
-    //NewDisplayText("My name is Walter Hartwell White. I live at 308 Negra Arroyo Lane, Albuquerque, New Mexico, 87104. This is my confession. If you're watching this tape, I'm probably dead, murdered by my brother-in-law Hank Schrader. Hank has been building a Virtual Youtuber empire for over a year now and using me as his recruiter. Shortly after my 50th birthday, Hank came to me with a rather, shocking proposition. He asked that I use my Live2D knowledge to recruit talents, which he would then hire using his connections in the Japanese utaite world. Connections that he made through his career with Niconico. I was... astounded, I... I always thought that Hank was a very moral man", (Vector2){5,5},246);
+    //QueueDisplayText("My name is Walter Hartwell White. I live at 308 Negra Arroyo Lane, Albuquerque, New Mexico, 87104. This is my confession. If you're watching this tape, I'm probably dead, murdered by my brother-in-law Hank Schrader. Hank has been building a Virtual Youtuber empire for over a year now and using me as his recruiter. Shortly after my 50th birthday, Hank came to me with a rather, shocking proposition. He asked that I use my Live2D knowledge to recruit talents, which he would then hire using his connections in the Japanese utaite world. Connections that he made through his career with Niconico. I was... astounded, I... I always thought that Hank was a very moral man", (Vector2){5,5},246);
 
     LoadNextLevel();
 
@@ -143,7 +146,7 @@ int main(void){
         //--------------------------------------------------------------------------------------
 
         // Main game loop
-        while (!WindowShouldClose()){
+            while (!WindowShouldClose()){
             UpdateDrawFrame();
         }
     #endif
@@ -182,6 +185,10 @@ static void UpdateDrawFrame(void)
         
         prevScreenScale = screenScale;
     }
+
+    if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+        ClearDisplayText();
+    }
     
     // 
     //----------------------------------------------------------------------------------
@@ -214,7 +221,7 @@ static void UpdateDrawFrame(void)
             DrawPhysicsBody(i, (Color){ 230, 41, 55, 127 });
         }
 
-        if(displayTextEnabled) DrawAnimationPro(&haroldTextBox, (Vector2){21, 2}, 1, WHITE, CYCLE_FORWARD);
+        if(GetDisplayTextEnabled()) DrawAnimationPro(&haroldTextBox, (Vector2){21, 2}, 1, WHITE, CYCLE_FORWARD);
         UpdateAndDrawTypingText(WHITE);
 
         #if defined(_DEBUG)
@@ -304,11 +311,15 @@ void AddPlayerInputForce(PhysicsBody body){
     if(IsKeyDown(KEY_E))body->velocity = player->velocity;
 }
 
-void DrawHaroldText(const char* text){
-    NewDisplayText(text, (Vector2){79, 9}, 150);
+void DrawHaroldText(const char** texts, int textCount){
+    printf("Queued: %d\n", textCount);
+    for(int i = 0; i < textCount; i++){
+        QueueDisplayText(texts[i], (Vector2){79, 9}, 150);
+    }
 }
 
 void LoadNextLevel(){
+    LOG("DEBUG: Attemping to load next level...\n");
     if(levelSelect != 0) UnloadTexture(levelBackground);
     levelBackground = LoadTexture(TextFormat("./../res/Levels/grayzone_level%d.png", levelSelect + 1));
 

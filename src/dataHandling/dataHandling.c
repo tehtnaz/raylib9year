@@ -76,7 +76,14 @@ void readNumber(TokenInfo* tokenInfo){
     tokenInfo->type = INTEGER;
     string = (char*)calloc(stringSize, sizeof(char));
     string[0] = ch;
-    for(int i = 1; isDigit(peek); i++){
+    int i = 1;
+    if(peek == '.'){
+        i++;
+        advanceChar();
+        string[i] = ch;
+        tokenInfo->type = FLOAT;
+    }
+    for(; isDigit(peek); i++){
         if(i == stringSize){
             stringSize *= 2;
             string = (char*)realloc(string, sizeof(char) * stringSize);
@@ -84,7 +91,9 @@ void readNumber(TokenInfo* tokenInfo){
         advanceChar();
         string[i] = ch;
         if(peek == '.'){
+            i++;
             advanceChar();
+            string[i] = ch;
             tokenInfo->type = FLOAT;
         }
     }
@@ -316,7 +325,7 @@ StructGroup* readFileSF(const char* path){
     #ifdef DEBUG_DATA_HANDLING
     structGroup = groupRoot;
     for(int i = 0; structGroup != NULL;){
-        printf("\n---GROUP %d---\n", i);
+        printf("---GROUP %d---\n", i);
         tokenInfo = &structGroup->token;
         if(tokenInfo->type == INTEGER){
             printf("type: %d | line: %d | int: %d | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->integer, tokenInfo);
@@ -327,12 +336,12 @@ StructGroup* readFileSF(const char* path){
             printf("type: %d | line: %d | text: %s | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->text, tokenInfo);
         }
         if(structGroup->child != NULL){
-            printf("\nvv- ENTER CHILD -vv\n");
+            printf("\nvv- ENTER CHILD -vv\n\n");
             structGroup = structGroup->child;
         }else if(structGroup->next != NULL){
             structGroup = structGroup->next;
         }else{
-            printf("\n^^- REENTER PARENT -^^\n");
+            printf("\n^^- REENTER PARENT -^^\n\n");
             while (structGroup != NULL && structGroup->next == NULL)
             {
                 structGroup = structGroup->parent;
@@ -420,7 +429,7 @@ StructGroup* readFileSF(const char* path){
     #ifdef DEBUG_DATA_HANDLING
     structGroup = groupRoot;
     for(int i = 0; structGroup != NULL;){
-        printf("\n---GROUP %d---\n", i);
+        printf("---GROUP %d---\n", i);
         tokenInfo = &structGroup->token;
         if(tokenInfo->type == INTEGER){
             printf("type: %d | line: %d | int: %d | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->integer, tokenInfo);
@@ -431,12 +440,12 @@ StructGroup* readFileSF(const char* path){
             printf("type: %d | line: %d | text: DISABLED | loc: %p\n", tokenInfo->type, tokenInfo->line, /*tokenInfo->text,*/ tokenInfo);
         }
         if(structGroup->child != NULL){
-            printf("\nvv- ENTER CHILD -vv\n");
+            printf("\nvv- ENTER CHILD -vv\n\n");
             structGroup = structGroup->child;
         }else if(structGroup->next != NULL){
             structGroup = structGroup->next;
         }else{
-            printf("\n^^- REENTER PARENT -^^\n");
+            printf("\n^^- REENTER PARENT -^^\n\n");
             while (structGroup != NULL && structGroup->next == NULL)
             {
                 structGroup = structGroup->parent;
@@ -526,6 +535,7 @@ Rectangle parseRectangle(StructGroup* group){
 
 TempPhysObj parsePhysObj(StructGroup* group, bool isCircle){
     TempPhysObj obj = {0};
+    //printf("arg num: %d", childNum(group));
     if(isCircle && checkArgNumber(group, 5, "CirclePhysObj")) return obj;
     if(!isCircle && checkArgNumber(group, 6, "RectanglePhysObj")) return obj;
 
@@ -559,14 +569,25 @@ TempPhysObj parsePhysObj(StructGroup* group, bool isCircle){
     temp = temp->next;
     obj.isStatic = temp->token.type == TRUE;
     temp = temp->next;
-    if(temp->token.type == INTEGER){
-        if(temp->token.integer >= 0){
-            obj.tag = temp->token.integer;
-        }else{
-            printf("WARNING: parseStructGroupInfo[parsePhysObj] - [line %d] Tag cannot be negative\n", group->token.line);
+    if(temp->token.type == NO_TYPE){
+        int tagCount = 8;
+        obj.tags = malloc(tagCount * sizeof(unsigned int));
+        temp = temp->child;
+        for(int i = 0; temp != NULL; i++){
+            if(temp->token.type != INTEGER){
+                printf("WARNING: parseStructGroupInfo[parsePhysObj] - [line %d] Invalid type for what should be inside an INTEGER array\n", group->token.line);
+                break;
+            }
+            if(i == (tagCount - 1)){
+                tagCount *= 2;
+                obj.tags = realloc(obj.tags, sizeof(unsigned int) * tagCount);
+            }
+            obj.tags[i] = temp->token.integer;
+            obj.tagCount++;
+            temp = temp->next;
         }
     }else{
-        printf("WARNING: parseStructGroupInfo[parsePhysObj] - [line %d] Invalid argument type for second to last arg\n", group->token.line);
+        printf("WARNING: parseStructGroupInfo[parseTrigger] - [line %d] Invalid argument type for arg 2\n", group->token.line);
     }
     temp = temp->next;
     if(temp->token.type == INTEGER){
@@ -593,16 +614,31 @@ TextBoxTrigger parseTrigger(StructGroup* group){
         printf("WARNING: parseStructGroupInfo[parseTrigger] - [line %d] Invalid argument type for arg 1\n", group->token.line);
     }
     temp = temp->next;
-    if(temp->token.type == STRING){
-        textBox.text = malloc(TextLength(temp->token.text) * sizeof(char));
-        TextCopy(textBox.text, temp->token.text);
+    if(temp->token.type == NO_TYPE){
+        int textCount = 8;
+        textBox.texts = malloc(textCount * sizeof(char*));
+        temp = temp->child;
+        for(int i = 0; temp != NULL; i++){
+            if(temp->token.type != STRING){
+                printf("WARNING: parseStructGroupInfo[parseTrigger] - [line %d] Invalid type for what should be inside a STRING array\n", group->token.line);
+                break;
+            }
+            if(i == (textCount - 1)){
+                textCount *= 2;
+                textBox.texts = realloc(textBox.texts, sizeof(char*) * textCount);
+            }
+            textBox.texts[i] = calloc(TextLength(temp->token.text), sizeof(char));
+            TextCopy(textBox.texts[i], temp->token.text);
+            textBox.textCount++;
+            temp = temp->next;
+        }
     }else{
         printf("WARNING: parseStructGroupInfo[parseTrigger] - [line %d] Invalid argument type for arg 2\n", group->token.line);
     }
     return textBox;
 }
 
-int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(const char* text)){
+int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(const char** texts, int textCount)){
     printf("INFO: Finalizing read with parseStructGroupInfo...\n");
 
     StructGroup* structGroup = groupRoot;
@@ -614,19 +650,19 @@ int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(
         {
             case CIRCLE_PHYSOBJ:
                 obj = parsePhysObj(structGroup, true);
-                body = CreatePhysicsBodyCircle(obj.pos, obj.radius, 1, obj.tag, obj.trigger);
+                body = CreatePhysicsBodyCircle(obj.pos, obj.radius, 1, obj.tags, obj.tagCount, obj.trigger);
                 body->freezeOrient = true;
                 body->enabled = !obj.isStatic;
                 break;
             case RECTANGLE_PHYSOBJ:
                 obj = parsePhysObj(structGroup, false);
-                body = CreatePhysicsBodyRectangle(obj.pos, obj.width, obj.height, 1, obj.tag, obj.trigger);
+                body = CreatePhysicsBodyRectangle(obj.pos, obj.width, obj.height, 1, obj.tags, obj.tagCount, obj.trigger);
                 body->freezeOrient = true;
                 body->enabled = !obj.isStatic;
                 break;
             case TEXT_TRIGGER:
                 TextBoxTrigger textBox = parseTrigger(structGroup);
-                NewTriggerEvent(textBox.trigger, true, CreateTriggerEventFunctionData_TextPrompt(textBox.text, function_harold_prompt));
+                NewTriggerEvent(textBox.trigger, true, CreateTriggerEventFunctionData_TextPrompt(textBox.texts, textBox.textCount, function_harold_prompt));
                 break;
             default:
                 printf("WARNING: parseStructGroupInfo - [line %d] Received non-struct as parent group. [TOKEN_TYPE: %d] Skipping...\n", structGroup->token.line, structGroup->token.type);

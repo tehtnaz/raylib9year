@@ -15,12 +15,16 @@ TriggerEventFunctionData CreateTriggerEventFunctionData_SetForce(void (*function
     data.function_add_force = function_add_force;
     return data;
 }
-TriggerEventFunctionData CreateTriggerEventFunctionData_TextPrompt(const char* text, void (*function_text_prompt)(const char* text)){
+TriggerEventFunctionData CreateTriggerEventFunctionData_TextPrompt(const char** texts, int textCount, void (*function_text_prompt)(const char** texts, int textCount)){
     TriggerEventFunctionData data;
     data.type = TRIGGER_TEXT_PROMPT;
     data.function_text_prompt = function_text_prompt;
-    data.text = calloc(TextLength(text), sizeof(char));
-    TextCopy(data.text, text);
+    data.texts = malloc(textCount * sizeof(char*));
+    for(int i = 0; i < textCount; i++){
+        data.texts[i] = calloc(TextLength(texts[i]), sizeof(char));
+        TextCopy(data.texts[i], texts[i]);
+    }
+    data.textCount = textCount;
     return data;
 }
 TriggerEventFunctionData CreateTriggerEventFunctionData_Function(void (*function_function)()){
@@ -66,7 +70,7 @@ void ActivateTrigger(PhysicsBody body, int triggerID){
     switch (data.type){
         case TRIGGER_FUNCTION: data.function_function(); break;
         case TRIGGER_SET_FORCE: data.function_add_force(body); break;
-        case TRIGGER_TEXT_PROMPT: data.function_text_prompt(data.text); break;
+        case TRIGGER_TEXT_PROMPT: data.function_text_prompt(data.texts, data.textCount); break;
         default: printf("Invalid dataType\n");
     }
 
@@ -78,12 +82,16 @@ void ActivateAllContactedTriggers(){
         //printf("aID: %d bID: %d cc: %d| ", contacts[i]->bodyA->id, contacts[i]->bodyB->id, contacts[i]->contactsCount);
         PhysicsManifold manifold = GetPhysicsManifold(i);
         if(manifold->contactsCount > 0){
-            if(manifold->bodyA->tag == manifold->bodyB->trigger){
-                ActivateTrigger(manifold->bodyA, manifold->bodyB->trigger);
+            for(int i = 0; i < manifold->bodyA->tagCount; i++){
+                if(manifold->bodyA->tags[i] == manifold->bodyB->trigger){
+                    ActivateTrigger(manifold->bodyA, manifold->bodyB->trigger);
+                }
             }
 
-            if(manifold->bodyB->tag == manifold->bodyA->trigger){
-                ActivateTrigger(manifold->bodyB, manifold->bodyA->trigger);
+            for(int i = 0; i < manifold->bodyB->tagCount; i++){
+                if(manifold->bodyB->tags[i] == manifold->bodyA->trigger){
+                    ActivateTrigger(manifold->bodyB, manifold->bodyA->trigger);
+                }
             }
         }
     }
