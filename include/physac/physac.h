@@ -430,6 +430,7 @@ PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, f
             body->tags[i] = 0;
         }
         body->trigger = trigger;
+        body->tagCount = 0;
 
         // Initialize new body with generic values
         body->id = id;
@@ -512,6 +513,7 @@ PhysicsBody CreatePhysicsBodyPolygon(Vector2 pos, float radius, int sides, float
             body->tags[i] = 0;
         }
         body->trigger = trigger;
+        body->tagCount = 0;
 
         // Initialize new body with generic values
         body->id = id;

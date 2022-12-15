@@ -275,7 +275,7 @@ static void UpdateDrawFrame(void)
         // Draw render texture to screen scaled as required
         DrawTexturePro(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, -(float)target.texture.height }, (Rectangle){ 0, 0, (float)target.texture.width*screenScale, (float)target.texture.height*screenScale }, (Vector2){ 0, 0 }, 0.0f, WHITE);
         
-
+        DrawText(TextFormat("x:%d\ny:%d", GetMouseX(), GetMouseY()), 0, 0, 40, WHITE);
     EndDrawing();
     //----------------------------------------------------------------------------------  
 }
@@ -321,10 +321,10 @@ void DrawPhysicsBody(int index, Color color){
     }else{
         // You're a polygon I guess
 
-        float rotation = acos(body->shape.transform.m00);
-        Vector2 vertex = MathVector2Subtract(GetPhysicsShapeVertex(body, 0), body->position);
+        //float rotation = acos(body->shape.transform.m00);
+        //Vector2 vertex = MathVector2Subtract(GetPhysicsShapeVertex(body, 0), body->position);
         
-        DrawPoly(body->position, body->shape.vertexData.vertexCount, Vector2Mag(vertex), rotation * RAD2DEG + 45, color);
+        //DrawPoly(body->position, body->shape.vertexData.vertexCount, Vector2Mag(vertex), rotation * RAD2DEG + 45, color);
 
         
             int vertexCount = GetPhysicsShapeVerticesCount(index);

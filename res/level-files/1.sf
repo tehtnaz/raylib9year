@@ -24,5 +24,23 @@ TextTrigger     (2,
     "USE WASD TO MOVE"])
 CirclePhysObj   (Vector2( 128 250 ) 8.0 STATIC 0 2)
 
+/ RectPhysObj   (Vector2( 128 200 ) 8.0 8.0 DYNAMIC [1 128 334] 0)
+
 // Spawn point
 ~(128, 250)
+
+
+// Map collision
+
+// Left
+RectPhysObj     (Vector2( 22 75 )   44.0 151.0 STATIC [0] 0)
+//CirclePhysObj   (Vector2( 32 149 )   13.0     STATIC  0 0)
+RectPhysObj     (Vector2( 17 179 )   35.0 37.0 STATIC 0 0)
+//RectPhysObj     (Vector2( 26 210 )   54.0 23.0 STATIC 0 0)
+//CirclePhysObj   (Vector2( 39 247 )   20.0     STATIC  0 0)
+
+// Right
+RectPhysObj     (Vector2( 234 192 )   47.0 128.0 STATIC 0 0)
+//CirclePhysObj   (Vector2( 223 122 ) 12.0 STATIC 0 0 )
+//CirclePhysObj   (Vector2( 233 122 ) 12.0 STATIC 0 0 )
+RectPhysObj     (Vector2( 227 24 )   64.0 28.0 STATIC 0 0)

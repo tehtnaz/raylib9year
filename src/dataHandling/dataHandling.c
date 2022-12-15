@@ -571,10 +571,11 @@ TempPhysObj parsePhysObj(StructGroup* group, bool isCircle){
     obj.isStatic = temp->token.type == TRUE;
     temp = temp->next;
     if(temp->token.type == NO_TYPE){
+        obj.tagCount = 0;
         int tagCount = 8;
         obj.tags = malloc(tagCount * sizeof(unsigned int));
         temp = temp->child;
-        for(int i = 0; temp != NULL; i++){
+        for(int i = 0; temp->next != NULL; i++){
             if(temp->token.type != INTEGER){
                 printf("WARNING: parseStructGroupInfo[parsePhysObj] - [line %d] Invalid type for what should be inside an INTEGER array\n", group->token.line);
                 break;
@@ -587,8 +588,23 @@ TempPhysObj parsePhysObj(StructGroup* group, bool isCircle){
             obj.tagCount++;
             temp = temp->next;
         }
+        if(temp->token.type != INTEGER){
+            printf("WARNING: parseStructGroupInfo[parsePhysObj] - [line %d] Invalid type for what should be inside an INTEGER array\n", group->token.line);
+        }else{
+            if(obj.tagCount == (tagCount - 1)){
+                tagCount *= 2;
+                obj.tags = realloc(obj.tags, sizeof(unsigned int) * tagCount);
+            }
+            obj.tags[obj.tagCount] = temp->token.integer;
+            obj.tagCount++;
+        }
+        temp = temp->parent;
+    }else if(temp->token.type == INTEGER){
+        obj.tagCount = 1;
+        obj.tags = malloc(sizeof(unsigned int));
+        obj.tags[0] = temp->token.integer;
     }else{
-        printf("WARNING: parseStructGroupInfo[parseTrigger] - [line %d] Invalid argument type for arg 2\n", group->token.line);
+        printf("WARNING: parseStructGroupInfo[parsePhysObj] - [line %d] Invalid argument type for arg 2\n", group->token.line);
     }
     temp = temp->next;
     if(temp->token.type == INTEGER){
