@@ -55,9 +55,13 @@ static unsigned int prevScreenScale = 1;
 static RenderTexture2D target = { 0 };  // Initialized at init
 
 static Vector2 startingPos = {128, 128};
-static Texture2D playerTexture;
 static PhysicsBody player;
 static PhysicsBody playerGrabZone;
+
+static Texture2D playerBackward;
+static Texture2D playerForward;
+static Animation playerRunBackward;
+static Animation playerRunForward;
 
 static Animation haroldTextBox;
 static Animation menuAnimation;
@@ -134,7 +138,13 @@ int main(void){
 
     
 
-    playerTexture = LoadTexture("./../res/Characters/player/front.png");
+    playerBackward = LoadTexture("./../res/Characters/player/backward.png");
+    playerForward = LoadTexture("./../res/Characters/player/forward.png");
+
+    playerRunBackward = assignProperties(0, 0, 8, true, 3, false);
+    playerRunBackward = getFromFolder(playerRunBackward, "./../res/Characters/player/running_backward/", true);
+    playerRunForward = assignProperties(0, 0, 8, true, 3, false);
+    playerRunForward = getFromFolder(playerRunForward, "./../res/Characters/player/running_forward/", true);
 
     haroldTextBox = assignProperties(0, 0, 2, true, 2, true);
     haroldTextBox = getFromFolder(haroldTextBox, "./../res/Text/harold/", true);
@@ -258,7 +268,12 @@ static void UpdateDrawFrame(void)
             for(int i = 0; i < bodyCount; i++){
                 DrawPhysicsBody(i, (Color){ 230, 41, 55, 127 });
             }
-            DrawTextureEx(playerTexture, (Vector2){player->position.x - 7, player->position.y - 25}, 0, 1, WHITE);
+            Vector2 input = GetKeyInputForce((Vector2){0, 0});
+            if(input.x != 0 || input.y != 0){
+                DrawAnimationPro(player->velocity.y < 0 ? &playerRunForward : &playerRunBackward, (Vector2){player->position.x - 7, player->position.y - 25}, 1, WHITE, CYCLE_SHAKE);
+            }else{
+                DrawTextureEx(player->velocity.y < 0 ? playerForward : playerBackward, (Vector2){player->position.x - 7, player->position.y - 25}, 0, 1, WHITE);
+            }
 
             if(GetDisplayTextEnabled()) DrawAnimationPro(&haroldTextBox, (Vector2){21, 2}, 1, WHITE, CYCLE_FORWARD);
             UpdateAndDrawTypingText(WHITE);
@@ -276,7 +291,9 @@ static void UpdateDrawFrame(void)
         // Draw render texture to screen scaled as required
         DrawTexturePro(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, -(float)target.texture.height }, (Rectangle){ 0, 0, (float)target.texture.width*screenScale, (float)target.texture.height*screenScale }, (Vector2){ 0, 0 }, 0.0f, WHITE);
         
-        DrawText(TextFormat("x:%d\ny:%d", GetMouseX(), GetMouseY()), 0, 0, 40, WHITE);
+        #if defined(_DEBUG)
+            DrawText(TextFormat("x:%d\ny:%d", GetMouseX(), GetMouseY()), 0, 0, 40, WHITE);
+        #endif
     EndDrawing();
     //----------------------------------------------------------------------------------  
 }
