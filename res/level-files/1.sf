@@ -1,22 +1,47 @@
 / pos; width; height; isStatic; tagArray; trigger
 / pos; radius; isStatic; tagArray; trigger
 
-/ RectPhysObj     (Vector2( 10 10 )   10.0 10.0 DYNAMIC 1 0)
+// FOR PHYSOBJ, POSITION IS AT CENTER
+/ RectPhysObj     (Vector2( 10 10 )   10.0 10.0  DYNAMIC 1 0)            / - single tag
+/ RectPhysObj     (Vector2( 128 200 ) 8.0  8.0   DYNAMIC [1 128 334] 0)  / - multi tag
 / CirclePhysObj   (Vector2( 50 50 )   20.0     STATIC  0 1)
-
-// Level Boundaries
-RectPhysObj     (Vector2( 0 128 )     1.0 256.0 STATIC 0 0)
-RectPhysObj     (Vector2( 256 128 )   1.0 256.0 STATIC 0 0)
-RectPhysObj     (Vector2( 128 0 )     256.0 1.0 STATIC 0 0)
-RectPhysObj     (Vector2( 128 256 )   256.0 1.0 STATIC 0 0)
-
-//Win Trigger
-RectPhysObj(Vector2( 128 5 ), 250.0, 4.0, STATIC, 0, 3)
 
 / Text trigger + physobj group forms a fully functional trigger
 / text trigger arg 2 = string array (remember, "[]" and "()" are interchangeable )
-
 / triggerId; textArray
+
+// only 1 property (startingPos), so name isn't verified
+
+
+// Spawn point
+~(128, 250)
+
+// Map collision
+    // Level Boundaries
+    RectPhysObj     (Vector2( 0 128 )     1.0 256.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 256 128 )   1.0 256.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 128 0 )     256.0 1.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 128 256 )   256.0 1.0 STATIC 0 0)
+
+    // Win Trigger
+    RectPhysObj(Vector2( 128 5 ), 250.0, 4.0, STATIC, 0, 3)
+
+    // Left
+    RectPhysObj     (Vector2( 22 75 )   44.0 151.0 STATIC [0] 0)
+    CirclePhysObj   (Vector2( 32 149 )   13.0     STATIC  0 0)
+    RectPhysObj     (Vector2( 17 179 )   35.0 37.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 26 210 )   54.0 23.0 STATIC 0 0)
+    CirclePhysObj   (Vector2( 39 247 )   20.0     STATIC  0 0)
+
+    // Right
+    RectPhysObj     (Vector2( 234 192 )   47.0 128.0 STATIC 0 0)
+    CirclePhysObj   (Vector2( 223 122 ) 12.0 STATIC 0 0 )
+    RectPhysObj     (Vector2( 227 24 )   64.0 28.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 232 92 )  47.0 16.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 237 73) 38.0 71.0 STATIC 0 0)
+
+
+// Begin Text
 TextTrigger     (65, 
     ["Hello fellow adventurer! My name is Harold, and I like cats!"
     "As you can see, you are in our newest institution! THE 1J7B!"
@@ -24,27 +49,3 @@ TextTrigger     (65,
     "Guess I'll have to help you \nthen."
     "USE WASD TO MOVE"])
 CirclePhysObj   (Vector2( 128 250 ) 8.0 STATIC 0 65)
-
-/ RectPhysObj   (Vector2( 128 200 ) 8.0 8.0 DYNAMIC [1 128 334] 0)
-
-// Spawn point
-~(128, 250)
-
-
-// Map collision
-
-// Left
-RectPhysObj     (Vector2( 22 75 )   44.0 151.0 STATIC [0] 0)
-CirclePhysObj   (Vector2( 32 149 )   13.0     STATIC  0 0)
-RectPhysObj     (Vector2( 17 179 )   35.0 37.0 STATIC 0 0)
-RectPhysObj     (Vector2( 26 210 )   54.0 23.0 STATIC 0 0)
-CirclePhysObj   (Vector2( 39 247 )   20.0     STATIC  0 0)
-
-// Right
-RectPhysObj     (Vector2( 234 192 )   47.0 128.0 STATIC 0 0)
-CirclePhysObj   (Vector2( 223 122 ) 12.0 STATIC 0 0 )
-RectPhysObj     (Vector2( 227 24 )   64.0 28.0 STATIC 0 0)
-RectPhysObj     (Vector2( 232 92 )  47.0 16.0 STATIC 0 0)
-RectPhysObj     (Vector2( 237 73) 38.0 71.0 STATIC 0 0)
-
-// FOR PHYSOBJ, POSITION IS AT CENTER
