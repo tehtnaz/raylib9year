@@ -138,6 +138,14 @@ void readKeyword(TokenInfo* tokenInfo){
         tokenInfo->type = RECTANGLE_PHYSOBJ;
     }else if(TextIsEqual(tokenInfo->text, "TextTrigger")){
         tokenInfo->type = TEXT_TRIGGER;
+    }else if(TextIsEqual(tokenInfo->text, "Button")){
+        tokenInfo->type = BUTTON;
+    }else if(TextIsEqual(tokenInfo->text, "Door")){
+        tokenInfo->type = DOOR;
+    }else if(TextIsEqual(tokenInfo->text, "Portal")){
+        tokenInfo->type = PORTAL;
+    }else if(TextIsEqual(tokenInfo->text, "Wire")){
+        tokenInfo->type = WIRE;
     }else{
         printf("WARNING: readFileSF[scan/readKeyword] - [line %d] Item '%s' doesn't match any keywords \n", line, tokenInfo->text);
     }

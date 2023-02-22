@@ -396,7 +396,7 @@ void LoadNextLevel(){
     NewTriggerEvent(1, false, CreateTriggerEventFunctionData_SetForce(AddPlayerInputForce));
     NewTriggerEvent(3, true, CreateTriggerEventFunctionData_Function(LoadNextLevel));
 
-    parseStructGroupInfo(readFileSF(TextFormat("./../res/level-files/%d.sf", levelSelect + 1)), DrawHaroldText, &startingPos);
+    parseStructGroupInfo(readFileSF(TextFormat("./../res/LevelFiles/%d.sf", levelSelect + 1)), DrawHaroldText, &startingPos);
 
     player->position = startingPos;
 

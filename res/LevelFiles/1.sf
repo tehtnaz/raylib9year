@@ -1,5 +1,19 @@
-/ pos; width; height; isStatic; tagArray; trigger
-/ pos; radius; isStatic; tagArray; trigger
+// Arguments
+// RectPhysObj   - pos; width; height; isStatic; tagArray; trigger
+// CirclePhysObj - pos; radius; isStatic; tagArray; trigger
+// TextTrigger   - trigger; textArray
+// Wire          - wireId (sprite to load); trigger
+    // trigger changes sprite to activated
+// Button        - pos; trigger
+    // phys hitbox is RectPhysObj
+// Portal        - pos; colour
+    // colour is a string ("blue", "green", "red", or "yellow")
+    // phys hitbox is CirclePhysObj
+
+// UNFINISHED SPEC
+// Door          - pos; doorType
+    // phys hitbox can be very different due to different door types
+
 
 // FOR PHYSOBJ, POSITION IS AT CENTER
 / RectPhysObj     (Vector2( 10 10 )   10.0 10.0  DYNAMIC 1 0)            / - single tag

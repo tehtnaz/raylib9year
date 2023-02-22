@@ -38,6 +38,10 @@ typedef enum TOKEN_TYPE{
         CIRCLE_PHYSOBJ,
         RECTANGLE_PHYSOBJ,
         TEXT_TRIGGER,
+        BUTTON,
+        DOOR,
+        PORTAL,
+        WIRE,
         PROPERTY
 
 }TOKEN_TYPE;
