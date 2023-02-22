@@ -25,8 +25,10 @@
 
 # Define required environment variables
 #------------------------------------------------------------------------------------------------
-# Define target platform: PLATFORM_DESKTOP, PLATFORM_WEB
+# Define target platform: PLATFORM_DESKTOP, PLATFORM_WEB, PLATFORM_MINGW_WINDOWS
 PLATFORM              ?= PLATFORM_DESKTOP
+# ENABLE OR DISABLE MINGW COMPILE (LINUX ONLY)
+MINGW                 ?= DISABLE
 
 # Define project variables
 PROJECT_NAME          ?= raylib_game
@@ -66,10 +68,10 @@ ifeq ($(PLATFORM),PLATFORM_DESKTOP)
         PLATFORM_OS = WINDOWS
         RAYLIB_LIB_PATH ?= ./../lib/raylib-4.2-windows
     else
-        UNAMEOS = $(shell uname)
-        ifeq ($(UNAMEOS),Linux)
-            PLATFORM_OS = LINUX
-            RAYLIB_LIB_PATH ?= ./../lib/raylib-4.2-linux
+        PLATFORM_OS = LINUX
+        RAYLIB_LIB_PATH ?= ./../lib/raylib-4.2-linux
+        ifeq ($(MINGW),ENABLE)
+            RAYLIB_LIB_PATH = ./../lib/raylib-4.2-windows
         endif
     endif
 endif
@@ -101,6 +103,10 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
     # WARNING: To compile to HTML5, code must be redesigned
     # to use emscripten.h and emscripten_set_main_loop()
     CC = emcc
+endif
+
+ifeq ($(MINGW), ENABLE)
+    CC = x86_64-w64-mingw32-gcc
 endif
 
 # Define default make program: MAKE
@@ -222,6 +228,7 @@ ifeq ($(PLATFORM),PLATFORM_DESKTOP)
         LDLIBS = -lraylib -lopengl32 -lgdi32 -lwinmm
         # Required for physac examples
         LDLIBS += -static -lpthread
+        EXT = .exe
     endif
     ifeq ($(PLATFORM_OS),LINUX)
         # Libraries for Debian GNU/Linux desktop compiling
@@ -237,6 +244,14 @@ ifeq ($(PLATFORM),PLATFORM_DESKTOP)
         ifeq ($(USE_WAYLAND_DISPLAY),TRUE)
             LDLIBS += -lwayland-client -lwayland-cursor -lwayland-egl -lxkbcommon
         endif
+    endif
+    ifeq ($(MINGW),ENABLE)
+        # Libraries for Windows desktop compilation
+        # NOTE: WinMM library required to set high-res timer resolution
+        LDLIBS = -lraylib -lopengl32 -lgdi32 -lwinmm
+        # Required for physac examples
+        LDLIBS += -static -lpthread
+        EXT = .exe
     endif
 endif
 

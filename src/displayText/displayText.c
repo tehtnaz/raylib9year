@@ -45,7 +45,8 @@ void NewDisplayText(const char* text, Vector2 pos, int maxWidth){
     maxTextWidth = maxWidth;
     displayTextEnabled = true;
     if(defaultFont.baseSize == 0){
-        //defaultFont = LoadFont("./../res/arial-black.ttf");
+        //defaultFont = LoadFont("./../res/Text/DotGothic16-Regular.ttf");
+        //SetTextureFilter(defaultFont.texture, TEXTURE_FILTER_POINT);
         defaultFont = GetFontDefault();
     }
 }

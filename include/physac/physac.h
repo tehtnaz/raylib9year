@@ -312,15 +312,7 @@ PHYSACDEF int GetPhysicsManifoldCount(void);
 //----------------------------------------------------------------------------------
 // Global Variables Definition
 //----------------------------------------------------------------------------------
-static double deltaTime = 1.0/60.0/10.0 * 1000;             // Delta time in milliseconds used for physics steps
-
-#if !defined(PHYSAC_AVOID_TIMMING_SYSTEM)
-// Time measure variables
-static double baseClockTicks = 0.0;                         // Offset clock ticks for MONOTONIC clock
-static unsigned long long int frequency = 0;                // Hi-res clock frequency
-static double startTime = 0.0;                              // Start time in milliseconds
-static double currentTime = 0.0;                            // Current time in milliseconds
-#endif
+static double deltaTime = 1.0/60.0 * 1000;             // Delta time in milliseconds used for physics steps
 
 // Physics system configuration
 static PhysicsBody bodies[PHYSAC_MAX_BODIES];               // Physics bodies pointers array
@@ -337,13 +329,6 @@ static unsigned int usedMemory = 0;                         // Total allocated d
 //----------------------------------------------------------------------------------
 // Module Internal Functions Declaration
 //----------------------------------------------------------------------------------
-#if !defined(PHYSAC_AVOID_TIMMING_SYSTEM)
-// Timming measure functions
-static void InitTimerHiRes(void);                                                                           // Initializes hi-resolution MONOTONIC timer
-static unsigned long long int GetClockTicks(void);                                                          // Get hi-res MONOTONIC time measure in mseconds
-static double GetCurrentTime(void);                                                                         // Get current time measure in milliseconds
-#endif
-
 static void UpdatePhysicsStep(void);                                                                        // Update physics step (dynamics, collisions and position corrections)
 
 static int FindAvailableBodyIndex();                                                                        // Finds a valid index for a new physics body initialization
@@ -389,11 +374,6 @@ static Vector2 MathTriangleBarycenter(Vector2 v1, Vector2 v2, Vector2 v3);      
 // Initializes physics values, pointers and creates physics loop thread
 void InitPhysics(void)
 {
-#if !defined(PHYSAC_AVOID_TIMMING_SYSTEM)
-    // Initialize high resolution timer
-    InitTimerHiRes();
-#endif
-
     TRACELOG("[PHYSAC] Physics module initialized successfully\n");
 }
 
@@ -976,24 +956,17 @@ void UpdatePhysics(void)
 #if !defined(PHYSAC_AVOID_TIMMING_SYSTEM)
     static double deltaTimeAccumulator = 0.0;
 
-    // Calculate current time (ms)
-    // currentTime = GetCurrentTime();
-
     // Calculate current delta time (ms)
-    const double delta = GetFrameTime() * 1000;//currentTime - startTime;
-
+    const double delta = GetFrameTime() * 1000;
+    
     // Store the time elapsed since the last frame began
     deltaTimeAccumulator += delta;
-
     // Fixed time stepping loop
     while (deltaTimeAccumulator >= deltaTime)
     {
         UpdatePhysicsStep();
         deltaTimeAccumulator -= deltaTime;
     }
-
-    // Record the starting of this frame
-    startTime = currentTime;
 #else
     UpdatePhysicsStep();
 #endif
@@ -1025,57 +998,6 @@ int GetPhysicsManifoldCount(void){
 //----------------------------------------------------------------------------------
 // Module Internal Functions Definition
 //----------------------------------------------------------------------------------
-#if !defined(PHYSAC_AVOID_TIMMING_SYSTEM)
-// Initializes hi-resolution MONOTONIC timer
-static void InitTimerHiRes(void)
-{
-#if defined(_WIN32)
-    QueryPerformanceFrequency((unsigned long long int *) &frequency);
-#endif
-
-#if defined(__EMSCRIPTEN__) || defined(__linux__)
-    struct timespec now;
-    if (clock_gettime(CLOCK_MONOTONIC, &now) == 0) frequency = 1000000000;
-#endif
-
-#if defined(__APPLE__)
-    mach_timebase_info_data_t timebase;
-    mach_timebase_info(&timebase);
-    frequency = (timebase.denom*1e9)/timebase.numer;
-#endif
-
-    baseClockTicks = (double)GetClockTicks();      // Get MONOTONIC clock time offset
-    startTime = GetCurrentTime();                  // Get current time in milliseconds
-}
-
-// Get hi-res MONOTONIC time measure in clock ticks
-static unsigned long long int GetClockTicks(void)
-{
-    unsigned long long int value = 0;
-
-#if defined(_WIN32)
-    QueryPerformanceCounter((unsigned long long int *) &value);
-#endif
-
-#if defined(__linux__)
-    struct timespec now;
-    clock_gettime(CLOCK_MONOTONIC, &now);
-    value = (unsigned long long int)now.tv_sec*(unsigned long long int)1000000000 + (unsigned long long int)now.tv_nsec;
-#endif
-
-#if defined(__APPLE__)
-    value = mach_absolute_time();
-#endif
-
-    return value;
-}
-
-// Get current time in milliseconds
-static double GetCurrentTime(void)
-{
-    return (double)(GetClockTicks() - baseClockTicks)/frequency*1000;
-}
-#endif // !PHYSAC_AVOID_TIMMING_SYSTEM
 
 // Update physics step (dynamics, collisions and position corrections)
 static void UpdatePhysicsStep(void)
@@ -1128,8 +1050,8 @@ static void UpdatePhysicsStep(void)
                 }
             }
 
-            bodyA->velocity.x *= airFrictionCoeffecient.x;
-            bodyA->velocity.y *= airFrictionCoeffecient.y;
+            bodyA->velocity.x *= pow(airFrictionCoeffecient.x, deltaTime * 0.6);
+            bodyA->velocity.y *= pow(airFrictionCoeffecient.y, deltaTime * 0.6);
         }
     }
 

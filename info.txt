@@ -24,6 +24,12 @@ Pre-define tags / trigger
         Tag     -> Player
         Trigger -> Text prompt
 
+Player's tags must be manually assigned in code
+
+Every object has a triggerId and can have up to 32 tags on them
+    AKA each objectFunction can be activated by up to 32 different triggers
+If bodyA has a tag for the triggerId of bodyB, that triggerId is activated
+Each triggerId should only have 1 event associated with it
 
 
 bolded font ->: final statement (click to dismiss)

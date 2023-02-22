@@ -108,6 +108,7 @@ int main(void){
     InitWindow(screenWidth, screenHeight, "Grayzone");
     InitAudioDevice();
     InitPhysics();
+    SetMasterVolume(0.2f);
 
     // Render texture to draw full screen, enables screen scaling
     // NOTE: If screen is scaled, mouse input should be scaled proportionally
@@ -120,7 +121,7 @@ int main(void){
 
     // Init player, disable dynamics
     player = CreatePhysicsBodyCircle((Vector2){ screenWidth/2.0f, screenHeight/2.0f }, 8, 1, 0);
-    AddTagToPhysicsBody(player, 2);
+    AddTagToPhysicsBody(player, 65);
     AddTagToPhysicsBody(player, 3);
     player->enabled = true;
     player->freezeOrient = true;
