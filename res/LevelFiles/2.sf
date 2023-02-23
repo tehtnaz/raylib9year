@@ -3,38 +3,44 @@
 
 // Map collision
     // Level Boundaries
-    RectPhysObj     (Vector2( 0 128 )     1.0 256.0 STATIC 0 0)
-    RectPhysObj     (Vector2( 256 128 )   1.0 256.0 STATIC 0 0)
-    RectPhysObj     (Vector2( 128 0 )     256.0 1.0 STATIC 0 0)
-    RectPhysObj     (Vector2( 128 256 )   256.0 1.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 0 0 )     1.0 256.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 256 0 )   1.0 256.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 0 0 )     256.0 1.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 0 256 )   256.0 1.0 STATIC 0 0)
 
     // Win Trigger
-    RectPhysObj(Vector2( 128 5 ), 250.0, 4.0, STATIC, 0, 3)
+    RectPhysObj(Vector2( 0 3 ), 256.0, 4.0, STATIC, 0, 3)
 
+Wire(Vector2(127, 57), 0, 17)
+Button(Vector2(189 73) 17)
+Portal(Vector2(39 180) 0)
 
 // Begin Text
 TextTrigger     (65, 
     ["Goodies, you can walk!"
     "Now you see that botton on the ground?"
     "YES CLICK IT!"
-    "…What?"
-    "Are you telling me it’s not called a botton?"
-    "What do you mean; I can’t pronounce words?!"
+    "...What?"
+    "Are you telling me it's not called a botton?"
+    "What do you mean; I can't pronounce words?!"
     "Walk onto the Button."])
 CirclePhysObj   (Vector2( 128 250 ) 8.0 STATIC 0 65)
 
 
+
+// having multiple text triggers causes core dump
+
 // Hits Button before Portal
-TextTrigger     (66, 
-    ["Oh? It didn’t work?"
-    "Oh that’s right I forgot to tell you, you have to enter..."
-    "...the uhh, red place."
-    "Head to the Red Portal."])
-CirclePhysObj   (Vector2( 128 250 ) 8.0 STATIC 0 66)
-
-
-// Hits Portal before Button
-TextTrigger     (67, 
-    ["What are you trying to do here..."
-    "Go to the Button."])
-CirclePhysObj   (Vector2( 128 250 ) 8.0 STATIC 0 67)
+/ TextTrigger     (66, 
+/     ["Oh? It didn't work?"
+/     "Oh that's right I forgot to tell you, you have to enter..."
+/     "...the uhh, red place."
+/     "Head to the Red Portal."])
+/ CirclePhysObj   (Vector2( 128 250 ) 8.0 STATIC 0 66)
+/ 
+/ 
+/ // Hits Portal before Button
+/ TextTrigger     (67, 
+/     ["What are you trying to do here..."
+/     "Go to the Button."])
+/ CirclePhysObj   (Vector2( 128 250 ) 8.0 STATIC 0 67)

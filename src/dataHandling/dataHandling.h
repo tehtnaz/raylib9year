@@ -2,7 +2,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <math.h>
-//#include "levelStructs.h"
 #include "raylib.h"
 
 #pragma once
@@ -44,7 +43,7 @@ typedef enum TOKEN_TYPE{
         WIRE,
         PROPERTY
 
-}TOKEN_TYPE;
+} TOKEN_TYPE;
 
 typedef struct TokenInfo{
     union{
@@ -55,7 +54,7 @@ typedef struct TokenInfo{
     TOKEN_TYPE type;
     int line; 
     struct TokenInfo* next;
-}TokenInfo;
+} TokenInfo;
 
 typedef struct StructGroup{
     TokenInfo token;
@@ -63,7 +62,7 @@ typedef struct StructGroup{
     struct StructGroup* parent;
     struct StructGroup* next;
     struct StructGroup* previous;
-}StructGroup;
+} StructGroup;
 
 typedef struct TempPhysObj{
     Vector2 pos;
@@ -77,10 +76,32 @@ typedef struct TempPhysObj{
 } TempPhysObj;
 
 typedef struct TextBoxTrigger{
-    int trigger;
+    unsigned int trigger;
     char** texts;
     int textCount;
-}TextBoxTrigger;
+} TextBoxTrigger;
+
+typedef struct WireData{
+    Vector2 pos;
+    unsigned int wireID;
+    unsigned int trigger;
+} WireData;
+
+typedef struct ButtonPortalData{
+    Vector2 pos;
+    unsigned int triggerOrColourID;
+} ButtonPortalData;
+
+typedef struct PortalData{
+    Vector2 pos;
+    unsigned int colourId;
+} PortalData;
+
+// typedef struct DoorData{
+// 
+// } DoorData;
+
+
 
 StructGroup* readFileSF(const char* path);
 

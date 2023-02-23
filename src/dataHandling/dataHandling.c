@@ -1,6 +1,7 @@
 #include "dataHandling.h"
 #include "triggers.h"
 #include "physac.h"
+#include "levelObjects.h"
 
 // --- Helpers ---
 
@@ -663,6 +664,51 @@ TextBoxTrigger parseTrigger(StructGroup* group){
     return textBox;
 }
 
+WireData parseWire(StructGroup* group){
+    WireData wire = {0};
+    if(checkArgNumber(group, 3, "Wire")) return wire;
+
+    StructGroup* temp = group->child;
+    
+    if(temp->token.type == VECTOR2){
+        wire.pos = parseVector2(temp);
+    }else{
+        printf("WARNING: parseStructGroupInfo[parseWire] - [line %d] Invalid argument type for arg 1\n", group->token.line);
+    }
+    temp = temp->next;
+    if(temp->token.type == INTEGER){
+        wire.wireID = temp->token.integer;
+    }else{
+        printf("WARNING: parseStructGroupInfo[parseWire] - [line %d] Invalid argument type for arg 2\n", group->token.line);
+    }
+    temp = temp->next;
+    if(temp->token.type == INTEGER){
+        wire.trigger = temp->token.integer;
+    }else{
+        printf("WARNING: parseStructGroupInfo[parseWire] - [line %d] Invalid argument type for arg 3\n", group->token.line);
+    }
+    return wire;
+}
+
+ButtonPortalData parseButtonOrPortal(StructGroup* group){
+    ButtonPortalData button = {0};
+    if(checkArgNumber(group, 2, "ButtonOrPotal")) return button;
+
+    StructGroup* temp = group->child;
+    
+    if(temp->token.type == VECTOR2){
+        button.pos = parseVector2(temp);
+    }else{
+        printf("WARNING: parseStructGroupInfo[parseButtonOrPortal] - [line %d] Invalid argument type for arg 1\n", group->token.line);
+    }
+    temp = temp->next;
+    if(temp->token.type == INTEGER){
+        button.triggerOrColourID = temp->token.integer;
+    }else{
+        printf("WARNING: parseStructGroupInfo[parseButtonOrPortal] - [line %d] Invalid argument type for arg 2\n", group->token.line);
+    }
+    return button;
+}
 
 
 int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(const char** texts, int textCount), Vector2 *startingPos){
@@ -686,7 +732,7 @@ int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(
                 break;
             case RECTANGLE_PHYSOBJ:
                 obj = parsePhysObj(structGroup, false);
-                body = CreatePhysicsBodyRectangle(obj.pos, obj.width, obj.height, 1, obj.trigger);
+                body = CreatePhysicsBodyRectangle((Vector2){obj.pos.x + obj.width / 2, obj.pos.y + obj.height / 2}, obj.width, obj.height, 1, obj.trigger);
                 for(int i = 0; i < obj.tagCount; i++){
                     AddTagToPhysicsBody(body, obj.tags[i]);
                 }
@@ -699,6 +745,27 @@ int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(
                 break;
             case PROPERTY:
                 *startingPos = parseVector2(structGroup);
+                break;
+            case WIRE:; //dumb semicolon again!!! thanks emscripten!
+                WireData wire = parseWire(structGroup);
+                CreateWire(wire.pos, wire.wireID, wire.trigger, false);
+                break;
+            case BUTTON:; //dumb semicolon again!!! thanks emscripten!
+                ButtonPortalData button = parseButtonOrPortal(structGroup);
+                body = CreatePhysicsBodyRectangle((Vector2){button.pos.x + 15, button.pos.y + 5.5f}, 30, 11, 1, button.triggerOrColourID);
+                body->freezeOrient = true;
+                body->enabled = false;
+                CreateButton(button.pos, button.triggerOrColourID, false);
+                //assign to render button
+                break;
+            case PORTAL:; //dumb semicolon again!!! thanks emscripten!
+                ButtonPortalData portal = parseButtonOrPortal(structGroup);
+                body = CreatePhysicsBodyCircle((Vector2){portal.pos.x + 13, portal.pos.y + 22}, 14, 1, portal.triggerOrColourID + 13);
+                body->freezeOrient = true;
+                body->enabled = false;
+                CreatePortal(portal.pos, portal.triggerOrColourID);
+                break;
+            case DOOR:
                 break;
             default:
                 printf("WARNING: parseStructGroupInfo - [line %d] Received non-struct as parent group. [TOKEN_TYPE: %d] Skipping...\n", structGroup->token.line, structGroup->token.type);

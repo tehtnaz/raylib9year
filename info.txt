@@ -7,7 +7,7 @@ Reserved tags / trigger + recommended ranges
         Trigger -> Player grab area
     (2):
         Tag     -> Player
-        Trigger -> All triggers (except 1)
+        Trigger -> All triggers greater than 8
     (3):
         Tag     -> Player
         Trigger -> Next level
@@ -15,8 +15,9 @@ Reserved tags / trigger + recommended ranges
         Tag     -> Player
         Trigger -> Death trigger
             Fade to black
-    (13-16)
+    (13-16): (DO NOT CHANGE, IF YOU DO, CHANGE VALUE ADDED IN dataHandling WHILE PARSING)
         Tag     -> Player
+        Trigger -> Portals
         
     (17-65)
         Tag     -> Player

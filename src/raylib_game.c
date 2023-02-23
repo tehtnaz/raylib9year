@@ -11,6 +11,12 @@
 #include "displayText.h"
 #include "triggers.h"
 #include "animation.h"
+#include "levelObjects.h"
+
+// TODO:
+    // Portal interactions (disable button while not in dimension)
+    // Death animation (fade to black)
+    // Doors
 
 
 #include "dataHandling/dataHandling.h"
@@ -32,7 +38,12 @@
 #endif
 
 #define INPUT_VELOCITY 0.1f
-#define MAX_BUTTONS 8
+
+#define DIMENSION_RED       (Color){244, 26, 26, 73}
+#define DIMENSION_BLUE      (Color){40, 92, 196, 104}
+#define DIMENSION_GREEN     (Color){36, 82, 59, 70}
+#define DIMENSION_YELLOW    (Color){255, 252, 64, 49}
+
 
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
@@ -66,11 +77,6 @@ static Animation playerRunForward;
 static Animation haroldTextBox;
 static Animation menuAnimation;
 
-static int buttonCount;
-static Animation buttonArray[MAX_BUTTONS];
-static Vector2 buttonPosition[MAX_BUTTONS];
-
-
 static int levelSelect = 0;
 static Texture2D levelBackground;
 
@@ -78,6 +84,8 @@ static GameScreen currentScreen = SCREEN_TITLE;
 
 static Music titleMusic;
 static Music gameMusic;
+
+static int currentDimension; //dimension / 0 = red; 1 = blue; 2 = green; 3 = yellow
 
 
 //----------------------------------------------------------------------------------
@@ -88,6 +96,7 @@ static void UpdateDrawFrame(void);      // Update and Draw one frame
 Vector2 GetKeyInputForce(Vector2 preInput);
 float Vector2Mag(Vector2 v2);
 void DrawPhysicsBody(int index, Color color);
+Color GetDimensionColour(int dimension);
 
 //--------------------------------------------------------------------------------------------
 // Trigger functions Declaration
@@ -125,7 +134,7 @@ int main(void){
 
     // Init player, disable dynamics
     player = CreatePhysicsBodyCircle((Vector2){ screenWidth/2.0f, screenHeight/2.0f }, 8, 1, 0);
-    AddTagToPhysicsBody(player, 65);
+    AddTagToPhysicsBody(player, 2);
     AddTagToPhysicsBody(player, 3);
     player->enabled = true;
     player->freezeOrient = true;
@@ -136,28 +145,27 @@ int main(void){
 
     //CreatePhysicsBodyCircle((Vector2){ screenWidth, screenHeight/2.0f }, 8, 1, 0, 2)->enabled = false;
 
-    
+
+    LevelObjectsInit();
 
     playerBackward = LoadTexture("./../res/Characters/player/backward.png");
     playerForward = LoadTexture("./../res/Characters/player/forward.png");
 
     playerRunBackward = assignProperties(0, 0, 8, true, 3, false);
-    playerRunBackward = getFromFolder(playerRunBackward, "./../res/Characters/player/running_backward/", true);
+    playerRunBackward = GetAnimationFromFolder(playerRunBackward, true, "./../res/Characters/player/running_backward/");
     playerRunForward = assignProperties(0, 0, 8, true, 3, false);
-    playerRunForward = getFromFolder(playerRunForward, "./../res/Characters/player/running_forward/", true);
+    playerRunForward = GetAnimationFromFolder(playerRunForward, true, "./../res/Characters/player/running_forward/");
 
     haroldTextBox = assignProperties(0, 0, 2, true, 2, true);
-    haroldTextBox = getFromFolder(haroldTextBox, "./../res/Text/harold/", true);
+    haroldTextBox = GetAnimationFromFolder(haroldTextBox, true, "./../res/Text/harold/");
 
     menuAnimation = assignProperties(0, 0, 1, true, 5, true);
-    menuAnimation = getFromFolder(menuAnimation, "./../res/Levels/progression/", true);
+    menuAnimation = GetAnimationFromFolder(menuAnimation, true, "./../res/Levels/progression/");
 
     titleMusic = LoadMusicStream("./../res/Music/bosstheme.mp3");
     gameMusic = LoadMusicStream("./../res/Music/normallevel.mp3");
 
     //QueueDisplayText("My name is Walter Hartwell White. I live at 308 Negra Arroyo Lane, Albuquerque, New Mexico, 87104. This is my confession. If you're watching this tape, I'm probably dead, murdered by my brother-in-law Hank Schrader. Hank has been building a Virtual Youtuber empire for over a year now and using me as his recruiter. Shortly after my 50th birthday, Hank came to me with a rather, shocking proposition. He asked that I use my Live2D knowledge to recruit talents, which he would then hire using his connections in the Japanese utaite world. Connections that he made through his career with Niconico. I was... astounded, I... I always thought that Hank was a very moral man", (Vector2){5,5},246);
-
-    LoadNextLevel();
 
     #if defined(PLATFORM_WEB)
         emscripten_set_main_loop(UpdateDrawFrame, 60, 1);
@@ -195,6 +203,10 @@ static void UpdateDrawFrame(void)
     else if (IsKeyPressed(KEY_TWO)) screenScale = 2;
     else if (IsKeyPressed(KEY_THREE)) screenScale = 3;
     
+    if(IsKeyPressed(KEY_I)){
+        currentDimension++;
+        if(currentDimension > 3) currentDimension = 0;
+    }
     if (screenScale != prevScreenScale)
     {
         // Scale window to fit the scaled render texture
@@ -212,6 +224,7 @@ static void UpdateDrawFrame(void)
     if(currentScreen == SCREEN_TITLE){
         if(IsKeyPressed(KEY_SPACE)){
             currentScreen = SCREEN_GAMEPLAY;
+            LoadNextLevel();
         }else{
             if(!IsMusicStreamPlaying(titleMusic)){
                 PlayMusicStream(titleMusic);
@@ -260,9 +273,7 @@ static void UpdateDrawFrame(void)
         if(currentScreen == SCREEN_GAMEPLAY){
             DrawTexture(levelBackground, 0, 0, WHITE);
             
-            for(int i = 0; i < buttonCount; i++){
-                DrawAnimationPro(&(buttonArray[i]), buttonPosition[i], 1, WHITE, CYCLE_NONE);
-            }
+            RenderLevelObjects();
 
             int bodyCount = GetPhysicsBodiesCount();
             for(int i = 0; i < bodyCount; i++){
@@ -275,14 +286,19 @@ static void UpdateDrawFrame(void)
                 DrawTextureEx(player->velocity.y < 0 ? playerForward : playerBackward, (Vector2){player->position.x - 7, player->position.y - 25}, 0, 1, WHITE);
             }
 
+            // TODO: replace ternary with conditional draw call
+            DrawRectangle(0, 0, 256, 256, IsKeyDown(KEY_I) ? GetDimensionColour(currentDimension) : BLANK);
+
             if(GetDisplayTextEnabled()) DrawAnimationPro(&haroldTextBox, (Vector2){21, 2}, 1, WHITE, CYCLE_FORWARD);
             UpdateAndDrawTypingText(WHITE);
+            
 
             #if defined(_DEBUG)
                 // Draw equivalent mouse position on the target render-texture
                 DrawCircleLines(GetMouseX(), GetMouseY(), 10, MAROON);
             #endif
         }
+
     EndTextureMode();
     
     BeginDrawing();
@@ -290,7 +306,7 @@ static void UpdateDrawFrame(void)
         
         // Draw render texture to screen scaled as required
         DrawTexturePro(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, -(float)target.texture.height }, (Rectangle){ 0, 0, (float)target.texture.width*screenScale, (float)target.texture.height*screenScale }, (Vector2){ 0, 0 }, 0.0f, WHITE);
-        
+
         #if defined(_DEBUG)
             DrawText(TextFormat("x:%d\ny:%d", GetMouseX(), GetMouseY()), 0, 0, 40, WHITE);
         #endif
@@ -362,6 +378,16 @@ void DrawPhysicsBody(int index, Color color){
     #endif
 }
 
+Color GetDimensionColour(int dimension){
+    switch(dimension){
+        case 0: return DIMENSION_RED;
+        case 1: return DIMENSION_BLUE;
+        case 2: return DIMENSION_GREEN;
+        case 3: return DIMENSION_YELLOW;
+        default: return WHITE;
+    }
+}
+
 
 //--------------------------------------------------------------------------------------------
 // Trigger functions definition
@@ -390,11 +416,15 @@ void LoadNextLevel(){
     ClearDisplayTextQueue();
     ClearDisplayText();
 
+    DestroyAllLevelObjects();
+
     ResetAllTriggers();
 
     // Pre defined TriggerEvents
     NewTriggerEvent(1, false, CreateTriggerEventFunctionData_SetForce(AddPlayerInputForce));
-    NewTriggerEvent(3, true, CreateTriggerEventFunctionData_Function(LoadNextLevel));
+    NewTriggerEvent(3, true, CreateTriggerEventFunctionData_NoArgFunction(LoadNextLevel));
+
+    NewTriggerEvent(17, true, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivateButton));
 
     parseStructGroupInfo(readFileSF(TextFormat("./../res/LevelFiles/%d.sf", levelSelect + 1)), DrawHaroldText, &startingPos);
 
