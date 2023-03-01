@@ -14,9 +14,12 @@
 #include "levelObjects.h"
 
 // TODO:
-    // Portal interactions (disable button while not in dimension)
+    // Portal disables (disable button while not in dimension)
+    // Portal countdowns (15 secs until disable) 
+    // Button disable once step off
     // Death animation (fade to black)
     // Doors
+    // Doesn't work for Web
 
 
 #include "dataHandling/dataHandling.h"
@@ -48,7 +51,7 @@
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
-typedef enum {
+typedef enum GameScreen{
     SCREEN_TITLE, 
     SCREEN_GAMEPLAY, 
     SCREEN_ENDING
@@ -85,7 +88,7 @@ static GameScreen currentScreen = SCREEN_TITLE;
 static Music titleMusic;
 static Music gameMusic;
 
-static int currentDimension; //dimension / 0 = red; 1 = blue; 2 = green; 3 = yellow
+static int currentDimension; //dimension / 0 = normal; 1 = red; 2 = blue; 3 = green; 4 = yellow
 
 
 //----------------------------------------------------------------------------------
@@ -105,6 +108,9 @@ Color GetDimensionColour(int dimension);
 void AddPlayerInputForce(PhysicsBody body);
 void DrawHaroldText(const char** texts, int textCount);
 void LoadNextLevel();
+void StartDeathAnimation();
+void HitButton_DestroyPortalTrigger();
+void HitPortal_DestroyButtonTrigger();
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -168,7 +174,7 @@ int main(void){
     //QueueDisplayText("My name is Walter Hartwell White. I live at 308 Negra Arroyo Lane, Albuquerque, New Mexico, 87104. This is my confession. If you're watching this tape, I'm probably dead, murdered by my brother-in-law Hank Schrader. Hank has been building a Virtual Youtuber empire for over a year now and using me as his recruiter. Shortly after my 50th birthday, Hank came to me with a rather, shocking proposition. He asked that I use my Live2D knowledge to recruit talents, which he would then hire using his connections in the Japanese utaite world. Connections that he made through his career with Niconico. I was... astounded, I... I always thought that Hank was a very moral man", (Vector2){5,5},246);
 
     #if defined(PLATFORM_WEB)
-        emscripten_set_main_loop(UpdateDrawFrame, 60, 1);
+        emscripten_set_main_loop(UpdateDrawFrame, 0, 1);
     #else
         SetTargetFPS(60);     // Set our game frames-per-second
         //--------------------------------------------------------------------------------------
@@ -286,8 +292,7 @@ static void UpdateDrawFrame(void)
                 DrawTextureEx(player->velocity.y < 0 ? playerForward : playerBackward, (Vector2){player->position.x - 7, player->position.y - 25}, 0, 1, WHITE);
             }
 
-            // TODO: replace ternary with conditional draw call
-            DrawRectangle(0, 0, 256, 256, IsKeyDown(KEY_I) ? GetDimensionColour(currentDimension) : BLANK);
+            if(currentDimension != 0) DrawRectangle(0, 0, 256, 256, GetDimensionColour(currentDimension));
 
             if(GetDisplayTextEnabled()) DrawAnimationPro(&haroldTextBox, (Vector2){21, 2}, 1, WHITE, CYCLE_FORWARD);
             UpdateAndDrawTypingText(WHITE);
@@ -380,10 +385,10 @@ void DrawPhysicsBody(int index, Color color){
 
 Color GetDimensionColour(int dimension){
     switch(dimension){
-        case 0: return DIMENSION_RED;
-        case 1: return DIMENSION_BLUE;
-        case 2: return DIMENSION_GREEN;
-        case 3: return DIMENSION_YELLOW;
+        case 1: return DIMENSION_RED;
+        case 2: return DIMENSION_BLUE;
+        case 3: return DIMENSION_GREEN;
+        case 4: return DIMENSION_YELLOW;
         default: return WHITE;
     }
 }
@@ -402,6 +407,22 @@ void DrawHaroldText(const char** texts, int textCount){
     for(int i = 0; i < textCount; i++){
         QueueDisplayText(texts[i], (Vector2){79, 9}, 150);
     }
+}
+
+void StartDeathAnimation(){
+
+}
+
+void HitButton_DestroyPortalTrigger(){
+    DestroyTriggerEventWithTrigger(131);
+}
+
+void HitPortal_DestroyButtonTrigger(){
+    DestroyTriggerEventWithTrigger(130);
+}
+
+void ActivatePortal(unsigned int triggerID){
+    currentDimension = triggerID - 13;
 }
 
 void LoadNextLevel(){
@@ -423,8 +444,18 @@ void LoadNextLevel(){
     // Pre defined TriggerEvents
     NewTriggerEvent(1, false, CreateTriggerEventFunctionData_SetForce(AddPlayerInputForce));
     NewTriggerEvent(3, true, CreateTriggerEventFunctionData_NoArgFunction(LoadNextLevel));
+    
+    NewTriggerEvent(4, true, CreateTriggerEventFunctionData_NoArgFunction(StartDeathAnimation)); // TODO: shouldn't be one time use
 
-    NewTriggerEvent(17, true, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivateButton));
+    NewTriggerEvent(13, true, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal)); // TODO: shouldn't be one time use
+    NewTriggerEvent(14, true, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal)); // TODO: shouldn't be one time use
+    NewTriggerEvent(15, true, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal)); // TODO: shouldn't be one time use
+    NewTriggerEvent(16, true, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal)); // TODO: shouldn't be one time use
+
+    NewTriggerEvent(17, true, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivateButton)); // TODO: shouldn't be one time use
+    
+    NewTriggerEvent(130, true, CreateTriggerEventFunctionData_NoArgFunction(HitButton_DestroyPortalTrigger));
+    NewTriggerEvent(131, true, CreateTriggerEventFunctionData_NoArgFunction(HitPortal_DestroyButtonTrigger));
 
     parseStructGroupInfo(readFileSF(TextFormat("./../res/LevelFiles/%d.sf", levelSelect + 1)), DrawHaroldText, &startingPos);
 

@@ -13,7 +13,7 @@
 
 Wire(Vector2(127, 57), 0, 17)
 Button(Vector2(189 73) 17)
-Portal(Vector2(39 180) 0)
+Portal(Vector2(39 180) 1)
 
 // Begin Text
 TextTrigger     (65, 
@@ -31,16 +31,15 @@ CirclePhysObj   (Vector2( 128 250 ) 8.0 STATIC 0 65)
 // having multiple text triggers causes core dump
 
 // Hits Button before Portal
-/ TextTrigger     (66, 
-/     ["Oh? It didn't work?"
-/     "Oh that's right I forgot to tell you, you have to enter..."
-/     "...the uhh, red place."
-/     "Head to the Red Portal."])
-/ CirclePhysObj   (Vector2( 128 250 ) 8.0 STATIC 0 66)
-/ 
-/ 
-/ // Hits Portal before Button
-/ TextTrigger     (67, 
-/     ["What are you trying to do here..."
-/     "Go to the Button."])
-/ CirclePhysObj   (Vector2( 128 250 ) 8.0 STATIC 0 67)
+TextTrigger     (130, 
+    ["Oh? It didn't work?"
+    "Oh that's right I forgot to tell you, you have to enter..."
+    "...the uhh, red place."
+    "Head to the Red Portal."])
+RectPhysObj   (Vector2(189 73) 30.0 11.0 STATIC 0 130)
+
+// Hits Portal before Button
+TextTrigger     (131, 
+    ["What are you trying to do here..."
+    "Go to the Button."])
+CirclePhysObj   (Vector2(52 202)  14.0 STATIC 0 131)

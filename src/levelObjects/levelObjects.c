@@ -23,13 +23,13 @@ static Texture2D wireOff[WIRE_ID_COUNT];
 
 Animation* portalIDToAnimation(int portalID){
     switch(portalID){
-        case 0:
-            return &portalRed;
         case 1:
-            return &portalBlue;
+            return &portalRed;
         case 2:
-            return &portalGreen;
+            return &portalBlue;
         case 3:
+            return &portalGreen;
+        case 4:
             return &portalYellow;
         default:
             printf("WARNING: levelObjects - Unknown portalId received; id = %d\n", portalID);

@@ -15,7 +15,7 @@ Reserved tags / trigger + recommended ranges
         Tag     -> Player
         Trigger -> Death trigger
             Fade to black
-    (13-16): (DO NOT CHANGE, IF YOU DO, CHANGE VALUE ADDED IN dataHandling WHILE PARSING)
+    (13-16): (DO NOT CHANGE THESE TRIGGER IDS, IF YOU DO, CHANGE VALUE ADDED IN dataHandling IN parseStructGroupInfo)
         Tag     -> Player
         Trigger -> Portals
         
@@ -27,13 +27,25 @@ Reserved tags / trigger + recommended ranges
         Tag     -> Player
         Trigger -> Text prompt
 
+    (130-131)
+        Tag     -> Player
+        Trigger -> Special conditional text for level 2 (if hit button while not in dimension / hit portal before button...)
+
 Player's tags must be manually assigned in code
 
 Every object has a triggerId and can have up to 32 tags on them
     AKA each objectFunction can be activated by up to 32 different triggers
 If bodyA has a tag for the triggerId of bodyB, that triggerId is activated
-Each triggerId should only have 1 event associated with it
+Each triggerId can have multiple events associated with it (eg. Text is activated and some condition is checked)
 
+PhysObjs are used to detect when an object with a tag hits a trigger. 
+When it's activated, the TriggerEvent function associated with that trigger is executed
+
+ColourID for each dimension
+    1 - Red
+    2 - Blue
+    3 - Green
+    4 - Yellow
 
 bolded font ->: final statement (click to dismiss)
 red = default

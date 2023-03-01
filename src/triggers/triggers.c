@@ -4,8 +4,6 @@
 #include "physac.h"
 #include "triggers.h"
 
-#define MAX_TRIGGER_EVENT_COUNT 32
-
 static TriggerEvent triggerEventArray[MAX_TRIGGER_EVENT_COUNT];
 static int triggerEventCount = 0;
 
@@ -56,29 +54,27 @@ void NewTriggerEvent(unsigned int triggerID, bool oneTimeUse, TriggerEventFuncti
 }
 
 void ActivateTriggerEvent(PhysicsBody body, int triggerID){
-    int i = 0;
-    for(int j = 0; j < triggerEventCount; j++){
-        if(triggerEventArray[j].triggerID == triggerID) {
-            i = j;
-            break;
+    for(int i = 0; i < triggerEventCount; i++){
+        if(triggerEventArray[i].triggerID != triggerID) {
+            continue;
         }
-    }
 
-    if(triggerEventArray[i].oneTimeUse && triggerEventArray[i].wasUsed){
-        #ifdef _DEBUG
-        printf("TRIGGER_H: Debug - Tried activating already activated one time use trigger\r");
-        #endif
-        return;
-    }
-    triggerEventArray[i].wasUsed = true;
-    TriggerEventFunctionData data = triggerEventArray[i].data;
-    //printf("lets make love %p a\n", data.function_text_prompt);
-    switch (data.type){
-        case TRIGGER_FUNCTION: data.function_no_arg_function(); break;
-        case TRIGGER_SET_FORCE: data.function_add_force(body); break;
-        case TRIGGER_TEXT_PROMPT: data.function_text_prompt((const char**)data.texts, data.textCount); break;
-        case TRIGGER_FUNCTION_WITH_TRIGGERID: data.function_with_trigger_function(triggerID); break;
-        default: printf("Invalid dataType\n");
+        if(triggerEventArray[i].oneTimeUse && triggerEventArray[i].wasUsed){
+            #ifdef _DEBUG
+            printf("TRIGGER_H: Debug - Tried activating already activated one time use trigger\r");
+            #endif
+            return;
+        }
+        triggerEventArray[i].wasUsed = true;
+        TriggerEventFunctionData data = triggerEventArray[i].data;
+        //printf("lets make love %p a\n", data.function_text_prompt);
+        switch (data.type){
+            case TRIGGER_FUNCTION: data.function_no_arg_function(); break;
+            case TRIGGER_SET_FORCE: data.function_add_force(body); break;
+            case TRIGGER_TEXT_PROMPT: data.function_text_prompt((const char**)data.texts, data.textCount); break;
+            case TRIGGER_FUNCTION_WITH_TRIGGERID: data.function_with_trigger_function(triggerID); break;
+            default: printf("Invalid dataType\n");
+        }
     }
 
 }
@@ -125,4 +121,17 @@ void ResetAllTriggers(){
         triggerEventArray[i] = (TriggerEvent){};
     }
     triggerEventCount = 0;
+}
+
+void DestroyTriggerEventWithTrigger(int triggerID){
+    for(int i = 0; i < triggerEventCount; i++){
+        if(triggerEventArray[i].triggerID == triggerID){
+            printf("DEBUG: Triggers - Destroying TriggerEvent with trigger %d\n", triggerID);
+            ClearTriggerEventFunctionData(triggerEventArray[i]);
+            for(int j = i; j < triggerEventCount - 1; j++){
+                triggerEventArray[j] = triggerEventArray[j + 1];
+            }
+            triggerEventCount--;
+        }
+    }
 }

@@ -3,6 +3,8 @@
 
 #include "physac.h"
 
+#define MAX_TRIGGER_EVENT_COUNT 64
+
 //use if we actually use non-static functions lol
 typedef enum TriggerType{
     TRIGGER_FUNCTION,
@@ -49,5 +51,7 @@ void ActivateTriggerEvent(PhysicsBody body, int triggerID);
 void ResetAllTriggers();
 
 void ActivateAllContactedTriggers();
+
+void DestroyTriggerEventWithTrigger(int triggerID);
 
 #endif
