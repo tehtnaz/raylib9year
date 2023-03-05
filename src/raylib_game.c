@@ -89,7 +89,7 @@ static Music titleMusic;
 static Music gameMusic;
 
 static int currentDimension; //dimension / 0 = normal; 1 = red; 2 = blue; 3 = green; 4 = yellow
-
+static float dimensionTimer = 0;
 
 //----------------------------------------------------------------------------------
 // Module Functions Declaration
@@ -209,9 +209,15 @@ static void UpdateDrawFrame(void)
     else if (IsKeyPressed(KEY_TWO)) screenScale = 2;
     else if (IsKeyPressed(KEY_THREE)) screenScale = 3;
     
+    #if defined(_DEBUG)
     if(IsKeyPressed(KEY_I)){
         currentDimension++;
-        if(currentDimension > 3) currentDimension = 0;
+        if(currentDimension > 4) currentDimension = 0;
+    }
+    #endif
+    if(currentDimension > 0){
+        dimensionTimer -= GetFrameTime();
+        if(dimensionTimer < 0) currentDimension = 0;
     }
     if (screenScale != prevScreenScale)
     {
@@ -423,6 +429,7 @@ void HitPortal_DestroyButtonTrigger(){
 
 void ActivatePortal(unsigned int triggerID){
     currentDimension = triggerID - 13;
+    dimensionTimer = 15;
 }
 
 void LoadNextLevel(){

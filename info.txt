@@ -63,6 +63,7 @@ phase -> move item DIMENSION
 unexepcted key changes after each level
 
 DIMENSIONS COLLAPSE AFTER 15 SECONDS
+BUTTONS ARE PERMANENT (?)
 
 /usr/share/apport/apport -p%p -s%s -c%c -d%d -P%P -u%u -g%g -- %E
 

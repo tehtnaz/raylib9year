@@ -16,13 +16,13 @@
 
 
 // FOR CirclePhysObj, POSITION IS AT CENTER
-/ RectPhysObj     (Vector2( 10 10 )   10.0 10.0  DYNAMIC 1 0)            / - single tag
-/ RectPhysObj     (Vector2( 128 200 ) 8.0  8.0   DYNAMIC [1 128 334] 0)  / - multi tag
-/ CirclePhysObj   (Vector2( 50 50 )   20.0     STATIC  0 1)
+// RectPhysObj     (Vector2( 10 10 )   10.0 10.0  DYNAMIC 1 0)            / - single tag
+// RectPhysObj     (Vector2( 128 200 ) 8.0  8.0   DYNAMIC [1 128 334] 0)  / - multi tag
+// CirclePhysObj   (Vector2( 50 50 )   20.0     STATIC  0 1)
 
-/ Text trigger + physobj group forms a fully functional trigger
-/ text trigger arg 2 = string array (remember, "[]" and "()" are interchangeable )
-/ triggerId; textArray
+// Text trigger + physobj group forms a fully functional trigger
+// text trigger arg 2 = string array (remember, "[]" and "()" are interchangeable )
+// triggerId; textArray
 
 // only 1 property (startingPos), so name isn't verified
 
