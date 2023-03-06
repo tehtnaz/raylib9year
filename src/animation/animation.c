@@ -3,7 +3,7 @@
 #include "animation.h"
 
 
-// Animation.h version 3.0
+// Animation.h version 3.1
 
 Animation assignProperties(int spriteWidth, int currentFrame, int fps, bool isAnimating, int frameCount, bool allowsnap){
     Animation temp;
@@ -63,8 +63,9 @@ Texture GetTextureAtlasFromFolder(const char* path, int textureCount){
     char str[70];
     sprintf(str, "%s0.png", path);
     //const char* str = TextFormat("%s0.png", path);
-    printf("GetAnimationFromFolder: Base Image = %s\n", str);
+    printf("GetTextureAtlasFromFolder: Base Image = %s\n", str);
     Image img = LoadImage(str);
+    printf("GetTextureAtlasFromFolder: animation spriteWidth (AUTO): %d\n", img.width);
 
     Image atlas = GenImageColor(img.width * textureCount, img.height, BLANK);
     for(int i = 0; i < textureCount; i++){

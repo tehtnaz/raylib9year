@@ -31,7 +31,7 @@
 // 2.2 changelog
 //  | removed vector2pp.h dependancy
 
-//3.0 changelog
+// 3.0 changelog
 //  | removed SwitchAnimation (temporary?)
 //  | added DrawTextureFromAtlas
 //  | spriteSize renamed to spriteWidth (might be removed, see comment)
@@ -39,6 +39,9 @@
 //  | cycling funcs no longer return animation, pass in pointer instead
 //  | changed DrawTextureTiled calls to DrawTexturePro
 //  | reformatted this changelog
+
+// 3.1 changelog
+//  | fix debug info
 
 typedef struct Animation{
     Texture2D texture; // sprite sheet
@@ -89,4 +92,4 @@ void DrawTextureFromAtlas(Texture2D atlas, int spriteID, int spriteCountInAtlas,
 Animation FlipAnimationHorizontal(Animation input);
 // SwitchAnimation FlipSwitchAnimationHorizontal(SwitchAnimation input);
 
-#endif //animation_h version 3.0
+#endif //animation_h version 3.1

@@ -15,10 +15,9 @@
 
 // TODO:
     // Portal disables (disable button while not in dimension)
-    // Portal countdowns (15 secs until disable) 
     // Button disable once step off
+    // Door collisions + Rendering
     // Death animation (fade to black)
-    // Doors
     // Doesn't work for Web
 
 

@@ -21,6 +21,12 @@ static Wire wireArray[MAX_WIRES];
 static Texture2D wireOn[WIRE_ID_COUNT];
 static Texture2D wireOff[WIRE_ID_COUNT];
 
+static int doorCount;
+static Door doorArray[MAX_DOORS];
+static Texture2D normalDoor;
+static Texture2D pushDoor;
+static Texture2D trapDoor;
+
 Animation* portalIDToAnimation(int portalID){
     switch(portalID){
         case 1:
@@ -50,6 +56,10 @@ void LevelObjectsInit(){
     portalYellow = assignProperties(0, 0, 6, true, 3, false);
     portalYellow = GetAnimationFromFolder(portalYellow, true, "./../res/Portals/yellow/");
 
+    normalDoor = GetTextureAtlasFromFolder("./../res/Doors/red_door_animation/", 3);
+    pushDoor = GetTextureAtlasFromFolder("./../res/Doors/red_push_door_animation/", 67);
+    trapDoor = GetTextureAtlasFromFolder("./../res/Doors/red_trap_door_animation/", 19);
+
     for(int i = 0; i < WIRE_ID_COUNT; i++){
         wireOn[i] = LoadTexture(TextFormat("./../res/Wires/on/%d.png", i));
         wireOff[i] = LoadTexture(TextFormat("./../res/Wires/off/%d.png", i));
@@ -67,7 +77,7 @@ void ActivateButton(unsigned int triggerID){
     }
     for(int i = 0; i < wireCount; i++){
         if(wireArray[i].trigger == triggerID){
-            wireArray[i].on = true;
+            wireArray[i].isOn = true;
         }
     }
 }
@@ -82,7 +92,11 @@ void RenderLevelObjects(){
     }
 
     for(int i = 0; i < wireCount; i++){
-        DrawTextureEx(wireArray[i].on ? wireOn[wireArray->wireID] : wireOff[wireArray->wireID], wireArray[i].pos, 0, 1, WHITE);
+        DrawTextureEx(wireArray[i].isOn ? wireOn[wireArray->wireID] : wireOff[wireArray->wireID], wireArray[i].pos, 0, 1, WHITE);
+    }
+
+    for(int i = 0; i < doorCount; i++){
+        DrawAnimationPro(&doorArray[i].anim, doorArray[i].pos, 1, WHITE, doorArray[i].isChangingState ? (doorArray[i].isOpen ? CYCLE_BACKWARD : CYCLE_FORWARD) : CYCLE_NONE);
     }
 
     ShakeCycleAnimation(&portalRed);
@@ -91,19 +105,19 @@ void RenderLevelObjects(){
     ShakeCycleAnimation(&portalYellow);
 }
 
-Wire* CreateWire(Vector2 pos, unsigned int wireID, unsigned int trigger, bool on){
+Wire* CreateWire(Vector2 pos, unsigned int wireID, unsigned int trigger, bool isOn){
     if(wireCount == MAX_WIRES){
-        printf("WARNING: levelObjects - MAX_WIRES limit reached. Couldn't create new wire");
+        printf("WARNING: levelObjects - MAX_WIRES limit reached. Couldn't create new wire\n");
         return NULL;
     }
-    wireArray[wireCount] = (Wire){pos, wireID, trigger, on};
+    wireArray[wireCount] = (Wire){pos, wireID, trigger, isOn};
     wireCount++;
 
     return &(wireArray[wireCount - 1]);
 }
 Button* CreateButton(Vector2 pos, unsigned int trigger, bool m_buttonDown){
     if(buttonCount == MAX_BUTTONS){
-        printf("WARNING: levelObjects - MAX_BUTTONS limit reached. Couldn't create new button");
+        printf("WARNING: levelObjects - MAX_BUTTONS limit reached. Couldn't create new button\n");
         return NULL;
     }
     buttonArray[buttonCount] = (Button){pos, trigger, m_buttonDown};
@@ -113,7 +127,7 @@ Button* CreateButton(Vector2 pos, unsigned int trigger, bool m_buttonDown){
 }
 Portal* CreatePortal(Vector2 pos, unsigned int colourID){
     if(portalCount == MAX_PORTALS){
-        printf("WARNING: levelObjects - MAX_PORTALS limit reached. Couldn't create new portal");
+        printf("WARNING: levelObjects - MAX_PORTALS limit reached. Couldn't create new portal\n");
         return NULL;
     }
     portalArray[portalCount] = (Portal){pos, colourID};
@@ -122,8 +136,44 @@ Portal* CreatePortal(Vector2 pos, unsigned int colourID){
     return &(portalArray[portalCount - 1]);
 }
 
+//(0 not used so that they can be detected as errors if null value is loaded from file)
+//doorType, 1 = normal, 2 = pushdoor, 3 = trapdoor 
+Door* CreateDoor(Vector2 pos, int doorType, unsigned int trigger){
+    if(doorCount == MAX_DOORS){
+        printf("WARNING: levelObjects - MAX_DOORS limit reached. Couldn't create new door\n");
+        return NULL;
+    }
+    Animation tempAnim = assignProperties(0, 0, 0, false, 0, false);
+    switch (doorType)
+    {
+        case 1:
+            tempAnim.texture = normalDoor;
+            tempAnim.spriteWidth = normalDoor.width;
+            tempAnim.fps = 2;
+            break;
+        case 2:
+            tempAnim.texture = pushDoor;
+            tempAnim.spriteWidth = pushDoor.width;
+            tempAnim.fps = 15;
+            break;
+        case 3:
+            tempAnim.texture = trapDoor;
+            tempAnim.spriteWidth = trapDoor.width;
+            tempAnim.fps = 9;
+            break;
+        default:
+            printf("WARNING: levelObjects - Received incorrect doorType value (value was %d)\n", doorType);
+            return NULL;
+    }
+    doorArray[doorCount] = (Door){pos, tempAnim, trigger, false};
+    doorCount++;
+
+    return &(doorArray[doorCount - 1]);
+}
+
 void DestroyAllLevelObjects(){
     portalCount = 0;
     buttonCount = 0;
     wireCount = 0;
+    doorCount = 0;
 }
