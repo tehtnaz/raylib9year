@@ -44,7 +44,7 @@
 //  | fix debug info
 
 // 3.2 changelog
-//  | use logging.h for logging
+//  | use TraceLog for logging
 
 typedef struct Animation{
     Texture2D texture; // sprite sheet

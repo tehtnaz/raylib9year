@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "raylib.h"
 #include "animation.h"
-#include "logging.h"
 
 // Animation.h version 3.2
 
@@ -36,14 +35,14 @@ Animation GetAnimationFromFolder(Animation input, bool autoSize, const char* pat
     char str[70];
     sprintf(str, "%s0.png", path);
     //const char* str = TextFormat("%s0.png", path);
-    LOG_DEBUG("GetAnimationFromFolder: Base Image = %s\n", str);
+    TraceLog(LOG_DEBUG, "GetAnimationFromFolder: Base Image = %s", str);
     Image img = LoadImage(str);
 
     if(autoSize){
         temp.spriteWidth = img.width;
-        LOG_DEBUG("GetAnimationFromFolder: animation spriteWidth (AUTO): %d\n", temp.spriteWidth);
+        TraceLog(LOG_DEBUG, "GetAnimationFromFolder: animation spriteWidth (AUTO): %d", temp.spriteWidth);
     }else{
-        LOG_DEBUG("GetAnimationFromFolder: animation spriteWidth: %d\n", temp.spriteWidth);
+        TraceLog(LOG_DEBUG, "GetAnimationFromFolder: animation spriteWidth: %d", temp.spriteWidth);
     }
     Image atlas = GenImageColor(img.width * input.frameCount, img.height, BLANK);
     for(int i = 0; i < input.frameCount; i++){
@@ -63,9 +62,9 @@ Texture GetTextureAtlasFromFolder(const char* path, int textureCount){
     char str[70];
     sprintf(str, "%s0.png", path);
     //const char* str = TextFormat("%s0.png", path);
-    LOG_DEBUG("GetTextureAtlasFromFolder: Base Image = %s\n", str);
+    TraceLog(LOG_DEBUG, "GetTextureAtlasFromFolder: Base Image = %s", str);
     Image img = LoadImage(str);
-    LOG_DEBUG("GetTextureAtlasFromFolder: animation spriteWidth (AUTO): %d\n", img.width);
+    TraceLog(LOG_DEBUG, "GetTextureAtlasFromFolder: animation spriteWidth (AUTO): %d", img.width);
 
     Image atlas = GenImageColor(img.width * textureCount, img.height, BLANK);
     for(int i = 0; i < textureCount; i++){
@@ -91,11 +90,11 @@ Texture GetTextureAtlasFromFolder(const char* path, int textureCount){
 
 void CycleAnimation(Animation* input){
     if(input->isAnimating == false){
-        LOG("Warning: CycleAnimation - Attempted to cycle an animation which was disabled.\n");
+        TraceLog(LOG_WARNING, "CycleAnimation - Attempted to cycle an animation which was disabled.");
         return;
     }
     if(input->fps < 0){
-        LOG("ERROR: CycleAnimation - Attempted to cycle with negative fps\n");
+        TraceLog(LOG_ERROR, "CycleAnimation - Attempted to cycle with negative fps");
         return;
     }
 
@@ -115,11 +114,11 @@ void CycleAnimation(Animation* input){
 
 void CycleAnimationBackwards(Animation* input){
     if(input->isAnimating == false){
-        LOG("Warning: CycleAnimationBackwards - Attempted to cycle an animation which was disabled.\n");
+        TraceLog(LOG_WARNING, "CycleAnimationBackwards - Attempted to cycle an animation which was disabled.");
         return;
     }
     if(input->fps < 0){
-        LOG("ERROR: CycleAnimationBackwards - Attempted to cycleBackwards with negative fps\n");
+        TraceLog(LOG_ERROR, "CycleAnimationBackwards - Attempted to cycleBackwards with negative fps");
         return;
     }
 
@@ -143,25 +142,25 @@ void CycleAnimationBackwards(Animation* input){
 
 void ShakeCycleAnimation(Animation* input){
     if(input->allowSnap){
-        LOG("allowSnap is enabled for this object. Did you mean to cycle it and not shake it? Skipping...\n");
+        TraceLog(LOG_ERROR, "allowSnap is enabled for this object. Did you mean to cycle it and not shake it? Skipping...");
         return;
     }
     if(input->isAnimating){
         if(!input->cycleBackward){
-            //LOG("cycle\n");
+            //TraceLog("cycle");
             return CycleAnimation(input);
         }else{
-            //LOG("cycleBack\n");
+            //TraceLog("cycleBack");
             return CycleAnimationBackwards(input);
         }
     }else{
         input->cycleBackward = !input->cycleBackward;
         input->isAnimating = true;
         if(!input->cycleBackward){
-            //LOG("cycle+switch\n");
+            //TraceLog("cycle+switch");
             return CycleAnimation(input);
         }else{
-            //LOG("cycleBack+switch\n");
+            //TraceLog("cycleBack+switch");
             return CycleAnimationBackwards(input);
         }
     }
@@ -199,18 +198,18 @@ void DrawTextureFromAtlas(Texture2D atlas, int spriteID, int spriteCountInAtlas,
 Animation FlipAnimationHorizontal(Animation input){
     Animation temp = input;
     Image animTexture = LoadImageFromTexture(temp.texture);
-    LOG_DEBUG("a, %d %d; %d %d", animTexture.width, animTexture.height, temp.texture.width, temp.texture.height);
+    TraceLog(LOG_DEBUG, "a, %d %d; %d %d", animTexture.width, animTexture.height, temp.texture.width, temp.texture.height);
     Image tempImg = GenImageColor(temp.spriteWidth, temp.texture.height, BLANK);
-    LOG_DEBUG("b");
+    TraceLog(LOG_DEBUG, "b");
     for(int i = 0; i < temp.frameCount; i++){
         tempImg = GenImageColor(temp.spriteWidth, temp.texture.height, BLANK);
         ImageDraw(&tempImg, animTexture, (Rectangle){i * temp.spriteWidth, 0, temp.spriteWidth, temp.texture.height}, (Rectangle){0, 0,temp.spriteWidth, temp.texture.height}, WHITE);
         ImageDrawRectangle(&animTexture, i * temp.spriteWidth, 0, temp.spriteWidth, temp.texture.height, BLANK);
         ImageFlipHorizontal(&tempImg);
         ImageDraw(&animTexture, tempImg, (Rectangle){0, 0,temp.spriteWidth, temp.texture.height}, (Rectangle){i * temp.spriteWidth, 0, temp.spriteWidth, temp.texture.height}, WHITE);
-        LOG_DEBUG("d");
+        TraceLog(LOG_DEBUG, "d");
     }
-    LOG_DEBUG("c");
+    TraceLog(LOG_DEBUG, "c");
     UnloadTexture(temp.texture);
     temp.texture = LoadTextureFromImage(animTexture);
     UnloadImage(tempImg);

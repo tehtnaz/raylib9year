@@ -11,7 +11,6 @@
 #include "triggers.h"
 #include "animation.h"
 #include "levelObjects.h"
-#include "logging.h"
 
 // TODO:
     // Portal disables (disable button while not in dimension)
@@ -113,8 +112,10 @@ void HitPortal_DestroyButtonTrigger();
 int main(void){
     #if !defined(_DEBUG)
         SetTraceLogLevel(LOG_NONE);         // Disable raylib trace log messsages
+    #else
+        SetTraceLogLevel(LOG_DEBUG);
     #endif
-    LOG_DEBUG("%s\n", GetApplicationDirectory());
+    TraceLog(LOG_DEBUG, "Loading from: %s", GetApplicationDirectory());
 
     // Initialization
     //--------------------------------------------------------------------------------------
@@ -403,7 +404,7 @@ void AddPlayerInputForce(PhysicsBody body){
 }
 
 void DrawHaroldText(const char** texts, int textCount){
-    LOG_DEBUG("Queued: %d\n", textCount);
+    TraceLog(LOG_DEBUG, "Queued: %d", textCount);
     for(int i = 0; i < textCount; i++){
         QueueDisplayText(texts[i], (Vector2){79, 9}, 150);
     }
@@ -434,7 +435,7 @@ void ActivateButtonInDimension(unsigned int triggerID){
 }
 
 void LoadNextLevel(){
-    LOG("INFO: Attemping to load next level...\n");
+    TraceLog(LOG_INFO, "Attemping to load next level...");
     currentDimension = 0;
     if(levelSelect != 0) UnloadTexture(levelBackground);
     levelBackground = LoadTexture(TextFormat("./../res/Levels/grayzone_level%d.png", levelSelect + 1));

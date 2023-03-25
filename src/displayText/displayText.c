@@ -2,7 +2,6 @@
 #include "raylib.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include "logging.h"
 
 // Constants
 #define MinTimeBetween 0.03f
@@ -47,7 +46,7 @@ void NewDisplayText(const char* text, Vector2 pos, int maxWidth){
 
 void QueueDisplayText(const char* item, Vector2 pos, int maxWidth){
     if(queuedTextCount == MAX_QUEUED_TEXT){
-        LOG("displayText_H: Error - Could not create queue more texts (max reached)\n");
+        TraceLog(LOG_ERROR, "displayText -  Could not create queue more texts (max reached)");
         return;
     }
     queuedText[queuedTextCount] = malloc(TextLength(item) * sizeof(char));
@@ -87,8 +86,8 @@ void UpdateAndDrawTypingText(Color color){
     if(!displayTextEnabled){
         
         if(queuedTextCount > 0){
-            LOG_DEBUG("DEBUG: UpdateAndDrawTypingText - shifting...\n");
-            LOG_DEBUG("DEBUG: UpdateAndDrawTypingText - %s\n", queuedText[0]);
+            TraceLog(LOG_DEBUG, "UpdateAndDrawTypingText - shifting...");
+            TraceLog(LOG_DEBUG, "UpdateAndDrawTypingText - %s", queuedText[0]);
             NewDisplayText(queuedText[0], queuedTextPosition[0], queuedMaxTextWidth[0]);
             queuedTextCount--;
             for(int i = 0; i < queuedTextCount; i++){
@@ -134,11 +133,11 @@ void UpdateAndDrawTypingText(Color color){
                 currentWord++;
             }
             if((displayText[i] == ' ' && wordCount > currentWord + 1 && MeasureTextEx(defaultFont, words[currentWord], DefaultFontSize, spacing).x + drawLocation.x > maxTextWidth + textPosition.x) || drawLocation.x - textPosition.x > maxTextWidth){
-                //printf("/skip/\n");
+                //printf("/skip/");
                 drawLocation.y += spaceBetweenLines;
                 drawLocation.x = textPosition.x;
             }
         }
-        //printf("\n");
+        //printf("");
     }
 }

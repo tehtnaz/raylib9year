@@ -2,7 +2,6 @@
 #include "triggers.h"
 #include "physac.h"
 #include "levelObjects.h"
-#include "logging.h"
 
 // --- Helpers ---
 
@@ -53,7 +52,7 @@ void readString(TokenInfo* tokenInfo){
             if(peek != EOF){
                 //advanceChar();
             }else{
-                LOG("WARNING: readFileSF[scan/readString] - Unterminated string at end of file\n");
+                TraceLog(LOG_WARNING, "readFileSF[scan/readString] - Unterminated string at end of file");
                 break;
             }
         }
@@ -122,9 +121,8 @@ void readKeyword(TokenInfo* tokenInfo){
         i++;
     }
     tokenInfo->text[i] = '\0';
-    #ifdef DEBUG_DATA_HANDLING 
-        LOG_DEBUG("[DEBUG] - readKeyword - %s\n", tokenInfo->text); 
-    #endif
+    TraceLog(LOG_DEBUG, "readKeyword - %s", tokenInfo->text); 
+
     int tempVal = 0;
     if(TextIsEqual(tokenInfo->text, "true") || TextIsEqual(tokenInfo->text, "STATIC")){
         tokenInfo->type = TRUE;
@@ -149,7 +147,7 @@ void readKeyword(TokenInfo* tokenInfo){
     }else if(TextIsEqual(tokenInfo->text, "Wire")){
         tokenInfo->type = WIRE;
     }else{
-        LOG("WARNING: readFileSF[scan/readKeyword] - [line %d] Item '%s' doesn't match any keywords \n", line, tokenInfo->text);
+        TraceLog(LOG_WARNING, "readFileSF[scan/readKeyword] - [line %d] Item '%s' doesn't match any keywords ", line, tokenInfo->text);
     }
     free(tokenInfo->text);
     tokenInfo->text = NULL;
@@ -167,7 +165,7 @@ StructGroup* sg_alloc(){
 // push struct group to struct group linked list
 void pushGroup(StructGroup* group, StructGroup* item){
     if(group == NULL){
-        LOG_DEBUG("[DEBUG] WARNING: dataHandling[readFileSF/group/addGroup] - Attempted adding to NULL group. Skipping...");
+        TraceLog(LOG_DEBUG, "MISC-WARNING: dataHandling[readFileSF/group/addGroup] - Attempted adding to NULL group. Skipping...");
     }
     if(group->next == NULL){
         group->next = item;
@@ -182,11 +180,11 @@ void pushGroup(StructGroup* group, StructGroup* item){
 
 
 StructGroup* readFileSF(const char* path){
-    LOG("INFO: readFileSF - Attemping to open: %s\n", path);
+    TraceLog(LOG_INFO, "readFileSF - Attemping to open: %s", path);
     fp = fopen(path, "r");
     if(fp == NULL){
-        LOG("ERROR: readFileSF - ERROR opening. File may not exist.\n");
-        LOG("Could not open: %s\n", path);
+        TraceLog(LOG_ERROR, "readFileSF - ERROR opening. File may not exist.");
+        TraceLog(LOG_ERROR, "readFileSF - Could not open: %s", path);
         return NULL;
     }
     ch = '\0'; // character selected
@@ -199,7 +197,7 @@ StructGroup* readFileSF(const char* path){
     // ----------------
     // readFileSF[scan]
     // ----------------
-    LOG("INFO: Initialize readFileSF[scan]\n");
+    TraceLog(LOG_INFO, "Initialize readFileSF[scan]");
     TokenInfo* infoRoot;
     infoRoot = (TokenInfo*)calloc(1, sizeof(TokenInfo));
 
@@ -244,7 +242,7 @@ StructGroup* readFileSF(const char* path){
                 }else if(isAlphaNumeric(ch)){
                     readKeyword(tokenInfo);
                 }else{
-                    LOG("WARNING: readFileSF[scan] - [line %d] Unexpected character: [%c]\n", line, ch);
+                    TraceLog(LOG_WARNING, "readFileSF[scan] - [line %d] Unexpected character: [%c]", line, ch);
                 }
                 break;
         }
@@ -266,16 +264,16 @@ StructGroup* readFileSF(const char* path){
     }
 
     #ifdef DEBUG_DATA_HANDLING
-    LOG_DEBUG("DEBUG: readFileSF[scan] - Begin info print at %p\n", infoRoot);
+    TraceLog(LOG_DEBUG, "readFileSF[scan] - Begin info print at %p", infoRoot);
     tokenInfo = infoRoot;
     while(tokenInfo != NULL){
         if(tokenInfo->type == INTEGER){
-            LOG_DEBUG("  type: %d | line: %d | int: %d | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->integer, tokenInfo);
+            TraceLog(LOG_DEBUG, "  type: %d | line: %d | int: %d | loc: %p", tokenInfo->type, tokenInfo->line, tokenInfo->integer, tokenInfo);
         }
         else if(tokenInfo->type == FLOAT){
-            LOG_DEBUG("  type: %d | line: %d | float: %f | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->decimal, tokenInfo);
+            TraceLog(LOG_DEBUG, "  type: %d | line: %d | float: %f | loc: %p", tokenInfo->type, tokenInfo->line, tokenInfo->decimal, tokenInfo);
         }else{
-            LOG_DEBUG("  type: %d | line: %d | text: %s | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->text, tokenInfo);
+            TraceLog(LOG_DEBUG, "  type: %d | line: %d | text: %s | loc: %p", tokenInfo->type, tokenInfo->line, tokenInfo->text, tokenInfo);
         }
         tokenInfo = tokenInfo->next;
     }
@@ -285,7 +283,7 @@ StructGroup* readFileSF(const char* path){
     // readFileSF[group]
     // -----------------
     StructGroup* temp;
-    LOG("INFO: Beginning readFileSF[group]\n");
+    TraceLog(LOG_INFO, "Beginning readFileSF[group]");
 
     StructGroup* groupRoot;
     groupRoot = sg_alloc();
@@ -298,9 +296,9 @@ StructGroup* readFileSF(const char* path){
     while(tokenInfo != NULL){
         skipAdd = false;
         alreadyClean = false;
-        //LOG("token: %d\n", tokenInfo->type);
+        //TraceLog("token: %d", tokenInfo->type);
         if(tokenInfo->type == LEFT_PAREN){
-            //LOG("child\n");
+            //TraceLog("child");
             structGroup->token.line = tokenInfo->line;
             structGroup->token.type = NO_TYPE;
             structGroup->child = sg_alloc();
@@ -308,10 +306,10 @@ StructGroup* readFileSF(const char* path){
             structGroup = structGroup->child;
             skipAdd = true;
             alreadyClean = true;
-            //LOG("parent: %p\n", structGroup->parent);
+            //TraceLog("parent: %p", structGroup->parent);
         }else if(tokenInfo->type == RIGHT_PAREN){
             if(structGroup->parent == NULL){
-                LOG("ERROR: readFileSF[group] - [line %d] Grouping failed. No opening bracket was put before a closing bracket\n", tokenInfo->line);
+                TraceLog(LOG_ERROR, "readFileSF[group] - [line %d] Grouping failed. No opening bracket was put before a closing bracket", tokenInfo->line);
                 return NULL;
             }
             structGroup->previous->next = NULL;
@@ -336,23 +334,23 @@ StructGroup* readFileSF(const char* path){
     #ifdef DEBUG_DATA_HANDLING
     structGroup = groupRoot;
     for(int i = 0; structGroup != NULL;){
-        LOG_DEBUG("---GROUP %d---\n", i);
+        TraceLog(LOG_DEBUG, "---GROUP %d---", i);
         tokenInfo = &structGroup->token;
         if(tokenInfo->type == INTEGER){
-            LOG_DEBUG("type: %d | line: %d | int: %d | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->integer, tokenInfo);
+            TraceLog(LOG_DEBUG, "type: %d | line: %d | int: %d | loc: %p", tokenInfo->type, tokenInfo->line, tokenInfo->integer, tokenInfo);
         }
         else if(tokenInfo->type == FLOAT){
-            LOG_DEBUG("type: %d | line: %d | float: %f | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->decimal, tokenInfo);
+            TraceLog(LOG_DEBUG, "type: %d | line: %d | float: %f | loc: %p", tokenInfo->type, tokenInfo->line, tokenInfo->decimal, tokenInfo);
         }else{
-            LOG_DEBUG("type: %d | line: %d | text: %s | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->text, tokenInfo);
+            TraceLog(LOG_DEBUG, "type: %d | line: %d | text: %s | loc: %p", tokenInfo->type, tokenInfo->line, tokenInfo->text, tokenInfo);
         }
         if(structGroup->child != NULL){
-            LOG_DEBUG("\nvv- ENTER CHILD -vv\n\n");
+            TraceLog(LOG_DEBUG, "\nvv- ENTER CHILD -vv\n");
             structGroup = structGroup->child;
         }else if(structGroup->next != NULL){
             structGroup = structGroup->next;
         }else{
-            LOG_DEBUG("\n^^- REENTER PARENT -^^\n\n");
+            TraceLog(LOG_DEBUG, "\n^^- REENTER PARENT -^^\n");
             while (structGroup != NULL && structGroup->next == NULL)
             {
                 structGroup = structGroup->parent;
@@ -365,7 +363,7 @@ StructGroup* readFileSF(const char* path){
     }
     #endif
     
-    LOG_DEBUG("[DEBUG] readFileSF[group] - Done using [scan] materials. Freeing...\n");
+    TraceLog(LOG_DEBUG, "readFileSF[group] - Done using [scan] materials. Freeing...");
     tokenInfo = infoRoot;
     while(tokenInfo != NULL){
         TokenInfo* safeItem = tokenInfo;
@@ -374,20 +372,20 @@ StructGroup* readFileSF(const char* path){
             // ^^ won't this crash the program because we just ref this pointer in the structGroup?
         free(safeItem);
     }
-    LOG_DEBUG("[DEBUG] readFileSF[group] - Successfully freed all old tokens\n");
+    TraceLog(LOG_DEBUG, "readFileSF[group] - Successfully freed all old tokens");
 
     
     // -----------------
     // readFileSF[associate]
     // -----------------
-    LOG("INFO: Moving onto readFileSF[associate]...\n");
+    TraceLog(LOG_INFO, "Moving onto readFileSF[associate]...");
     
     structGroup = groupRoot;
     bool success = false;
     while (structGroup != NULL)
     {
         success = false;
-        //LOG("i %d\n", structGroup->token.type);
+        //TraceLog("i %d", structGroup->token.type);
         if(structGroup->token.type > RIGHT_PAREN){
             //should be associated
             if(structGroup->next->token.type == NO_TYPE){
@@ -395,9 +393,9 @@ StructGroup* readFileSF(const char* path){
 
                 success = true;
             }else{
-                LOG_DEBUG("[DEBUG] readFileSF[associate] - token: %d\n", structGroup->token.type);
-                LOG_DEBUG("[DEBUG] readFileSF[associate] - next_token: %d\n", structGroup->next->token.type);
-                LOG("ERROR: readFileSF[associate] - [line %d] Expected group but got item instead (did you forget parentheses?)\n", structGroup->token.line);
+                TraceLog(LOG_DEBUG, "readFileSF[associate] - token: %d", structGroup->token.type);
+                TraceLog(LOG_DEBUG, "readFileSF[associate] - next_token: %d", structGroup->next->token.type);
+                TraceLog(LOG_ERROR, "readFileSF[associate] - [line %d] Expected group but got item instead (did you forget parentheses?)", structGroup->token.line);
                 return NULL;
             }
         }else if(structGroup->token.type == MINUS){
@@ -406,7 +404,7 @@ StructGroup* readFileSF(const char* path){
             }else if(structGroup->next->token.type == FLOAT){
                 structGroup->next->token.decimal = -structGroup->next->token.decimal;
             }else{
-                LOG("ERROR: readFileSF[associate] - [line %d] Expected number while reading a negative symbol\n", structGroup->token.line);
+                TraceLog(LOG_ERROR, "readFileSF[associate] - [line %d] Expected number while reading a negative symbol", structGroup->token.line);
                 return NULL;
             }
             success = true;
@@ -420,14 +418,14 @@ StructGroup* readFileSF(const char* path){
             free(structGroup);
             structGroup = temp;
         }
-        //LOG("i %d\n", structGroup->token.type);
+        //TraceLog("i %d", structGroup->token.type);
         if(structGroup->child != NULL){
-            //LOG("vv- FOUND CHILD. ENTER CHILD -vv\n");
+            //TraceLog("vv- FOUND CHILD. ENTER CHILD -vv");
             structGroup = structGroup->child;
         }else if(structGroup->next != NULL){
             structGroup = structGroup->next;
         }else{
-            //LOG("^^- REENTER PARENT -^^\n");
+            //TraceLog("^^- REENTER PARENT -^^");
             while (structGroup != NULL && structGroup->next == NULL)
             {
                 structGroup = structGroup->parent;
@@ -440,23 +438,23 @@ StructGroup* readFileSF(const char* path){
     #ifdef DEBUG_DATA_HANDLING
     structGroup = groupRoot;
     for(int i = 0; structGroup != NULL;){
-        LOG_DEBUG("---GROUP %d---\n", i);
+        TraceLog(LOG_DEBUG, "---GROUP %d---", i);
         tokenInfo = &structGroup->token;
         if(tokenInfo->type == INTEGER){
-            LOG_DEBUG("type: %d | line: %d | int: %d | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->integer, tokenInfo);
+            TraceLog(LOG_DEBUG, "type: %d | line: %d | int: %d | loc: %p", tokenInfo->type, tokenInfo->line, tokenInfo->integer, tokenInfo);
         }
         else if(tokenInfo->type == FLOAT){
-            LOG_DEBUG("type: %d | line: %d | float: %f | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->decimal, tokenInfo);
+            TraceLog(LOG_DEBUG, "type: %d | line: %d | float: %f | loc: %p", tokenInfo->type, tokenInfo->line, tokenInfo->decimal, tokenInfo);
         }else{
-            LOG_DEBUG("type: %d | line: %d | text: DISABLED | loc: %p\n", tokenInfo->type, tokenInfo->line, /*tokenInfo->text,*/ tokenInfo);
+            TraceLog(LOG_DEBUG, "type: %d | line: %d | text: DISABLED | loc: %p", tokenInfo->type, tokenInfo->line, /*tokenInfo->text,*/ tokenInfo);
         }
         if(structGroup->child != NULL){
-            LOG_DEBUG("\nvv- ENTER CHILD -vv\n\n");
+            TraceLog(LOG_DEBUG, "\nvv- ENTER CHILD -vv\n");
             structGroup = structGroup->child;
         }else if(structGroup->next != NULL){
             structGroup = structGroup->next;
         }else{
-            LOG_DEBUG("\n^^- REENTER PARENT -^^\n\n");
+            TraceLog(LOG_DEBUG, "\n^^- REENTER PARENT -^^\n");
             while (structGroup != NULL && structGroup->next == NULL)
             {
                 structGroup = structGroup->parent;
@@ -491,7 +489,7 @@ int childNum(StructGroup* group){
 //if true; that means there's an error
 bool checkArgNumber(StructGroup* group, int expectedArgs, const char* itemName){
     if(childNum(group) != expectedArgs){
-        LOG("ERROR: parseStructGroupInfo[checkArgNumber] - [line %d] Unexpected number of arguments given to %s\n", group->token.line, itemName);
+        TraceLog(LOG_ERROR, "parseStructGroupInfo[checkArgNumber] - [line %d] Unexpected number of arguments given to %s", group->token.line, itemName);
         return true;
     }else{
         return false;
@@ -512,7 +510,7 @@ Vector2 parseVector2(StructGroup* group){
             if(i == 0) vector2.x = temp->token.decimal;
             else vector2.y = temp->token.decimal;
         }else{
-            LOG("WARNING: parseStructGroupInfo[parseVector2] - [line %d] Received non-number argument. Argument skipped.\n", temp->token.line);
+            TraceLog(LOG_WARNING, "parseStructGroupInfo[parseVector2] - [line %d] Received non-number argument. Argument skipped.", temp->token.line);
         }
         temp = temp->next;
     }
@@ -535,7 +533,7 @@ Rectangle parseRectangle(StructGroup* group){
             if(i == 2) rect.width = temp->token.decimal;
             else rect.height = temp->token.decimal;
         }else{
-            LOG("WARNING: parseStructGroupInfo[parseRectangle] - [line %d] Received non-number argument. Argument skipped.\n", temp->token.line);
+            TraceLog(LOG_WARNING, "parseStructGroupInfo[parseRectangle] - [line %d] Received non-number argument. Argument skipped.", temp->token.line);
         }
         temp = temp->next;
     }
@@ -546,7 +544,7 @@ Rectangle parseRectangle(StructGroup* group){
 
 TempPhysObj parsePhysObj(StructGroup* group, bool isCircle){
     TempPhysObj obj = {0};
-    //LOG("arg num: %d", childNum(group));
+    //TraceLog("arg num: %d", childNum(group));
     if(isCircle && checkArgNumber(group, 5, "CirclePhysObj")) return obj;
     if(!isCircle && checkArgNumber(group, 6, "RectanglePhysObj")) return obj;
 
@@ -555,26 +553,26 @@ TempPhysObj parsePhysObj(StructGroup* group, bool isCircle){
     if(temp->token.type == VECTOR2){
         obj.pos = parseVector2(temp);
     }else{
-        LOG("WARNING: parseStructGroupInfo[parsePhysObj] - [line %d] Invalid argument type for arg 1\n", group->token.line);
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parsePhysObj] - [line %d] Invalid argument type for arg 1", group->token.line);
     }
     temp = temp->next;
     if(isCircle){
         if(temp->token.type == FLOAT){
             obj.radius = temp->token.decimal;
         }else{
-            LOG("WARNING: parseStructGroupInfo[parseCirclePhysObj] - [line %d] Invalid argument type for arg 2\n", group->token.line);
+            TraceLog(LOG_WARNING, "parseStructGroupInfo[parseCirclePhysObj] - [line %d] Invalid argument type for arg 2", group->token.line);
         }
     }else{
         if(temp->token.type == FLOAT){
             obj.width = temp->token.decimal;
         }else{
-            LOG("WARNING: parseStructGroupInfo[parseRectanglePhysObj] - [line %d] Invalid argument type for arg 2\n", group->token.line);
+            TraceLog(LOG_WARNING, "parseStructGroupInfo[parseRectanglePhysObj] - [line %d] Invalid argument type for arg 2", group->token.line);
         }
         temp = temp->next;
         if(temp->token.type == FLOAT){
             obj.height = temp->token.decimal;
         }else{
-            LOG("WARNING: parseStructGroupInfo[parseRectanglePhysObj] - [line %d] Invalid argument type for arg 3\n", group->token.line);
+            TraceLog(LOG_WARNING, "parseStructGroupInfo[parseRectanglePhysObj] - [line %d] Invalid argument type for arg 3", group->token.line);
         }
     }
     temp = temp->next;
@@ -587,7 +585,7 @@ TempPhysObj parsePhysObj(StructGroup* group, bool isCircle){
         temp = temp->child;
         for(int i = 0; temp->next != NULL; i++){
             if(temp->token.type != INTEGER){
-                LOG("WARNING: parseStructGroupInfo[parsePhysObj] - [line %d] Invalid type for what should be inside an INTEGER array\n", group->token.line);
+                TraceLog(LOG_WARNING, "parseStructGroupInfo[parsePhysObj] - [line %d] Invalid type for what should be inside an INTEGER array", group->token.line);
                 break;
             }
             if(i == (tagCount - 1)){
@@ -599,7 +597,7 @@ TempPhysObj parsePhysObj(StructGroup* group, bool isCircle){
             temp = temp->next;
         }
         if(temp->token.type != INTEGER){
-            LOG("WARNING: parseStructGroupInfo[parsePhysObj] - [line %d] Invalid type for what should be inside an INTEGER array\n", group->token.line);
+            TraceLog(LOG_WARNING, "parseStructGroupInfo[parsePhysObj] - [line %d] Invalid type for what should be inside an INTEGER array", group->token.line);
         }else{
             if(obj.tagCount == (tagCount - 1)){
                 tagCount *= 2;
@@ -614,17 +612,17 @@ TempPhysObj parsePhysObj(StructGroup* group, bool isCircle){
         obj.tags = malloc(sizeof(unsigned int));
         obj.tags[0] = temp->token.integer;
     }else{
-        LOG("WARNING: parseStructGroupInfo[parsePhysObj] - [line %d] Invalid argument type for arg 2\n", group->token.line);
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parsePhysObj] - [line %d] Invalid argument type for arg 2", group->token.line);
     }
     temp = temp->next;
     if(temp->token.type == INTEGER){
         if(temp->token.integer >= 0){
             obj.trigger = temp->token.integer;
         }else{
-            LOG("WARNING: parseStructGroupInfo[parsePhysObj] - [line %d] Trigger cannot be negative\n", group->token.line);
+            TraceLog(LOG_WARNING, "parseStructGroupInfo[parsePhysObj] - [line %d] Trigger cannot be negative", group->token.line);
         }
     }else{
-        LOG("WARNING: parseStructGroupInfo[parsePhysObj] - [line %d] Invalid argument type for last arg\n", group->token.line);
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parsePhysObj] - [line %d] Invalid argument type for last arg", group->token.line);
     }
     return obj;
 }
@@ -638,7 +636,7 @@ TextBoxTrigger parseTrigger(StructGroup* group){
     if(temp->token.type == INTEGER){
         textBox.trigger = temp->token.integer;
     }else{
-        LOG("WARNING: parseStructGroupInfo[parseTrigger] - [line %d] Invalid argument type for arg 1\n", group->token.line);
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseTrigger] - [line %d] Invalid argument type for arg 1", group->token.line);
     }
     temp = temp->next;
     if(temp->token.type == NO_TYPE){
@@ -647,7 +645,7 @@ TextBoxTrigger parseTrigger(StructGroup* group){
         temp = temp->child;
         for(int i = 0; temp != NULL; i++){
             if(temp->token.type != STRING){
-                LOG("WARNING: parseStructGroupInfo[parseTrigger] - [line %d] Invalid type for what should be inside a STRING array\n", group->token.line);
+                TraceLog(LOG_WARNING, "parseStructGroupInfo[parseTrigger] - [line %d] Invalid type for what should be inside a STRING array", group->token.line);
                 break;
             }
             if(i == (textCount - 1)){
@@ -660,7 +658,7 @@ TextBoxTrigger parseTrigger(StructGroup* group){
             temp = temp->next;
         }
     }else{
-        LOG("WARNING: parseStructGroupInfo[parseTrigger] - [line %d] Invalid argument type for arg 2\n", group->token.line);
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseTrigger] - [line %d] Invalid argument type for arg 2", group->token.line);
     }
     return textBox;
 }
@@ -674,19 +672,19 @@ WireData parseWire(StructGroup* group){
     if(temp->token.type == VECTOR2){
         wire.pos = parseVector2(temp);
     }else{
-        LOG("WARNING: parseStructGroupInfo[parseWire] - [line %d] Invalid argument type for arg 1\n", group->token.line);
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseWire] - [line %d] Invalid argument type for arg 1", group->token.line);
     }
     temp = temp->next;
     if(temp->token.type == INTEGER){
         wire.wireID = temp->token.integer;
     }else{
-        LOG("WARNING: parseStructGroupInfo[parseWire] - [line %d] Invalid argument type for arg 2\n", group->token.line);
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseWire] - [line %d] Invalid argument type for arg 2", group->token.line);
     }
     temp = temp->next;
     if(temp->token.type == INTEGER){
         wire.trigger = temp->token.integer;
     }else{
-        LOG("WARNING: parseStructGroupInfo[parseWire] - [line %d] Invalid argument type for arg 3\n", group->token.line);
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseWire] - [line %d] Invalid argument type for arg 3", group->token.line);
     }
     return wire;
 }
@@ -700,24 +698,24 @@ ButtonPortalData parseButtonOrPortal(StructGroup* group){
     if(temp->token.type == VECTOR2){
         button.pos = parseVector2(temp);
     }else{
-        LOG("WARNING: parseStructGroupInfo[parseButtonOrPortal] - [line %d] Invalid argument type for arg 1\n", group->token.line);
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseButtonOrPortal] - [line %d] Invalid argument type for arg 1", group->token.line);
     }
     temp = temp->next;
     if(temp->token.type == INTEGER){
         button.triggerOrColourID = temp->token.integer;
     }else{
-        LOG("WARNING: parseStructGroupInfo[parseButtonOrPortal] - [line %d] Invalid argument type for arg 2\n", group->token.line);
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseButtonOrPortal] - [line %d] Invalid argument type for arg 2", group->token.line);
     }
     return button;
 }
 
 
 int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(const char** texts, int textCount), Vector2 *startingPos){
-    LOG("INFO: Finalizing read with parseStructGroupInfo...\n");
+    TraceLog(LOG_INFO, "Finalizing read with parseStructGroupInfo...");
 
     StructGroup* structGroup = groupRoot;
     while(structGroup != NULL){
-        //LOG("reading...\n");
+        //TraceLog("reading...");
         TempPhysObj obj;
         PhysicsBody body;
         switch (structGroup->token.type)
@@ -769,7 +767,7 @@ int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(
             case DOOR:
                 break;
             default:
-                LOG("WARNING: parseStructGroupInfo - [line %d] Received non-struct as parent group. [TOKEN_TYPE: %d] Skipping...\n", structGroup->token.line, structGroup->token.type);
+                TraceLog(LOG_WARNING, "parseStructGroupInfo - [line %d] Received non-struct as parent group. [TOKEN_TYPE: %d] Skipping...", structGroup->token.line, structGroup->token.type);
                 break;
         }
         structGroup = structGroup->next;

@@ -99,3 +99,7 @@ level5_left  - 3
 level5_right - 4
 level6 - 5
 level7 - 6
+
+
+WARNING: scriptName[functionName] - Debug message
+INFO: moduleName - Debug message

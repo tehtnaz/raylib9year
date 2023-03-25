@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include "physac.h"
 #include "triggers.h"
-#include "logging.h"
 
 static TriggerEvent triggerEventArray[MAX_TRIGGER_EVENT_COUNT];
 static int triggerEventCount = 0;
@@ -47,7 +46,7 @@ TriggerEventFunctionData CreateTriggerEventFunctionData_FunctionWithTriggerID(vo
 
 void NewTriggerEvent(unsigned int triggerID, TriggerUseType useType, TriggerEventFunctionData data){
     if(triggerEventCount == MAX_TRIGGER_EVENT_COUNT){
-        LOG("TRIGGER_H: Error - Could not create more trigger events (max reached)\n");
+        TraceLog(LOG_ERROR, "Triggers - Could not create more trigger events (max reached)");
         return;
     }
     TriggerEvent event;
@@ -59,7 +58,7 @@ void NewTriggerEvent(unsigned int triggerID, TriggerUseType useType, TriggerEven
     event.data = data;
 
     #ifdef _DEBUG
-        LOG_DEBUG("DEBUG: Triggers - Creating new trigger at index %d with trigger %d and type %d\n", triggerEventCount, event.triggerID, event.data.type);
+        TraceLog(LOG_DEBUG, "Triggers - Creating new trigger at index %d with trigger %d and type %d", triggerEventCount, event.triggerID, event.data.type);
     #endif
 
     triggerEventArray[triggerEventCount] = event;
@@ -86,8 +85,8 @@ void ResetAllTriggers(){
 
 void ActivateTriggerEvent(int index){
     #ifdef _DEBUG
-        LOG_DEBUG("DEBUG: Triggers - Activating index %d with trigger %d and type %d and useType %d\n", index, triggerEventArray[index].triggerID, triggerEventArray[index].data.type, triggerEventArray[index].useType);
-        LOG_DEBUG("triggerEventCount: %d\n", triggerEventCount);
+        TraceLog(LOG_DEBUG, "Triggers - Activating index %d with trigger %d and type %d and useType %d", index, triggerEventArray[index].triggerID, triggerEventArray[index].data.type, triggerEventArray[index].useType);
+        TraceLog(LOG_DEBUG, "triggerEventCount: %d", triggerEventCount);
     #endif
     TriggerEventFunctionData data = triggerEventArray[index].data;
     switch (data.type){
@@ -96,16 +95,16 @@ void ActivateTriggerEvent(int index){
         case TRIGGER_FUNCTION_WITH_TRIGGERID: data.function_with_trigger_function(triggerEventArray[index].triggerID); break;
         case TRIGGER_SET_FORCE: 
             if(triggerEventArray[index].bodyOrigin == NULL) {
-                LOG("TRIGGER_H: ERROR - Body origin was NULL while trying to a function using it!\n");
+                TraceLog(LOG_ERROR, "Triggers - Body origin was NULL while trying to a function using it!");
             } else data.function_add_force(triggerEventArray[index].bodyOrigin); 
             break;
-        default: LOG("Invalid dataType\n");
+        default: TraceLog(LOG_ERROR, "Triggers - Invalid dataType");
     }
 }
 void ActivateAllTriggerInUse(){
     triggerSelector = 0;
     while(triggerSelector < triggerEventCount){
-        //LOG("check %d; ", i);
+        //TraceLog("check %d; ", i);
 
         if(triggerEventArray[triggerSelector].useType == TRIGGER_USE_ONCE && triggerEventArray[triggerSelector].inUse){
             ActivateTriggerEvent(triggerSelector);
@@ -120,7 +119,7 @@ void ActivateAllTriggerInUse(){
 
         triggerSelector++;
     }
-    //LOG("thing what: %d\n", thing);
+    //TraceLog("thing what: %d", thing);
 }
 
 void SetTriggerInUse(PhysicsBody body, int triggerID){
@@ -129,7 +128,7 @@ void SetTriggerInUse(PhysicsBody body, int triggerID){
             continue;
         }
         #ifdef _DEBUG
-            //LOG("DEBUG: Triggers - Now in use event with index %d with trigger %d and type %d\n", i, triggerID, triggerEventArray[i].data.type);
+            //TraceLog("DEBUG: Triggers - Now in use event with index %d with trigger %d and type %d", i, triggerID, triggerEventArray[i].data.type);
         #endif
         triggerEventArray[i].inUse = true;
         triggerEventArray[i].bodyOrigin = body;
@@ -138,7 +137,7 @@ void SetTriggerInUse(PhysicsBody body, int triggerID){
 
 void UpdateAndActivateTriggers(){
     const int manifoldCount = GetPhysicsManifoldCount();
-    //LOG("\n\n");
+    //TraceLog("");
     // Refresh all values
     for(int i = 0; i < triggerEventCount; i++){
         triggerEventArray[i].wasUsedOnPreviousFrame = triggerEventArray[i].inUse;
@@ -152,11 +151,11 @@ void UpdateAndActivateTriggers(){
 
     // Check which items are contacting eachother
     for(int i = 0; i < manifoldCount; i++){
-        //LOG("aID: %d bID: %d cc: %d| ", contacts[i]->bodyA->id, contacts[i]->bodyB->id, contacts[i]->contactsCount);
+        //TraceLog("aID: %d bID: %d cc: %d| ", contacts[i]->bodyA->id, contacts[i]->bodyB->id, contacts[i]->contactsCount);
         PhysicsManifold manifold = GetPhysicsManifold(i);
         if(manifold->contactsCount > 0){
             if(manifold->bodyA->tagCount > PHYSAC_MAX_TAG_COUNT || manifold->bodyB->tagCount > PHYSAC_MAX_TAG_COUNT){
-                LOG("ERROR: Triggers - Max tagCount exceeded\n");
+                TraceLog(LOG_ERROR, "Triggers - Max tagCount exceeded");
                 return;
             }
             for(int i = 0; i < manifold->bodyA->tagCount; i++){
@@ -178,10 +177,10 @@ void UpdateAndActivateTriggers(){
 
 
 void DestroyTriggerEventWithTrigger(int triggerID){
-    LOG_DEBUG("DEBUG: Triggers - Previous triggerEventCount: %d\n", triggerEventCount);
+    TraceLog(LOG_DEBUG, "Triggers - Previous triggerEventCount: %d", triggerEventCount);
     for(int i = 0; i < triggerEventCount; i++){
         if(triggerEventArray[i].triggerID == triggerID){
-            LOG_DEBUG("DEBUG: Triggers - Destroying TriggerEvent with trigger %d\n", triggerID);
+            TraceLog(LOG_DEBUG, "Triggers - Destroying TriggerEvent with trigger %d", triggerID);
             ClearTriggerEventFunctionData(triggerEventArray[i]);
             for(int j = i; j < triggerEventCount - 1; j++){
                 triggerEventArray[j] = triggerEventArray[j + 1];
@@ -190,10 +189,10 @@ void DestroyTriggerEventWithTrigger(int triggerID){
             triggerSelector--;
         }
     }
-    LOG_DEBUG("DEBUG: Triggers - New triggerEventCount: %d\n", triggerEventCount);
+    TraceLog(LOG_DEBUG, "Triggers - New triggerEventCount: %d", triggerEventCount);
 }
 void DestroyTriggerEventAtIndex(int index){
-    LOG_DEBUG("DEBUG: Triggers - Destroying TriggerEvent at index %d with trigger %d and type %d\n", index, triggerEventArray[index].triggerID, triggerEventArray[index].data.type);
+    TraceLog(LOG_DEBUG, "Triggers - Destroying TriggerEvent at index %d with trigger %d and type %d", index, triggerEventArray[index].triggerID, triggerEventArray[index].data.type);
     ClearTriggerEventFunctionData(triggerEventArray[index]);
     for(int j = index; j < triggerEventCount - 1; j++){
         triggerEventArray[j] = triggerEventArray[j + 1];
