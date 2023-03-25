@@ -15,7 +15,6 @@
 
 // TODO:
     // Portal disables (disable button while not in dimension)
-    // Button disable once step off
     // Door collisions + Rendering
     // Death animation (fade to black)
     // Doesn't work for Web
@@ -266,8 +265,8 @@ static void UpdateDrawFrame(void)
             // DestroyPhysicsBody(body);
         }
         //Physics
-        ActivateAllContactedTriggers();
         UpdatePhysics();
+        UpdateAndActivateTriggers();
     }
 
     // Draw
@@ -433,6 +432,7 @@ void ActivatePortal(unsigned int triggerID){
 
 void LoadNextLevel(){
     LOG("DEBUG: Attemping to load next level...\n");
+    currentDimension = 0;
     if(levelSelect != 0) UnloadTexture(levelBackground);
     levelBackground = LoadTexture(TextFormat("./../res/Levels/grayzone_level%d.png", levelSelect + 1));
 
@@ -446,22 +446,22 @@ void LoadNextLevel(){
     DestroyAllLevelObjects();
 
     ResetAllTriggers();
-
+    
     // Pre defined TriggerEvents
-    NewTriggerEvent(1, false, CreateTriggerEventFunctionData_SetForce(AddPlayerInputForce));
-    NewTriggerEvent(3, true, CreateTriggerEventFunctionData_NoArgFunction(LoadNextLevel));
+    NewTriggerEvent(1, TRIGGER_USE_ON_STAY, CreateTriggerEventFunctionData_SetForce(AddPlayerInputForce));
+    NewTriggerEvent(3, TRIGGER_USE_ONCE, CreateTriggerEventFunctionData_NoArgFunction(LoadNextLevel));
     
-    NewTriggerEvent(4, true, CreateTriggerEventFunctionData_NoArgFunction(StartDeathAnimation)); // TODO: shouldn't be one time use
+    NewTriggerEvent(4, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_NoArgFunction(StartDeathAnimation)); // TODO: shouldn't be one time use
 
-    NewTriggerEvent(13, true, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal)); // TODO: shouldn't be one time use
-    NewTriggerEvent(14, true, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal)); // TODO: shouldn't be one time use
-    NewTriggerEvent(15, true, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal)); // TODO: shouldn't be one time use
-    NewTriggerEvent(16, true, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal)); // TODO: shouldn't be one time use
+    NewTriggerEvent(13, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal)); // TODO: shouldn't be one time use
+    NewTriggerEvent(14, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal)); // TODO: shouldn't be one time use
+    NewTriggerEvent(15, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal)); // TODO: shouldn't be one time use
+    NewTriggerEvent(16, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal)); // TODO: shouldn't be one time use
 
-    NewTriggerEvent(17, true, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivateButton)); // TODO: shouldn't be one time use
+    NewTriggerEvent(17, TRIGGER_USE_ON_STAY, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivateButton)); // TODO: shouldn't be one time use
     
-    NewTriggerEvent(130, true, CreateTriggerEventFunctionData_NoArgFunction(HitButton_DestroyPortalTrigger));
-    NewTriggerEvent(131, true, CreateTriggerEventFunctionData_NoArgFunction(HitPortal_DestroyButtonTrigger));
+    NewTriggerEvent(130, TRIGGER_USE_ONCE, CreateTriggerEventFunctionData_NoArgFunction(HitButton_DestroyPortalTrigger));
+    NewTriggerEvent(131, TRIGGER_USE_ONCE, CreateTriggerEventFunctionData_NoArgFunction(HitPortal_DestroyButtonTrigger));
 
     parseStructGroupInfo(readFileSF(TextFormat("./../res/LevelFiles/%d.sf", levelSelect + 1)), DrawHaroldText, &startingPos);
 

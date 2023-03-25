@@ -165,7 +165,7 @@ Door* CreateDoor(Vector2 pos, int doorType, unsigned int trigger){
             printf("WARNING: levelObjects - Received incorrect doorType value (value was %d)\n", doorType);
             return NULL;
     }
-    doorArray[doorCount] = (Door){pos, tempAnim, trigger, false};
+    doorArray[doorCount] = (Door){pos, tempAnim, trigger, false, false};
     doorCount++;
 
     return &(doorArray[doorCount - 1]);

@@ -741,7 +741,7 @@ int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(
                 break;
             case TEXT_TRIGGER:; //dumb semicolon again!!! thanks emscripten!
                 TextBoxTrigger textBox = parseTrigger(structGroup);
-                NewTriggerEvent(textBox.trigger, true, CreateTriggerEventFunctionData_TextPrompt((const char**)textBox.texts, textBox.textCount, function_harold_prompt));
+                NewTriggerEvent(textBox.trigger, TRIGGER_USE_ONCE, CreateTriggerEventFunctionData_TextPrompt((const char**)textBox.texts, textBox.textCount, function_harold_prompt));
                 break;
             case PROPERTY:
                 *startingPos = parseVector2(structGroup);

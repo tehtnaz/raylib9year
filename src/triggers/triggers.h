@@ -31,10 +31,19 @@ typedef struct TriggerEventFunctionData{
 
 }TriggerEventFunctionData;
 
+typedef enum TriggerUseType{
+    TRIGGER_USE_ONCE,
+    TRIGGER_USE_ON_ENTER,
+    TRIGGER_USE_ON_EXIT,
+    TRIGGER_USE_ON_STAY
+}TriggerUseType;
+
 typedef struct TriggerEvent{
     unsigned int triggerID;
-    bool oneTimeUse;
-    bool wasUsed;
+    bool wasUsedOnPreviousFrame;
+    bool inUse;
+    PhysicsBody bodyOrigin;
+    TriggerUseType useType;
 
     TriggerEventFunctionData data;
 }TriggerEvent;
@@ -44,13 +53,11 @@ TriggerEventFunctionData CreateTriggerEventFunctionData_TextPrompt(const char** 
 TriggerEventFunctionData CreateTriggerEventFunctionData_NoArgFunction(void (*function_no_arg_function)());
 TriggerEventFunctionData CreateTriggerEventFunctionData_FunctionWithTriggerID(void (*function_with_trigger_function)(unsigned int triggerID));
 
-void NewTriggerEvent(unsigned int triggerID, bool oneTimeUse, TriggerEventFunctionData data);
-
-void ActivateTriggerEvent(PhysicsBody body, int triggerID);
+void NewTriggerEvent(unsigned int triggerID, TriggerUseType useType, TriggerEventFunctionData data);
 
 void ResetAllTriggers();
 
-void ActivateAllContactedTriggers();
+void UpdateAndActivateTriggers();
 
 void DestroyTriggerEventWithTrigger(int triggerID);
 
