@@ -38,7 +38,7 @@ PROJECT_BUILD_PATH    ?= ./../build/
 # RAYLIB_PATH           ?= ../../raylib
 
 # Locations of raylib.h and libraylib.a/libraylib.so
-RAYLIB_INCLUDE_PATH   ?= ./../include/raylib-4.2
+RAYLIB_INCLUDE_PATH   ?= ./../include/raylib-4.5
 
 # Library type compilation: STATIC (.a) or SHARED (.so/.dll)
 RAYLIB_LIBTYPE        ?= STATIC
@@ -66,18 +66,18 @@ ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     # ifeq ($(UNAME),Msys) -> Windows
     ifeq ($(OS),Windows_NT)
         PLATFORM_OS = WINDOWS
-        RAYLIB_LIB_PATH ?= ./../lib/raylib-4.2-windows
+        RAYLIB_LIB_PATH ?= ./../lib/raylib-4.5-windows
     else
         PLATFORM_OS = LINUX
-        RAYLIB_LIB_PATH ?= ./../lib/raylib-4.2-linux
+        RAYLIB_LIB_PATH ?= ./../lib/raylib-4.5-linux
         ifeq ($(MINGW),ENABLE)
-            RAYLIB_LIB_PATH = ./../lib/raylib-4.2-windows
+            RAYLIB_LIB_PATH = ./../lib/raylib-4.5-windows
         endif
     endif
 endif
 
 ifeq ($(PLATFORM),PLATFORM_WEB)
-    RAYLIB_LIB_PATH ?= ./../lib/raylib-4.2-wasm
+    RAYLIB_LIB_PATH ?= ./../lib/raylib-4.5-wasm
 endif
 
 
