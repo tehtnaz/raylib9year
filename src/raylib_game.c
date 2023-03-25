@@ -20,7 +20,6 @@
     // Speed doubled in red dimension
     // Speed halved in blue dimension
     // Blue dimension prevents death
-    // Doesn't work for Web
 
 
 #include "dataHandling/dataHandling.h"

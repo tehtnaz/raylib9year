@@ -72,7 +72,7 @@
 #if !defined(PHYSAC_H)
 #define PHYSAC_H
 
-#include "../raylib-4.2/raylib.h"
+#include "../raylib-4.5/raylib.h"
 
 // Function specifiers in case library is build/used as a shared library (Windows)
 // NOTE: Microsoft specifiers to tell compiler that symbols are imported/exported from a .dll

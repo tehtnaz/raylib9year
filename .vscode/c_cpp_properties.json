@@ -10,7 +10,8 @@
                 "${workspaceFolder}/src/dataHandling",
                 "${workspaceFolder}/src/displayText",
                 "${workspaceFolder}/src/triggers",
-                "${workspaceFolder}/src/*.*"
+                "${workspaceFolder}/src/*.*",
+                "${workspaceFolder}/include/raylib-4.5"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
