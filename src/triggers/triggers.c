@@ -128,7 +128,7 @@ void SetTriggerInUse(PhysicsBody body, int triggerID){
             continue;
         }
         #ifdef _DEBUG
-            //TraceLog("DEBUG: Triggers - Now in use event with index %d with trigger %d and type %d", i, triggerID, triggerEventArray[i].data.type);
+            //TraceLog(LOG_DEBUG, "Triggers - Now in use event with index %d with trigger %d and type %d", i, triggerID, triggerEventArray[i].data.type);
         #endif
         triggerEventArray[i].inUse = true;
         triggerEventArray[i].bodyOrigin = body;
@@ -144,6 +144,7 @@ void UpdateAndActivateTriggers(){
         triggerEventArray[i].inUse = false;
         triggerEventArray[i].bodyOrigin = NULL;
         if(triggerEventArray[i].useType == TRIGGER_USE_ONCE && triggerEventArray[i].wasUsedOnPreviousFrame){
+            TraceLog(LOG_DEBUG, "Triggers - Cleaning up used trigger...");
             DestroyTriggerEventAtIndex(i);
             i--;
         }
@@ -186,7 +187,7 @@ void DestroyTriggerEventWithTrigger(int triggerID){
                 triggerEventArray[j] = triggerEventArray[j + 1];
             }
             triggerEventCount--;
-            triggerSelector--;
+            if(triggerSelector >= i) triggerSelector--;
         }
     }
     TraceLog(LOG_DEBUG, "Triggers - New triggerEventCount: %d", triggerEventCount);
@@ -198,5 +199,5 @@ void DestroyTriggerEventAtIndex(int index){
         triggerEventArray[j] = triggerEventArray[j + 1];
     }
     triggerEventCount--;
-    triggerSelector--;
+    if(triggerSelector >= index) triggerSelector--;
 }

@@ -452,7 +452,7 @@ void LoadNextLevel(){
     
     // Pre defined TriggerEvents
     NewTriggerEvent(1, TRIGGER_USE_ON_STAY, CreateTriggerEventFunctionData_SetForce(AddPlayerInputForce));
-    NewTriggerEvent(3, TRIGGER_USE_ONCE, CreateTriggerEventFunctionData_NoArgFunction(LoadNextLevel));
+    NewTriggerEvent(3, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_NoArgFunction(LoadNextLevel));
     
     NewTriggerEvent(4, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_NoArgFunction(StartDeathAnimation)); // TODO: shouldn't be one time use
 
