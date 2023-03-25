@@ -1,6 +1,7 @@
 #include "levelObjects.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "logging.h"
 
 // all draw calls have CYCLE_NONE
 // cycling is done at end of frame
@@ -38,7 +39,7 @@ Animation* portalIDToAnimation(int portalID){
         case 4:
             return &portalYellow;
         default:
-            printf("WARNING: levelObjects - Unknown portalId received; id = %d\n", portalID);
+            LOG("WARNING: levelObjects - Unknown portalId received; id = %d\n", portalID);
             return &portalRed;
     }
 }
@@ -65,11 +66,11 @@ void LevelObjectsInit(){
         wireOff[i] = LoadTexture(TextFormat("./../res/Wires/off/%d.png", i));
     }
 
-    printf("levelObjects - Initialized.\n");
+    LOG("levelObjects - Initialized.\n");
 }
 
 void ActivateButton(unsigned int triggerID){
-    printf("DEBUG: ActiavateButton - activating id %d\n", triggerID);
+    LOG("DEBUG: ActiavateButton - activating id %d\n", triggerID);
     for(int i = 0; i < buttonCount; i++){
         if(buttonArray[i].trigger == triggerID){
             buttonArray[i].buttonDown = true;
@@ -107,7 +108,7 @@ void RenderLevelObjects(){
 
 Wire* CreateWire(Vector2 pos, unsigned int wireID, unsigned int trigger, bool isOn){
     if(wireCount == MAX_WIRES){
-        printf("WARNING: levelObjects - MAX_WIRES limit reached. Couldn't create new wire\n");
+        LOG("WARNING: levelObjects - MAX_WIRES limit reached. Couldn't create new wire\n");
         return NULL;
     }
     wireArray[wireCount] = (Wire){pos, wireID, trigger, isOn};
@@ -117,7 +118,7 @@ Wire* CreateWire(Vector2 pos, unsigned int wireID, unsigned int trigger, bool is
 }
 Button* CreateButton(Vector2 pos, unsigned int trigger, bool m_buttonDown){
     if(buttonCount == MAX_BUTTONS){
-        printf("WARNING: levelObjects - MAX_BUTTONS limit reached. Couldn't create new button\n");
+        LOG("WARNING: levelObjects - MAX_BUTTONS limit reached. Couldn't create new button\n");
         return NULL;
     }
     buttonArray[buttonCount] = (Button){pos, trigger, m_buttonDown};
@@ -127,7 +128,7 @@ Button* CreateButton(Vector2 pos, unsigned int trigger, bool m_buttonDown){
 }
 Portal* CreatePortal(Vector2 pos, unsigned int colourID){
     if(portalCount == MAX_PORTALS){
-        printf("WARNING: levelObjects - MAX_PORTALS limit reached. Couldn't create new portal\n");
+        LOG("WARNING: levelObjects - MAX_PORTALS limit reached. Couldn't create new portal\n");
         return NULL;
     }
     portalArray[portalCount] = (Portal){pos, colourID};
@@ -140,7 +141,7 @@ Portal* CreatePortal(Vector2 pos, unsigned int colourID){
 //doorType, 1 = normal, 2 = pushdoor, 3 = trapdoor 
 Door* CreateDoor(Vector2 pos, int doorType, unsigned int trigger){
     if(doorCount == MAX_DOORS){
-        printf("WARNING: levelObjects - MAX_DOORS limit reached. Couldn't create new door\n");
+        LOG("WARNING: levelObjects - MAX_DOORS limit reached. Couldn't create new door\n");
         return NULL;
     }
     Animation tempAnim = assignProperties(0, 0, 0, false, 0, false);
@@ -162,7 +163,7 @@ Door* CreateDoor(Vector2 pos, int doorType, unsigned int trigger){
             tempAnim.fps = 9;
             break;
         default:
-            printf("WARNING: levelObjects - Received incorrect doorType value (value was %d)\n", doorType);
+            LOG("WARNING: levelObjects - Received incorrect doorType value (value was %d)\n", doorType);
             return NULL;
     }
     doorArray[doorCount] = (Door){pos, tempAnim, trigger, false, false};

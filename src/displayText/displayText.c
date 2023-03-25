@@ -2,13 +2,7 @@
 #include "raylib.h"
 #include <stdlib.h>
 #include <stdio.h>
-
-#define SUPPORT_LOG_INFO
-#if defined(SUPPORT_LOG_INFO)
-    #define LOG(...) printf(__VA_ARGS__)
-#else
-    #define LOG(...)
-#endif
+#include "logging.h"
 
 // Constants
 #define MinTimeBetween 0.03f
@@ -53,7 +47,7 @@ void NewDisplayText(const char* text, Vector2 pos, int maxWidth){
 
 void QueueDisplayText(const char* item, Vector2 pos, int maxWidth){
     if(queuedTextCount == MAX_QUEUED_TEXT){
-        printf("displayText_H: Error - Could not create queue more texts (max reached)\n");
+        LOG("displayText_H: Error - Could not create queue more texts (max reached)\n");
         return;
     }
     queuedText[queuedTextCount] = malloc(TextLength(item) * sizeof(char));

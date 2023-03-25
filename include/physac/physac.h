@@ -265,32 +265,6 @@ PHYSACDEF int GetPhysicsManifoldCount(void);
 #include <stdlib.h>                 // Required for: malloc(), calloc(), free()
 #include <math.h>                   // Required for: cosf(), sinf(), fabs(), sqrtf()
 
-#if !defined(PHYSAC_AVOID_TIMMING_SYSTEM)
-    // Time management functionality
-    #include <time.h>               // Required for: time(), clock_gettime()
-    #if defined(_WIN32)
-        #if defined(__cplusplus)
-        extern "C" {        // Prevents name mangling of functions
-        #endif
-        // Functions required to query time on Windows
-        int __stdcall QueryPerformanceCounter(unsigned long long int *lpPerformanceCount);
-        int __stdcall QueryPerformanceFrequency(unsigned long long int *lpFrequency);
-        #if defined(__cplusplus)
-        }
-        #endif
-    #endif
-    #if defined(__linux__) || defined(__FreeBSD__)
-        #if _POSIX_C_SOURCE < 199309L
-            #undef _POSIX_C_SOURCE
-            #define _POSIX_C_SOURCE 199309L // Required for CLOCK_MONOTONIC if compiled with c99 without gnu ext.
-        #endif
-        #include <sys/time.h>           // Required for: timespec
-    #endif
-    #if defined(__APPLE__)              // macOS also defines __MACH__
-        #include <mach/mach_time.h>     // Required for: mach_absolute_time()
-    #endif
-#endif
-
 // NOTE: MSVC C++ compiler does not support compound literals (C99 feature)
 // Plain structures in C++ (without constructors) can be initialized from { } initializers.
 #if defined(__cplusplus)
@@ -871,7 +845,7 @@ void RemoveTagFromPhysicsBody(PhysicsBody body, int tag){
         if(body->tags[i] == tag) break;
     }
     if(body->tagCount == i){
-        printf("[PHYSAC] non-existant tag attempted to be removed\n");
+        TRACELOG("[PHYSAC] non-existant tag attempted to be removed\n");
         return;
     }
     body->tagCount--;

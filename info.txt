@@ -84,6 +84,13 @@ n=0; for f in {1..19}; do mv "$f.png" "$((n++)).png"; done
 
 
 
+Red dimension
+- can use buttons
+- speed doubled
+Blue dimension
+- speed halved
+- can walk over gaps
+
 WIRE ID TO Level
 level2 - 0
 level3 - 1

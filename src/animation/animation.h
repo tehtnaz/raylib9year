@@ -43,6 +43,9 @@
 // 3.1 changelog
 //  | fix debug info
 
+// 3.2 changelog
+//  | use logging.h for logging
+
 typedef struct Animation{
     Texture2D texture; // sprite sheet
     int spriteWidth; //width, since atlas height is defualt height of sprite which also means you can't stack vertically
@@ -92,4 +95,4 @@ void DrawTextureFromAtlas(Texture2D atlas, int spriteID, int spriteCountInAtlas,
 Animation FlipAnimationHorizontal(Animation input);
 // SwitchAnimation FlipSwitchAnimationHorizontal(SwitchAnimation input);
 
-#endif //animation_h version 3.1
+#endif //animation_h version 3.2

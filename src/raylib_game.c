@@ -5,18 +5,22 @@
     #include "emscripten.h"      // Emscripten library - LLVM to JavaScript compiler
 #endif
 
-#include <stdio.h>                          // Required for: printf()
 #include <stdlib.h>                         // Required for: 
 
 #include "displayText.h"
 #include "triggers.h"
 #include "animation.h"
 #include "levelObjects.h"
+#include "logging.h"
 
 // TODO:
     // Portal disables (disable button while not in dimension)
     // Door collisions + Rendering
     // Death animation (fade to black)
+    // Dimension colour flashes during last 3 seconds
+    // Speed doubled in red dimension
+    // Speed halved in blue dimension
+    // Blue dimension prevents death
     // Doesn't work for Web
 
 
@@ -29,14 +33,6 @@
 //----------------------------------------------------------------------------------
 // Defines and Macros (Constant values)
 //----------------------------------------------------------------------------------
-// Simple log system to avoid printf() calls if required
-// NOTE: Avoiding those calls, also avoids const strings memory usage
-#define SUPPORT_LOG_INFO
-#if defined(SUPPORT_LOG_INFO)
-    #define LOG(...) printf(__VA_ARGS__)
-#else
-    #define LOG(...)
-#endif
 
 #define INPUT_VELOCITY 0.1f
 
@@ -118,7 +114,7 @@ int main(void){
     #if !defined(_DEBUG)
         SetTraceLogLevel(LOG_NONE);         // Disable raylib trace log messsages
     #endif
-    printf("%s\n", GetApplicationDirectory());
+    LOG("%s\n", GetApplicationDirectory());
 
     // Initialization
     //--------------------------------------------------------------------------------------
@@ -407,7 +403,7 @@ void AddPlayerInputForce(PhysicsBody body){
 }
 
 void DrawHaroldText(const char** texts, int textCount){
-    printf("Queued: %d\n", textCount);
+    LOG("Queued: %d\n", textCount);
     for(int i = 0; i < textCount; i++){
         QueueDisplayText(texts[i], (Vector2){79, 9}, 150);
     }
@@ -428,6 +424,13 @@ void HitPortal_DestroyButtonTrigger(){
 void ActivatePortal(unsigned int triggerID){
     currentDimension = triggerID - 13;
     dimensionTimer = 15;
+}
+
+void ActivateButtonInDimension(unsigned int triggerID){
+    if(currentDimension == 1){
+        ActivateButton(triggerID);
+        DestroyTriggerEventWithTrigger(triggerID);
+    }
 }
 
 void LoadNextLevel(){
@@ -458,7 +461,7 @@ void LoadNextLevel(){
     NewTriggerEvent(15, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal)); // TODO: shouldn't be one time use
     NewTriggerEvent(16, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal)); // TODO: shouldn't be one time use
 
-    NewTriggerEvent(17, TRIGGER_USE_ON_STAY, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivateButton)); // TODO: shouldn't be one time use
+    NewTriggerEvent(17, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivateButtonInDimension)); // TODO: shouldn't be one time use
     
     NewTriggerEvent(130, TRIGGER_USE_ONCE, CreateTriggerEventFunctionData_NoArgFunction(HitButton_DestroyPortalTrigger));
     NewTriggerEvent(131, TRIGGER_USE_ONCE, CreateTriggerEventFunctionData_NoArgFunction(HitPortal_DestroyButtonTrigger));

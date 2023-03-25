@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "physac.h"
 #include "triggers.h"
+#include "logging.h"
 
 static TriggerEvent triggerEventArray[MAX_TRIGGER_EVENT_COUNT];
 static int triggerEventCount = 0;
@@ -44,7 +45,7 @@ TriggerEventFunctionData CreateTriggerEventFunctionData_FunctionWithTriggerID(vo
 
 void NewTriggerEvent(unsigned int triggerID, TriggerUseType useType, TriggerEventFunctionData data){
     if(triggerEventCount == MAX_TRIGGER_EVENT_COUNT){
-        printf("TRIGGER_H: Error - Could not create more trigger events (max reached)\n");
+        LOG("TRIGGER_H: Error - Could not create more trigger events (max reached)\n");
         return;
     }
     TriggerEvent event;
@@ -54,6 +55,10 @@ void NewTriggerEvent(unsigned int triggerID, TriggerUseType useType, TriggerEven
     event.bodyOrigin = NULL;
     event.useType = useType;
     event.data = data;
+
+    #ifdef _DEBUG
+        LOG("DEBUG: Triggers - Creating new trigger at index %d with trigger %d and type %d\n", triggerEventCount, event.triggerID, event.data.type);
+    #endif
 
     triggerEventArray[triggerEventCount] = event;
     triggerEventCount++;
@@ -78,34 +83,34 @@ void ResetAllTriggers(){
 }
 
 void ActivateTriggerEvent(int index){
-    if(triggerEventArray[index].useType == TRIGGER_USE_ONCE && triggerEventArray[index].wasUsedOnPreviousFrame){
-        #ifdef _DEBUG
-        printf("TRIGGER_H: Debug - Tried activating already activated one time use trigger at index %d with trigger %d. Attemping another delete...\n", index, triggerEventArray[index].triggerID);
-        DestroyTriggerEventAtIndex(index);
-        #endif
-        return;
-    }
+    #ifdef _DEBUG
+        LOG("DEBUG: Triggers - Activating index %d with trigger %d and type %d and useType %d\n", index, triggerEventArray[index].triggerID, triggerEventArray[index].data.type, triggerEventArray[index].useType);
+    #endif
     TriggerEventFunctionData data = triggerEventArray[index].data;
-    //printf("lets make love %p a\n", data.function_text_prompt);
     switch (data.type){
         case TRIGGER_FUNCTION: data.function_no_arg_function(); break;
         case TRIGGER_TEXT_PROMPT: data.function_text_prompt((const char**)data.texts, data.textCount); break;
         case TRIGGER_FUNCTION_WITH_TRIGGERID: data.function_with_trigger_function(triggerEventArray[index].triggerID); break;
         case TRIGGER_SET_FORCE: 
             if(triggerEventArray[index].bodyOrigin == NULL) {
-                printf("TRIGGER_H: ERROR - Body origin was NULL while trying to a function using it!\n");
+                LOG("TRIGGER_H: ERROR - Body origin was NULL while trying to a function using it!\n");
             } else data.function_add_force(triggerEventArray[index].bodyOrigin); 
             break;
-        default: printf("Invalid dataType\n");
-    }
-    if(triggerEventArray[index].useType == TRIGGER_USE_ONCE){
-        DestroyTriggerEventAtIndex(index);
+        default: LOG("Invalid dataType\n");
     }
 }
 void ActivateAllTriggerInUse(){
     for(int i = 0; i < triggerEventCount; i++){
+        LOG("check %d; ", i);
         switch (triggerEventArray[i].useType)
         {
+            case TRIGGER_USE_ONCE:
+                if(triggerEventArray[i].inUse){
+                    ActivateTriggerEvent(i);
+                    DestroyTriggerEventAtIndex(i);
+                    i--;
+                }
+            break;
             case TRIGGER_USE_ON_ENTER:
                 if(triggerEventArray[i].inUse && !triggerEventArray[i].wasUsedOnPreviousFrame){
                     ActivateTriggerEvent(i);
@@ -116,11 +121,13 @@ void ActivateAllTriggerInUse(){
                     ActivateTriggerEvent(i);
                 }
                 break;
-            case TRIGGER_USE_ONCE:
             case TRIGGER_USE_ON_STAY:
                 if(triggerEventArray[i].inUse){
                     ActivateTriggerEvent(i);
                 }
+                break;
+            default:
+                LOG("WARNING: Triggers - Rejecting trigger %d because of unknown useType\n", i);
                 break;
         }
     }
@@ -131,6 +138,9 @@ void SetTriggerInUse(PhysicsBody body, int triggerID){
         if(triggerEventArray[i].triggerID != triggerID){
             continue;
         }
+        #ifdef _DEBUG
+            LOG("DEBUG: Triggers - Now in use event with index %d with trigger %d and type %d\n", i, triggerID, triggerEventArray[i].data.type);
+        #endif
         triggerEventArray[i].inUse = true;
         triggerEventArray[i].bodyOrigin = body;
     }
@@ -138,21 +148,25 @@ void SetTriggerInUse(PhysicsBody body, int triggerID){
 
 void UpdateAndActivateTriggers(){
     const int manifoldCount = GetPhysicsManifoldCount();
-
+    LOG("\n\n");
     // Refresh all values
     for(int i = 0; i < triggerEventCount; i++){
         triggerEventArray[i].wasUsedOnPreviousFrame = triggerEventArray[i].inUse;
         triggerEventArray[i].inUse = false;
         triggerEventArray[i].bodyOrigin = NULL;
+        if(triggerEventArray[i].useType == TRIGGER_USE_ONCE && triggerEventArray[i].wasUsedOnPreviousFrame){
+            DestroyTriggerEventAtIndex(i);
+            i--;
+        }
     }
 
     // Check which items are contacting eachother
     for(int i = 0; i < manifoldCount; i++){
-        //printf("aID: %d bID: %d cc: %d| ", contacts[i]->bodyA->id, contacts[i]->bodyB->id, contacts[i]->contactsCount);
+        //LOG("aID: %d bID: %d cc: %d| ", contacts[i]->bodyA->id, contacts[i]->bodyB->id, contacts[i]->contactsCount);
         PhysicsManifold manifold = GetPhysicsManifold(i);
         if(manifold->contactsCount > 0){
             if(manifold->bodyA->tagCount > PHYSAC_MAX_TAG_COUNT || manifold->bodyB->tagCount > PHYSAC_MAX_TAG_COUNT){
-                printf("ERROR: Triggers - Max tagCount exceeded\n");
+                LOG("ERROR: Triggers - Max tagCount exceeded\n");
                 return;
             }
             for(int i = 0; i < manifold->bodyA->tagCount; i++){
@@ -174,9 +188,10 @@ void UpdateAndActivateTriggers(){
 
 
 void DestroyTriggerEventWithTrigger(int triggerID){
+    LOG("DEBUG: Triggers - Previous triggerEventCount: %d\n", triggerEventCount);
     for(int i = 0; i < triggerEventCount; i++){
         if(triggerEventArray[i].triggerID == triggerID){
-            printf("DEBUG: Triggers - Destroying TriggerEvent with trigger %d\n", triggerID);
+            LOG("DEBUG: Triggers - Destroying TriggerEvent with trigger %d\n", triggerID);
             ClearTriggerEventFunctionData(triggerEventArray[i]);
             for(int j = i; j < triggerEventCount - 1; j++){
                 triggerEventArray[j] = triggerEventArray[j + 1];
@@ -184,9 +199,10 @@ void DestroyTriggerEventWithTrigger(int triggerID){
             triggerEventCount--;
         }
     }
+    LOG("DEBUG: Triggers - New triggerEventCount: %d\n", triggerEventCount);
 }
 void DestroyTriggerEventAtIndex(int index){
-    printf("DEBUG: Triggers - Destroying TriggerEvent at index %d with trigger %d\n", index, triggerEventArray[index].triggerID);
+    LOG("DEBUG: Triggers - Destroying TriggerEvent at index %d with trigger %d and type %d\n", index, triggerEventArray[index].triggerID, triggerEventArray[index].data.type);
     ClearTriggerEventFunctionData(triggerEventArray[index]);
     for(int j = index; j < triggerEventCount - 1; j++){
         triggerEventArray[j] = triggerEventArray[j + 1];
