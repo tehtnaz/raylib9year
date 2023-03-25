@@ -36,14 +36,14 @@ Animation GetAnimationFromFolder(Animation input, bool autoSize, const char* pat
     char str[70];
     sprintf(str, "%s0.png", path);
     //const char* str = TextFormat("%s0.png", path);
-    LOG("GetAnimationFromFolder: Base Image = %s\n", str);
+    LOG_DEBUG("GetAnimationFromFolder: Base Image = %s\n", str);
     Image img = LoadImage(str);
 
     if(autoSize){
         temp.spriteWidth = img.width;
-        LOG("GetAnimationFromFolder: animation spriteWidth (AUTO): %d\n", temp.spriteWidth);
+        LOG_DEBUG("GetAnimationFromFolder: animation spriteWidth (AUTO): %d\n", temp.spriteWidth);
     }else{
-        LOG("GetAnimationFromFolder: animation spriteWidth: %d\n", temp.spriteWidth);
+        LOG_DEBUG("GetAnimationFromFolder: animation spriteWidth: %d\n", temp.spriteWidth);
     }
     Image atlas = GenImageColor(img.width * input.frameCount, img.height, BLANK);
     for(int i = 0; i < input.frameCount; i++){
@@ -63,9 +63,9 @@ Texture GetTextureAtlasFromFolder(const char* path, int textureCount){
     char str[70];
     sprintf(str, "%s0.png", path);
     //const char* str = TextFormat("%s0.png", path);
-    LOG("GetTextureAtlasFromFolder: Base Image = %s\n", str);
+    LOG_DEBUG("GetTextureAtlasFromFolder: Base Image = %s\n", str);
     Image img = LoadImage(str);
-    LOG("GetTextureAtlasFromFolder: animation spriteWidth (AUTO): %d\n", img.width);
+    LOG_DEBUG("GetTextureAtlasFromFolder: animation spriteWidth (AUTO): %d\n", img.width);
 
     Image atlas = GenImageColor(img.width * textureCount, img.height, BLANK);
     for(int i = 0; i < textureCount; i++){
@@ -199,18 +199,18 @@ void DrawTextureFromAtlas(Texture2D atlas, int spriteID, int spriteCountInAtlas,
 Animation FlipAnimationHorizontal(Animation input){
     Animation temp = input;
     Image animTexture = LoadImageFromTexture(temp.texture);
-    LOG("a, %d %d; %d %d", animTexture.width, animTexture.height, temp.texture.width, temp.texture.height);
+    LOG_DEBUG("a, %d %d; %d %d", animTexture.width, animTexture.height, temp.texture.width, temp.texture.height);
     Image tempImg = GenImageColor(temp.spriteWidth, temp.texture.height, BLANK);
-    LOG("b");
+    LOG_DEBUG("b");
     for(int i = 0; i < temp.frameCount; i++){
         tempImg = GenImageColor(temp.spriteWidth, temp.texture.height, BLANK);
         ImageDraw(&tempImg, animTexture, (Rectangle){i * temp.spriteWidth, 0, temp.spriteWidth, temp.texture.height}, (Rectangle){0, 0,temp.spriteWidth, temp.texture.height}, WHITE);
         ImageDrawRectangle(&animTexture, i * temp.spriteWidth, 0, temp.spriteWidth, temp.texture.height, BLANK);
         ImageFlipHorizontal(&tempImg);
         ImageDraw(&animTexture, tempImg, (Rectangle){0, 0,temp.spriteWidth, temp.texture.height}, (Rectangle){i * temp.spriteWidth, 0, temp.spriteWidth, temp.texture.height}, WHITE);
-        LOG("d");
+        LOG_DEBUG("d");
     }
-    LOG("c");
+    LOG_DEBUG("c");
     UnloadTexture(temp.texture);
     temp.texture = LoadTextureFromImage(animTexture);
     UnloadImage(tempImg);

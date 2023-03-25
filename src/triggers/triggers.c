@@ -8,6 +8,8 @@
 static TriggerEvent triggerEventArray[MAX_TRIGGER_EVENT_COUNT];
 static int triggerEventCount = 0;
 
+static int triggerSelector = 0;
+
 //define this so we can keep at bottom but still use
 void DestroyTriggerEventAtIndex(int index);
 
@@ -57,7 +59,7 @@ void NewTriggerEvent(unsigned int triggerID, TriggerUseType useType, TriggerEven
     event.data = data;
 
     #ifdef _DEBUG
-        LOG("DEBUG: Triggers - Creating new trigger at index %d with trigger %d and type %d\n", triggerEventCount, event.triggerID, event.data.type);
+        LOG_DEBUG("DEBUG: Triggers - Creating new trigger at index %d with trigger %d and type %d\n", triggerEventCount, event.triggerID, event.data.type);
     #endif
 
     triggerEventArray[triggerEventCount] = event;
@@ -84,7 +86,8 @@ void ResetAllTriggers(){
 
 void ActivateTriggerEvent(int index){
     #ifdef _DEBUG
-        LOG("DEBUG: Triggers - Activating index %d with trigger %d and type %d and useType %d\n", index, triggerEventArray[index].triggerID, triggerEventArray[index].data.type, triggerEventArray[index].useType);
+        LOG_DEBUG("DEBUG: Triggers - Activating index %d with trigger %d and type %d and useType %d\n", index, triggerEventArray[index].triggerID, triggerEventArray[index].data.type, triggerEventArray[index].useType);
+        LOG_DEBUG("triggerEventCount: %d\n", triggerEventCount);
     #endif
     TriggerEventFunctionData data = triggerEventArray[index].data;
     switch (data.type){
@@ -100,37 +103,24 @@ void ActivateTriggerEvent(int index){
     }
 }
 void ActivateAllTriggerInUse(){
-    for(int i = 0; i < triggerEventCount; i++){
-        LOG("check %d; ", i);
-        switch (triggerEventArray[i].useType)
-        {
-            case TRIGGER_USE_ONCE:
-                if(triggerEventArray[i].inUse){
-                    ActivateTriggerEvent(i);
-                    DestroyTriggerEventAtIndex(i);
-                    i--;
-                }
-            break;
-            case TRIGGER_USE_ON_ENTER:
-                if(triggerEventArray[i].inUse && !triggerEventArray[i].wasUsedOnPreviousFrame){
-                    ActivateTriggerEvent(i);
-                }
-                break;
-            case TRIGGER_USE_ON_EXIT:
-                if(!triggerEventArray[i].inUse && triggerEventArray[i].wasUsedOnPreviousFrame){
-                    ActivateTriggerEvent(i);
-                }
-                break;
-            case TRIGGER_USE_ON_STAY:
-                if(triggerEventArray[i].inUse){
-                    ActivateTriggerEvent(i);
-                }
-                break;
-            default:
-                LOG("WARNING: Triggers - Rejecting trigger %d because of unknown useType\n", i);
-                break;
+    triggerSelector = 0;
+    while(triggerSelector < triggerEventCount){
+        //LOG("check %d; ", i);
+
+        if(triggerEventArray[triggerSelector].useType == TRIGGER_USE_ONCE && triggerEventArray[triggerSelector].inUse){
+            ActivateTriggerEvent(triggerSelector);
+            DestroyTriggerEventAtIndex(triggerSelector);
+        }else if(
+            (triggerEventArray[triggerSelector].useType == TRIGGER_USE_ON_ENTER &&  triggerEventArray[triggerSelector].inUse && !triggerEventArray[triggerSelector].wasUsedOnPreviousFrame) ||
+            (triggerEventArray[triggerSelector].useType == TRIGGER_USE_ON_EXIT  && !triggerEventArray[triggerSelector].inUse &&  triggerEventArray[triggerSelector].wasUsedOnPreviousFrame) ||
+            (triggerEventArray[triggerSelector].useType == TRIGGER_USE_ON_STAY  &&  triggerEventArray[triggerSelector].inUse)
+        ){
+            ActivateTriggerEvent(triggerSelector);
         }
+
+        triggerSelector++;
     }
+    //LOG("thing what: %d\n", thing);
 }
 
 void SetTriggerInUse(PhysicsBody body, int triggerID){
@@ -139,7 +129,7 @@ void SetTriggerInUse(PhysicsBody body, int triggerID){
             continue;
         }
         #ifdef _DEBUG
-            LOG("DEBUG: Triggers - Now in use event with index %d with trigger %d and type %d\n", i, triggerID, triggerEventArray[i].data.type);
+            //LOG("DEBUG: Triggers - Now in use event with index %d with trigger %d and type %d\n", i, triggerID, triggerEventArray[i].data.type);
         #endif
         triggerEventArray[i].inUse = true;
         triggerEventArray[i].bodyOrigin = body;
@@ -148,7 +138,7 @@ void SetTriggerInUse(PhysicsBody body, int triggerID){
 
 void UpdateAndActivateTriggers(){
     const int manifoldCount = GetPhysicsManifoldCount();
-    LOG("\n\n");
+    //LOG("\n\n");
     // Refresh all values
     for(int i = 0; i < triggerEventCount; i++){
         triggerEventArray[i].wasUsedOnPreviousFrame = triggerEventArray[i].inUse;
@@ -188,24 +178,26 @@ void UpdateAndActivateTriggers(){
 
 
 void DestroyTriggerEventWithTrigger(int triggerID){
-    LOG("DEBUG: Triggers - Previous triggerEventCount: %d\n", triggerEventCount);
+    LOG_DEBUG("DEBUG: Triggers - Previous triggerEventCount: %d\n", triggerEventCount);
     for(int i = 0; i < triggerEventCount; i++){
         if(triggerEventArray[i].triggerID == triggerID){
-            LOG("DEBUG: Triggers - Destroying TriggerEvent with trigger %d\n", triggerID);
+            LOG_DEBUG("DEBUG: Triggers - Destroying TriggerEvent with trigger %d\n", triggerID);
             ClearTriggerEventFunctionData(triggerEventArray[i]);
             for(int j = i; j < triggerEventCount - 1; j++){
                 triggerEventArray[j] = triggerEventArray[j + 1];
             }
             triggerEventCount--;
+            triggerSelector--;
         }
     }
-    LOG("DEBUG: Triggers - New triggerEventCount: %d\n", triggerEventCount);
+    LOG_DEBUG("DEBUG: Triggers - New triggerEventCount: %d\n", triggerEventCount);
 }
 void DestroyTriggerEventAtIndex(int index){
-    LOG("DEBUG: Triggers - Destroying TriggerEvent at index %d with trigger %d and type %d\n", index, triggerEventArray[index].triggerID, triggerEventArray[index].data.type);
+    LOG_DEBUG("DEBUG: Triggers - Destroying TriggerEvent at index %d with trigger %d and type %d\n", index, triggerEventArray[index].triggerID, triggerEventArray[index].data.type);
     ClearTriggerEventFunctionData(triggerEventArray[index]);
     for(int j = index; j < triggerEventCount - 1; j++){
         triggerEventArray[j] = triggerEventArray[j + 1];
     }
     triggerEventCount--;
+    triggerSelector--;
 }

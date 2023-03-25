@@ -123,7 +123,7 @@ void readKeyword(TokenInfo* tokenInfo){
     }
     tokenInfo->text[i] = '\0';
     #ifdef DEBUG_DATA_HANDLING 
-        LOG("[DEBUG] - readKeyword - %s\n", tokenInfo->text); 
+        LOG_DEBUG("[DEBUG] - readKeyword - %s\n", tokenInfo->text); 
     #endif
     int tempVal = 0;
     if(TextIsEqual(tokenInfo->text, "true") || TextIsEqual(tokenInfo->text, "STATIC")){
@@ -167,7 +167,7 @@ StructGroup* sg_alloc(){
 // push struct group to struct group linked list
 void pushGroup(StructGroup* group, StructGroup* item){
     if(group == NULL){
-        LOG("[DEBUG] WARNING: dataHandling[readFileSF/group/addGroup] - Attempted adding to NULL group. Skipping...");
+        LOG_DEBUG("[DEBUG] WARNING: dataHandling[readFileSF/group/addGroup] - Attempted adding to NULL group. Skipping...");
     }
     if(group->next == NULL){
         group->next = item;
@@ -266,16 +266,16 @@ StructGroup* readFileSF(const char* path){
     }
 
     #ifdef DEBUG_DATA_HANDLING
-    LOG("DEBUG: readFileSF[scan] - Begin info print at %p\n", infoRoot);
+    LOG_DEBUG("DEBUG: readFileSF[scan] - Begin info print at %p\n", infoRoot);
     tokenInfo = infoRoot;
     while(tokenInfo != NULL){
         if(tokenInfo->type == INTEGER){
-            LOG("  type: %d | line: %d | int: %d | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->integer, tokenInfo);
+            LOG_DEBUG("  type: %d | line: %d | int: %d | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->integer, tokenInfo);
         }
         else if(tokenInfo->type == FLOAT){
-            LOG("  type: %d | line: %d | float: %f | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->decimal, tokenInfo);
+            LOG_DEBUG("  type: %d | line: %d | float: %f | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->decimal, tokenInfo);
         }else{
-            LOG("  type: %d | line: %d | text: %s | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->text, tokenInfo);
+            LOG_DEBUG("  type: %d | line: %d | text: %s | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->text, tokenInfo);
         }
         tokenInfo = tokenInfo->next;
     }
@@ -336,23 +336,23 @@ StructGroup* readFileSF(const char* path){
     #ifdef DEBUG_DATA_HANDLING
     structGroup = groupRoot;
     for(int i = 0; structGroup != NULL;){
-        LOG("---GROUP %d---\n", i);
+        LOG_DEBUG("---GROUP %d---\n", i);
         tokenInfo = &structGroup->token;
         if(tokenInfo->type == INTEGER){
-            LOG("type: %d | line: %d | int: %d | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->integer, tokenInfo);
+            LOG_DEBUG("type: %d | line: %d | int: %d | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->integer, tokenInfo);
         }
         else if(tokenInfo->type == FLOAT){
-            LOG("type: %d | line: %d | float: %f | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->decimal, tokenInfo);
+            LOG_DEBUG("type: %d | line: %d | float: %f | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->decimal, tokenInfo);
         }else{
-            LOG("type: %d | line: %d | text: %s | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->text, tokenInfo);
+            LOG_DEBUG("type: %d | line: %d | text: %s | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->text, tokenInfo);
         }
         if(structGroup->child != NULL){
-            LOG("\nvv- ENTER CHILD -vv\n\n");
+            LOG_DEBUG("\nvv- ENTER CHILD -vv\n\n");
             structGroup = structGroup->child;
         }else if(structGroup->next != NULL){
             structGroup = structGroup->next;
         }else{
-            LOG("\n^^- REENTER PARENT -^^\n\n");
+            LOG_DEBUG("\n^^- REENTER PARENT -^^\n\n");
             while (structGroup != NULL && structGroup->next == NULL)
             {
                 structGroup = structGroup->parent;
@@ -365,7 +365,7 @@ StructGroup* readFileSF(const char* path){
     }
     #endif
     
-    LOG("[DEBUG] readFileSF[group] - Done using [scan] materials. Freeing...\n");
+    LOG_DEBUG("[DEBUG] readFileSF[group] - Done using [scan] materials. Freeing...\n");
     tokenInfo = infoRoot;
     while(tokenInfo != NULL){
         TokenInfo* safeItem = tokenInfo;
@@ -374,7 +374,7 @@ StructGroup* readFileSF(const char* path){
             // ^^ won't this crash the program because we just ref this pointer in the structGroup?
         free(safeItem);
     }
-    LOG("[DEBUG] readFileSF[group] - Successfully freed all old tokens\n");
+    LOG_DEBUG("[DEBUG] readFileSF[group] - Successfully freed all old tokens\n");
 
     
     // -----------------
@@ -395,8 +395,8 @@ StructGroup* readFileSF(const char* path){
 
                 success = true;
             }else{
-                LOG("[DEBUG] readFileSF[associate] - token: %d\n", structGroup->token.type);
-                LOG("[DEBUG] readFileSF[associate] - next_token: %d\n", structGroup->next->token.type);
+                LOG_DEBUG("[DEBUG] readFileSF[associate] - token: %d\n", structGroup->token.type);
+                LOG_DEBUG("[DEBUG] readFileSF[associate] - next_token: %d\n", structGroup->next->token.type);
                 LOG("ERROR: readFileSF[associate] - [line %d] Expected group but got item instead (did you forget parentheses?)\n", structGroup->token.line);
                 return NULL;
             }
@@ -440,23 +440,23 @@ StructGroup* readFileSF(const char* path){
     #ifdef DEBUG_DATA_HANDLING
     structGroup = groupRoot;
     for(int i = 0; structGroup != NULL;){
-        LOG("---GROUP %d---\n", i);
+        LOG_DEBUG("---GROUP %d---\n", i);
         tokenInfo = &structGroup->token;
         if(tokenInfo->type == INTEGER){
-            LOG("type: %d | line: %d | int: %d | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->integer, tokenInfo);
+            LOG_DEBUG("type: %d | line: %d | int: %d | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->integer, tokenInfo);
         }
         else if(tokenInfo->type == FLOAT){
-            LOG("type: %d | line: %d | float: %f | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->decimal, tokenInfo);
+            LOG_DEBUG("type: %d | line: %d | float: %f | loc: %p\n", tokenInfo->type, tokenInfo->line, tokenInfo->decimal, tokenInfo);
         }else{
-            LOG("type: %d | line: %d | text: DISABLED | loc: %p\n", tokenInfo->type, tokenInfo->line, /*tokenInfo->text,*/ tokenInfo);
+            LOG_DEBUG("type: %d | line: %d | text: DISABLED | loc: %p\n", tokenInfo->type, tokenInfo->line, /*tokenInfo->text,*/ tokenInfo);
         }
         if(structGroup->child != NULL){
-            LOG("\nvv- ENTER CHILD -vv\n\n");
+            LOG_DEBUG("\nvv- ENTER CHILD -vv\n\n");
             structGroup = structGroup->child;
         }else if(structGroup->next != NULL){
             structGroup = structGroup->next;
         }else{
-            LOG("\n^^- REENTER PARENT -^^\n\n");
+            LOG_DEBUG("\n^^- REENTER PARENT -^^\n\n");
             while (structGroup != NULL && structGroup->next == NULL)
             {
                 structGroup = structGroup->parent;

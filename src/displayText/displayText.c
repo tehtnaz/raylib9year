@@ -87,8 +87,8 @@ void UpdateAndDrawTypingText(Color color){
     if(!displayTextEnabled){
         
         if(queuedTextCount > 0){
-            LOG("DEBUG: UpdateAndDrawTypingText - shifting...\n");
-            LOG("DEBUG: UpdateAndDrawTypingText - %s\n", queuedText[0]);
+            LOG_DEBUG("DEBUG: UpdateAndDrawTypingText - shifting...\n");
+            LOG_DEBUG("DEBUG: UpdateAndDrawTypingText - %s\n", queuedText[0]);
             NewDisplayText(queuedText[0], queuedTextPosition[0], queuedMaxTextWidth[0]);
             queuedTextCount--;
             for(int i = 0; i < queuedTextCount; i++){

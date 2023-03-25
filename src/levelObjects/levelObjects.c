@@ -70,7 +70,7 @@ void LevelObjectsInit(){
 }
 
 void ActivateButton(unsigned int triggerID){
-    LOG("DEBUG: ActiavateButton - activating id %d\n", triggerID);
+    LOG_DEBUG("DEBUG: ActiavateButton - activating id %d\n", triggerID);
     for(int i = 0; i < buttonCount; i++){
         if(buttonArray[i].trigger == triggerID){
             buttonArray[i].buttonDown = true;

@@ -114,7 +114,7 @@ int main(void){
     #if !defined(_DEBUG)
         SetTraceLogLevel(LOG_NONE);         // Disable raylib trace log messsages
     #endif
-    LOG("%s\n", GetApplicationDirectory());
+    LOG_DEBUG("%s\n", GetApplicationDirectory());
 
     // Initialization
     //--------------------------------------------------------------------------------------
@@ -403,7 +403,7 @@ void AddPlayerInputForce(PhysicsBody body){
 }
 
 void DrawHaroldText(const char** texts, int textCount){
-    LOG("Queued: %d\n", textCount);
+    LOG_DEBUG("Queued: %d\n", textCount);
     for(int i = 0; i < textCount; i++){
         QueueDisplayText(texts[i], (Vector2){79, 9}, 150);
     }
@@ -434,7 +434,7 @@ void ActivateButtonInDimension(unsigned int triggerID){
 }
 
 void LoadNextLevel(){
-    LOG("DEBUG: Attemping to load next level...\n");
+    LOG("INFO: Attemping to load next level...\n");
     currentDimension = 0;
     if(levelSelect != 0) UnloadTexture(levelBackground);
     levelBackground = LoadTexture(TextFormat("./../res/Levels/grayzone_level%d.png", levelSelect + 1));
