@@ -69,7 +69,7 @@ void LevelObjectsInit(){
 }
 
 void ActivateButton(unsigned int triggerID){
-    TraceLog(LOG_DEBUG, "ActiavateButton - activating id %d", triggerID);
+    TraceLog(LOG_DEBUG, "ActivateButton - activating triggerID %d", triggerID);
     for(int i = 0; i < buttonCount; i++){
         if(buttonArray[i].trigger == triggerID){
             buttonArray[i].buttonDown = true;
@@ -78,6 +78,29 @@ void ActivateButton(unsigned int triggerID){
     for(int i = 0; i < wireCount; i++){
         if(wireArray[i].trigger == triggerID){
             wireArray[i].isOn = true;
+        }
+    }
+    ActivateDoor(triggerID);
+}
+
+void ActivateDoor(unsigned int triggerID){
+    TraceLog(LOG_DEBUG, "ActivateDoor - activating triggerID %d", triggerID);
+    for(int i = 0; i < doorCount; i++){
+        if(doorArray[i].triggerID == triggerID){
+            doorArray[i].isChangingState = 1;
+            doorArray[i].anim.isAnimating = true;
+            doorArray[i].physObj->trigger = 5;
+            TraceLog(LOG_DEBUG, "ActivateDoor - activated door index - %d", i);
+        }
+    }
+}
+
+void UpdateDoors(){
+    for(int i = 0; i < doorCount; i++){
+        if(doorArray[i].isChangingState != 0){
+            if(doorArray[i].isChangingState == 1) CycleAnimation(&doorArray[i].anim);
+            else CycleAnimationBackwards(&doorArray[i].anim);
+            if(doorArray[i].anim.isAnimating == false) doorArray[i].isChangingState = 0;
         }
     }
 }
@@ -96,7 +119,7 @@ void RenderLevelObjects(){
     }
 
     for(int i = 0; i < doorCount; i++){
-        DrawAnimationPro(&doorArray[i].anim, doorArray[i].pos, 1, WHITE, doorArray[i].isChangingState ? (doorArray[i].isOpen ? CYCLE_BACKWARD : CYCLE_FORWARD) : CYCLE_NONE);
+        DrawAnimationPro(&doorArray[i].anim, doorArray[i].pos, 1, WHITE, CYCLE_NONE);
     }
 
     ShakeCycleAnimation(&portalRed);
@@ -148,24 +171,31 @@ Door* CreateDoor(Vector2 pos, int doorType, unsigned int trigger){
     {
         case 1:
             tempAnim.texture = normalDoor;
-            tempAnim.spriteWidth = normalDoor.width;
+            tempAnim.frameCount = 3;
+            tempAnim.spriteWidth = normalDoor.width / tempAnim.frameCount;
             tempAnim.fps = 2;
             break;
         case 2:
             tempAnim.texture = pushDoor;
-            tempAnim.spriteWidth = pushDoor.width;
+            tempAnim.frameCount = 67;
+            tempAnim.spriteWidth = pushDoor.width / tempAnim.frameCount;
             tempAnim.fps = 15;
             break;
         case 3:
             tempAnim.texture = trapDoor;
-            tempAnim.spriteWidth = trapDoor.width;
+            tempAnim.frameCount = 19;
+            tempAnim.spriteWidth = trapDoor.width / tempAnim.frameCount;
             tempAnim.fps = 9;
             break;
         default:
             TraceLog(LOG_WARNING, "levelObjects - Received incorrect doorType value (value was %d)", doorType);
             return NULL;
     }
-    doorArray[doorCount] = (Door){pos, tempAnim, trigger, false, false};
+    PhysicsBody body = CreatePhysicsBodyRectangle((Vector2){pos.x + tempAnim.spriteWidth / 2, pos.y + tempAnim.texture.height / 2}, tempAnim.spriteWidth, tempAnim.texture.height, 1, 0);
+    body->enabled = false;
+    body->freezeOrient = true;
+
+    doorArray[doorCount] = (Door){doorType, pos, tempAnim, trigger, body, 0};
     doorCount++;
 
     return &(doorArray[doorCount - 1]);

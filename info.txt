@@ -1,4 +1,4 @@
-Triggers: Any physObj with a trigger above 0 disables its dynamics (no solid collisions)
+Triggers: Any physObj with a trigger above 0 disables its dynamics and collisions
 
 Tag = item entering a trigger
 Reserved tags / trigger + recommended ranges
@@ -11,19 +11,23 @@ Reserved tags / trigger + recommended ranges
     (3):
         Tag     -> Player
         Trigger -> Next level
-    (4): (NOT IMPLEMENTED)
+    (4):
         Tag     -> Player
         Trigger -> Death trigger
             Fade to black
+    (5):
+        Tag     -> None
+        Trigger -> Temporary trigger for disabled physics objects
+    
     (13-16): (DO NOT CHANGE THESE TRIGGER IDS, IF YOU DO, CHANGE VALUE ADDED IN dataHandling IN parseStructGroupInfo)
         Tag     -> Player
         Trigger -> Portals
         
-    (17-65)
+    (17-65) (only 17 is implemented)
         Tag     -> Player
-        Trigger -> Button
+        Trigger -> Button (used to then activate Wires and Doors with matching IDs)
 
-    (65-129)
+    (65-129) (does not need to be implemented, allocated dynamically when reading .sf file)
         Tag     -> Player
         Trigger -> Text prompt
 

@@ -14,11 +14,9 @@
 
 // TODO:
     // Portal disables (disable button while not in dimension)
-    // Door collisions + Rendering
+    // Door Opening functionality
     // Death animation (fade to black)
     // Dimension colour flashes during last 3 seconds
-    // Speed doubled in red dimension
-    // Speed halved in blue dimension
     // Blue dimension prevents death
 
 
@@ -88,7 +86,7 @@ static float dimensionTimer = 0;
 //----------------------------------------------------------------------------------
 
 static void UpdateDrawFrame(void);      // Update and Draw one frame
-Vector2 GetKeyInputForce(Vector2 preInput);
+Vector2 GetKeyInputForce(Vector2 preInput, int currentDimension);
 float Vector2Mag(Vector2 v2);
 void DrawPhysicsBody(int index, Color color);
 Color GetDimensionColour(int dimension);
@@ -251,7 +249,7 @@ static void UpdateDrawFrame(void)
         }
         // 
         //----------------------------------------------------------------------------------
-        player->velocity = GetKeyInputForce(player->velocity);
+        player->velocity = GetKeyInputForce(player->velocity, currentDimension);
         playerGrabZone->position = player->position;
         int bodyCount = GetPhysicsBodiesCount();
         for (int i = bodyCount - 1; i >= 0; i--)
@@ -260,6 +258,7 @@ static void UpdateDrawFrame(void)
             if (body != NULL && (body->position.y > screenHeight*2 || body->position.y < -256)) body->position = (Vector2){128, 128};
             // DestroyPhysicsBody(body);
         }
+        UpdateDoors();
         //Physics
         UpdatePhysics();
         UpdateAndActivateTriggers();
@@ -285,7 +284,7 @@ static void UpdateDrawFrame(void)
             for(int i = 0; i < bodyCount; i++){
                 DrawPhysicsBody(i, (Color){ 230, 41, 55, 127 });
             }
-            Vector2 input = GetKeyInputForce((Vector2){0, 0});
+            Vector2 input = GetKeyInputForce((Vector2){0, 0}, 0);
             if(input.x != 0 || input.y != 0){
                 DrawAnimationPro(player->velocity.y < 0 ? &playerRunForward : &playerRunBackward, (Vector2){player->position.x - 7, player->position.y - 25}, 1, WHITE, CYCLE_SHAKE);
             }else{
@@ -320,20 +319,26 @@ static void UpdateDrawFrame(void)
 }
 
 // Get vector2 force from key input
-Vector2 GetKeyInputForce(Vector2 preInput){
+Vector2 GetKeyInputForce(Vector2 preInput, int currentDimension){
     Vector2 vec2 = {0, 0};
+    float multiplier = 1;
 
+    if(currentDimension == 1){
+        multiplier = 2.0f;
+    }else if(currentDimension == 2){
+        multiplier = 0.5f;
+    }
     if(IsKeyDown(KEY_D)){
-        vec2.x += INPUT_VELOCITY;
+        vec2.x += INPUT_VELOCITY * multiplier;
     }
     if(IsKeyDown(KEY_A)){
-        vec2.x += -INPUT_VELOCITY;
+        vec2.x += -INPUT_VELOCITY * multiplier;
     }
     if(IsKeyDown(KEY_S)){
-        vec2.y += INPUT_VELOCITY;
+        vec2.y += INPUT_VELOCITY * multiplier;
     }
     if(IsKeyDown(KEY_W)){
-        vec2.y += -INPUT_VELOCITY;
+        vec2.y += -INPUT_VELOCITY * multiplier;
     }
 
     if(vec2.x == 0){
@@ -378,6 +383,7 @@ void DrawPhysicsBody(int index, Color color){
 
                 DrawLineV(vertexA, vertexB, GREEN);     // Draw a line between two vertex positions
             }
+            //DrawText(TextFormat("%d, %d", body->position.x, body->position.y), body->position.x, body->position.y, 20, WHITE);
         
     }
     #endif
@@ -410,7 +416,8 @@ void DrawHaroldText(const char** texts, int textCount){
 }
 
 void StartDeathAnimation(){
-
+    TraceLog(LOG_DEBUG, "StartDeathAnimation() - Killed player");
+    player->position = startingPos;
 }
 
 void HitButton_DestroyPortalTrigger(){
@@ -454,14 +461,14 @@ void LoadNextLevel(){
     NewTriggerEvent(1, TRIGGER_USE_ON_STAY, CreateTriggerEventFunctionData_SetForce(AddPlayerInputForce));
     NewTriggerEvent(3, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_NoArgFunction(LoadNextLevel));
     
-    NewTriggerEvent(4, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_NoArgFunction(StartDeathAnimation)); // TODO: shouldn't be one time use
+    NewTriggerEvent(4, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_NoArgFunction(StartDeathAnimation));
 
-    NewTriggerEvent(13, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal)); // TODO: shouldn't be one time use
-    NewTriggerEvent(14, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal)); // TODO: shouldn't be one time use
-    NewTriggerEvent(15, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal)); // TODO: shouldn't be one time use
-    NewTriggerEvent(16, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal)); // TODO: shouldn't be one time use
+    NewTriggerEvent(13, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal));
+    NewTriggerEvent(14, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal));
+    NewTriggerEvent(15, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal));
+    NewTriggerEvent(16, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal));
 
-    NewTriggerEvent(17, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivateButtonInDimension)); // TODO: shouldn't be one time use
+    NewTriggerEvent(17, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivateButtonInDimension));
     
     NewTriggerEvent(130, TRIGGER_USE_ONCE, CreateTriggerEventFunctionData_NoArgFunction(HitButton_DestroyPortalTrigger));
     NewTriggerEvent(131, TRIGGER_USE_ONCE, CreateTriggerEventFunctionData_NoArgFunction(HitPortal_DestroyButtonTrigger));

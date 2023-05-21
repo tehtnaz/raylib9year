@@ -1,6 +1,8 @@
 // Arguments
     // RectPhysObj   - pos; width; height; isStatic; tagArray; trigger
+        // from TOP LEFT
     // CirclePhysObj - pos; radius; isStatic; tagArray; trigger
+        // from MIDDLE OF CIRCLE
     // TextTrigger   - trigger; textArray
     // Wire          - pos; wireId (sprite to load); trigger
         // trigger changes sprite to activated
@@ -9,9 +11,7 @@
     // Portal        - pos; colour
         // colour is an int (red = 0, green = 1, blue = 2, yellow = 3)
         // phys hitbox is CirclePhysObj
-
-    // UNFINISHED SPEC
-    // Door          - pos; doorType
+    // Door          - pos; doorType; trigger
         // phys hitbox can be very different due to different door types
 
 

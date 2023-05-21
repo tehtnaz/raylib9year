@@ -3,11 +3,7 @@
     #include "raylib.h"
 
 // TODO:
-// Maybe split all the sections of the main.c loop into different functions
-//try to fix prepare level
-//with all source files containing texutre loading, add texture unloading maybe? (ie. UnloadAnimation)
-
-
+    // Add UnloadAnimation?
 
 //Animation.h version 3.0
 

@@ -663,8 +663,8 @@ TextBoxTrigger parseTrigger(StructGroup* group){
     return textBox;
 }
 
-WireData parseWire(StructGroup* group){
-    WireData wire = {0};
+WireDoorData parseWireOrDoor(StructGroup* group){
+    WireDoorData wire = {0};
     if(checkArgNumber(group, 3, "Wire")) return wire;
 
     StructGroup* temp = group->child;
@@ -672,19 +672,19 @@ WireData parseWire(StructGroup* group){
     if(temp->token.type == VECTOR2){
         wire.pos = parseVector2(temp);
     }else{
-        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseWire] - [line %d] Invalid argument type for arg 1", group->token.line);
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseWireOrDoor] - [line %d] Invalid argument type for arg 1", group->token.line);
     }
     temp = temp->next;
     if(temp->token.type == INTEGER){
-        wire.wireID = temp->token.integer;
+        wire.doorTypeOrWireID = temp->token.integer;
     }else{
-        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseWire] - [line %d] Invalid argument type for arg 2", group->token.line);
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseWireOrDoor] - [line %d] Invalid argument type for arg 2", group->token.line);
     }
     temp = temp->next;
     if(temp->token.type == INTEGER){
         wire.trigger = temp->token.integer;
     }else{
-        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseWire] - [line %d] Invalid argument type for arg 3", group->token.line);
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseWireOrDoor] - [line %d] Invalid argument type for arg 3", group->token.line);
     }
     return wire;
 }
@@ -746,8 +746,8 @@ int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(
                 *startingPos = parseVector2(structGroup);
                 break;
             case WIRE:; //dumb semicolon again!!! thanks emscripten!
-                WireData wire = parseWire(structGroup);
-                CreateWire(wire.pos, wire.wireID, wire.trigger, false);
+                WireDoorData wire = parseWireOrDoor(structGroup);
+                CreateWire(wire.pos, wire.doorTypeOrWireID, wire.trigger, false);
                 break;
             case BUTTON:; //dumb semicolon again!!! thanks emscripten!
                 ButtonPortalData button = parseButtonOrPortal(structGroup);
@@ -764,7 +764,9 @@ int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(
                 body->enabled = false;
                 CreatePortal(portal.pos, portal.triggerOrColourID);
                 break;
-            case DOOR:
+            case DOOR:; //dumb semicolon again!!! thanks emscripten!
+                WireDoorData door = parseWireOrDoor(structGroup);
+                CreateDoor(door.pos, door.doorTypeOrWireID, door.trigger);
                 break;
             default:
                 TraceLog(LOG_WARNING, "parseStructGroupInfo - [line %d] Received non-struct as parent group. [TOKEN_TYPE: %d] Skipping...", structGroup->token.line, structGroup->token.type);

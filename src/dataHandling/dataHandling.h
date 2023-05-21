@@ -81,11 +81,11 @@ typedef struct TextBoxTrigger{
     int textCount;
 } TextBoxTrigger;
 
-typedef struct WireData{
+typedef struct WireDoorData{
     Vector2 pos;
-    unsigned int wireID;
+    unsigned int doorTypeOrWireID;
     unsigned int trigger;
-} WireData;
+} WireDoorData;
 
 typedef struct ButtonPortalData{
     Vector2 pos;

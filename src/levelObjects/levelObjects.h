@@ -2,6 +2,7 @@
 
 #include "raylib.h"
 #include "animation.h"
+#include "physac.h"
 
 typedef struct Wire{
     Vector2 pos;
@@ -23,11 +24,12 @@ typedef struct Portal{
 }Portal;
 
 typedef struct Door{
+    int doorType;
     Vector2 pos;
     Animation anim;
     unsigned int triggerID;
-    bool isOpen;
-    bool isChangingState; // if isOpen = true, then it's closing; if isOpen = false, it's opening
+    PhysicsBody physObj;
+    int isChangingState; // if = -1 -> moving backwards/closing | if = 1 -> moving forwards/opening | if = 0 -> not moving
 }Door;
 
 #define MAX_BUTTONS 8
@@ -41,6 +43,9 @@ Animation* portalIDToAnimation(int portalID);
 void LevelObjectsInit();
 
 void ActivateButton(unsigned int triggerID);
+void ActivateDoor(unsigned int triggerID);
+
+void UpdateDoors();
 
 void RenderLevelObjects();
 

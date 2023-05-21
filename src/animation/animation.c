@@ -90,7 +90,7 @@ Texture GetTextureAtlasFromFolder(const char* path, int textureCount){
 
 void CycleAnimation(Animation* input){
     if(input->isAnimating == false){
-        TraceLog(LOG_WARNING, "CycleAnimation - Attempted to cycle an animation which was disabled.");
+        TraceLog(LOG_WARNING, "CycleAnimation - Attempted to cycle an animation which was disabled");
         return;
     }
     if(input->fps < 0){
@@ -114,7 +114,7 @@ void CycleAnimation(Animation* input){
 
 void CycleAnimationBackwards(Animation* input){
     if(input->isAnimating == false){
-        TraceLog(LOG_WARNING, "CycleAnimationBackwards - Attempted to cycle an animation which was disabled.");
+        TraceLog(LOG_WARNING, "CycleAnimationBackwards - Attempted to cycle an animation which was disabled");
         return;
     }
     if(input->fps < 0){

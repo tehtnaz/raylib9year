@@ -1,0 +1,34 @@
+// Spawn point
+~(128, 250)
+
+// Map collision
+    // Level Boundaries
+    RectPhysObj     (Vector2( 9 0 )     1.0 256.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 256 0 )   1.0 256.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 0 0 )     256.0 1.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 0 256 )   256.0 1.0 STATIC 0 0)
+
+    //Top
+    RectPhysObj     (Vector2( 10 0 )     94.0 10.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 10 95 )    94.0 10.0 STATIC 0 0)
+
+    //Bottom
+    RectPhysObj     (Vector2( 10 167 )   94.0 10.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 10 246 )   94.0 10.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 152 167 )  94.0 10.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 152 246 )  94.0 10.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 246 177 )  10.0 69.0 STATIC 0 0) // Right
+
+    // Death Trigger
+    RectPhysObj     (Vector2( 0 107 ) 256.0 56.0 STATIC 0 4)
+
+    // Win Trigger
+    RectPhysObj(Vector2( 0 3 ) 85.0 4.0 STATIC 0 3)
+
+
+Wire(Vector2(35 57) 2 17)
+Door(Vector2(0 0) 1 17)
+Button(Vector2(221 91) 17)
+
+// Portal(Vector2(41 30)  1) //red
+// Portal(Vector2(41 191) 2) //blue

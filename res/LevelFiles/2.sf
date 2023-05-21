@@ -3,10 +3,14 @@
 
 // Map collision
     // Level Boundaries
-    RectPhysObj     (Vector2( 0 0 )     1.0 256.0 STATIC 0 0)
-    RectPhysObj     (Vector2( 256 0 )   1.0 256.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 9 0 )     1.0 256.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 246 0 )   1.0 256.0 STATIC 0 0)
     RectPhysObj     (Vector2( 0 0 )     256.0 1.0 STATIC 0 0)
     RectPhysObj     (Vector2( 0 256 )   256.0 1.0 STATIC 0 0)
+
+    // Interwalls
+    RectPhysObj     (Vector2( 10 166 )  94.0 10.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 152 91 )  94.0 10.0 STATIC 0 0)
 
     // Win Trigger
     RectPhysObj(Vector2( 0 3 ), 256.0, 4.0, STATIC, 0, 3)
@@ -14,6 +18,7 @@
 Wire(Vector2(127, 57), 0, 17)
 Button(Vector2(189 73) 17)
 Portal(Vector2(39 180) 1)
+Door(Vector2(83 0) 1 17)
 
 // Begin Text
 TextTrigger     (65, 
@@ -27,8 +32,6 @@ TextTrigger     (65,
 CirclePhysObj   (Vector2( 128 250 ) 8.0 STATIC 0 65)
 
 
-
-// having multiple text triggers causes core dump
 
 // Hits Button before Portal
 TextTrigger     (130, 
