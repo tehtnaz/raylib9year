@@ -23,7 +23,7 @@
     RectPhysObj     (Vector2( 0 107 ) 256.0 56.0 STATIC 0 4)
 
     // Win Trigger
-    RectPhysObj(Vector2( 0 3 ) 256.0 4.0 STATIC 0 3)
+    RectPhysObj(Vector2( 105 3 ) 80.0 4.0 STATIC 0 3)
 
 
 Wire(Vector2(143 57) 1 17)

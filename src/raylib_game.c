@@ -13,11 +13,10 @@
 #include "levelObjects.h"
 
 // TODO:
-    // Portal disables (disable button while not in dimension)
-    // Door Opening functionality
     // Death animation (fade to black)
-    // Dimension colour flashes during last 3 seconds
     // Blue dimension prevents death
+    // Dimension colour flashes during last 3 seconds
+    // Other doors
 
 
 #include "dataHandling/dataHandling.h"
@@ -134,6 +133,7 @@ int main(void){
     player = CreatePhysicsBodyCircle((Vector2){ screenWidth/2.0f, screenHeight/2.0f }, 8, 1, 0);
     AddTagToPhysicsBody(player, 2);
     AddTagToPhysicsBody(player, 3);
+    AddTagToPhysicsBody(player, 4);
     player->enabled = true;
     player->freezeOrient = true;
 
@@ -196,10 +196,18 @@ static void UpdateDrawFrame(void)
 {
     // Update
     //----------------------------------------------------------------------------------
-    // Screen scale logic (x2)
-    if (IsKeyPressed(KEY_ONE)) screenScale = 1;
-    else if (IsKeyPressed(KEY_TWO)) screenScale = 2;
-    else if (IsKeyPressed(KEY_THREE)) screenScale = 3;
+
+    #if defined(_DEBUG)
+    if(!IsKeyDown(KEY_LEFT_SHIFT)){
+    #endif
+        // Screen scale logic (x2)
+        if (IsKeyPressed(KEY_ONE)) screenScale = 1;
+        else if (IsKeyPressed(KEY_TWO)) screenScale = 2;
+        else if (IsKeyPressed(KEY_THREE)) screenScale = 3;
+    #if defined(_DEBUG)
+    }
+    #endif
+
     
     #if defined(_DEBUG)
     if(IsKeyPressed(KEY_I)){
@@ -226,6 +234,50 @@ static void UpdateDrawFrame(void)
     
     
     if(currentScreen == SCREEN_TITLE){
+        #if defined(_DEBUG)
+        if(IsKeyDown(KEY_LEFT_SHIFT)){
+            if(IsKeyPressed(KEY_ONE)){
+                currentScreen = SCREEN_GAMEPLAY;
+                LoadNextLevel();
+            }
+            if(IsKeyPressed(KEY_TWO)){
+                LoadNextLevel();
+                currentScreen = SCREEN_GAMEPLAY;
+                LoadNextLevel();
+            }
+            if(IsKeyPressed(KEY_THREE)){
+                LoadNextLevel();
+                levelSelect++;
+                currentScreen = SCREEN_GAMEPLAY;
+                LoadNextLevel();
+            }
+            if(IsKeyPressed(KEY_FOUR)){
+                LoadNextLevel();
+                levelSelect += 2;
+                currentScreen = SCREEN_GAMEPLAY;
+                LoadNextLevel();
+            }
+            if(IsKeyPressed(KEY_FIVE)){
+                LoadNextLevel();
+                levelSelect += 3;
+                currentScreen = SCREEN_GAMEPLAY;
+                LoadNextLevel();
+            }
+            if(IsKeyPressed(KEY_SIX)){
+                LoadNextLevel();
+                levelSelect += 4;
+                currentScreen = SCREEN_GAMEPLAY;
+                LoadNextLevel();
+            }
+            if(IsKeyPressed(KEY_SEVEN)){
+                LoadNextLevel();
+                levelSelect += 5;
+                currentScreen = SCREEN_GAMEPLAY;
+                LoadNextLevel();
+            }
+
+        }
+        #endif
         if(IsKeyPressed(KEY_SPACE)){
             currentScreen = SCREEN_GAMEPLAY;
             LoadNextLevel();
@@ -237,6 +289,42 @@ static void UpdateDrawFrame(void)
         }
     }
     if(currentScreen == SCREEN_GAMEPLAY){
+        #if defined(_DEBUG)
+        if(IsKeyDown(KEY_LEFT_SHIFT)){
+            if(IsKeyPressed(KEY_R)){
+                levelSelect--;
+                LoadNextLevel();
+            }
+            if(IsKeyPressed(KEY_ONE)){
+                levelSelect = 0;
+                LoadNextLevel();
+            }
+            if(IsKeyPressed(KEY_TWO)){
+                levelSelect = 1;
+                LoadNextLevel();
+            }
+            if(IsKeyPressed(KEY_THREE)){
+                levelSelect = 2;
+                LoadNextLevel();
+            }
+            if(IsKeyPressed(KEY_FOUR)){
+                levelSelect = 3;
+                LoadNextLevel();
+            }
+            if(IsKeyPressed(KEY_FIVE)){
+                levelSelect = 4;
+                LoadNextLevel();
+            }
+            if(IsKeyPressed(KEY_SIX)){
+                levelSelect = 5;
+                LoadNextLevel();
+            }
+            if(IsKeyPressed(KEY_SEVEN)){
+                levelSelect = 6;
+                LoadNextLevel();
+            }
+        }
+        #endif
         if(IsMusicStreamPlaying(titleMusic)){
             StopMusicStream(titleMusic);
         }
@@ -416,6 +504,10 @@ void DrawHaroldText(const char** texts, int textCount){
 }
 
 void StartDeathAnimation(){
+    if(currentDimension == 2){
+        TraceLog(LOG_DEBUG, "StartDeathAnimation() - Dodged death!");
+        return;
+    }
     TraceLog(LOG_DEBUG, "StartDeathAnimation() - Killed player");
     player->position = startingPos;
 }
