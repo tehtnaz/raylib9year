@@ -146,6 +146,8 @@ void readKeyword(TokenInfo* tokenInfo){
         tokenInfo->type = PORTAL;
     }else if(TextIsEqual(tokenInfo->text, "Wire")){
         tokenInfo->type = WIRE;
+    }else if(TextIsEqual(tokenInfo->text, "Crate")){
+        tokenInfo->type = CRATE;
     }else{
         TraceLog(LOG_WARNING, "readFileSF[scan/readKeyword] - [line %d] Item '%s' doesn't match any keywords ", line, tokenInfo->text);
     }
@@ -542,8 +544,8 @@ Rectangle parseRectangle(StructGroup* group){
 
 //structs
 
-TempPhysObj parsePhysObj(StructGroup* group, bool isCircle){
-    TempPhysObj obj = {0};
+PhysObjFileData parsePhysObj(StructGroup* group, bool isCircle){
+    PhysObjFileData obj = {0};
     //TraceLog("arg num: %d", childNum(group));
     if(isCircle && checkArgNumber(group, 5, "CirclePhysObj")) return obj;
     if(!isCircle && checkArgNumber(group, 6, "RectanglePhysObj")) return obj;
@@ -553,26 +555,26 @@ TempPhysObj parsePhysObj(StructGroup* group, bool isCircle){
     if(temp->token.type == VECTOR2){
         obj.pos = parseVector2(temp);
     }else{
-        TraceLog(LOG_WARNING, "parseStructGroupInfo[parsePhysObj] - [line %d] Invalid argument type for arg 1", group->token.line);
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parsePhysObj] - [line %d] Invalid argument type for arg 1. Expected type VECTOR2", group->token.line);
     }
     temp = temp->next;
     if(isCircle){
         if(temp->token.type == FLOAT){
             obj.radius = temp->token.decimal;
         }else{
-            TraceLog(LOG_WARNING, "parseStructGroupInfo[parseCirclePhysObj] - [line %d] Invalid argument type for arg 2", group->token.line);
+            TraceLog(LOG_WARNING, "parseStructGroupInfo[parseCirclePhysObj] - [line %d] Invalid argument type for arg 2. Expected type FLOAT", group->token.line);
         }
     }else{
         if(temp->token.type == FLOAT){
             obj.width = temp->token.decimal;
         }else{
-            TraceLog(LOG_WARNING, "parseStructGroupInfo[parseRectanglePhysObj] - [line %d] Invalid argument type for arg 2", group->token.line);
+            TraceLog(LOG_WARNING, "parseStructGroupInfo[parseRectanglePhysObj] - [line %d] Invalid argument type for arg 2. Expected type FLOAT", group->token.line);
         }
         temp = temp->next;
         if(temp->token.type == FLOAT){
             obj.height = temp->token.decimal;
         }else{
-            TraceLog(LOG_WARNING, "parseStructGroupInfo[parseRectanglePhysObj] - [line %d] Invalid argument type for arg 3", group->token.line);
+            TraceLog(LOG_WARNING, "parseStructGroupInfo[parseRectanglePhysObj] - [line %d] Invalid argument type for arg 3. Expected type FLOAT", group->token.line);
         }
     }
     temp = temp->next;
@@ -612,7 +614,7 @@ TempPhysObj parsePhysObj(StructGroup* group, bool isCircle){
         obj.tags = malloc(sizeof(unsigned int));
         obj.tags[0] = temp->token.integer;
     }else{
-        TraceLog(LOG_WARNING, "parseStructGroupInfo[parsePhysObj] - [line %d] Invalid argument type for arg 2", group->token.line);
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parsePhysObj] - [line %d] Invalid argument type for arg 2. Expected type INTEGER", group->token.line);
     }
     temp = temp->next;
     if(temp->token.type == INTEGER){
@@ -622,7 +624,7 @@ TempPhysObj parsePhysObj(StructGroup* group, bool isCircle){
             TraceLog(LOG_WARNING, "parseStructGroupInfo[parsePhysObj] - [line %d] Trigger cannot be negative", group->token.line);
         }
     }else{
-        TraceLog(LOG_WARNING, "parseStructGroupInfo[parsePhysObj] - [line %d] Invalid argument type for last arg", group->token.line);
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parsePhysObj] - [line %d] Invalid argument type for last arg. Expected type INTEGER", group->token.line);
     }
     return obj;
 }
@@ -658,55 +660,44 @@ TextBoxTrigger parseTrigger(StructGroup* group){
             temp = temp->next;
         }
     }else{
-        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseTrigger] - [line %d] Invalid argument type for arg 2", group->token.line);
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseTrigger] - [line %d] Invalid argument type for arg 2. Expected type NO_TYPE", group->token.line);
     }
     return textBox;
 }
 
-WireDoorData parseWireOrDoor(StructGroup* group){
-    WireDoorData wire = {0};
-    if(checkArgNumber(group, 3, "Wire")) return wire;
+LevelObjectFileData parseObject(StructGroup* group, TOKEN_TYPE objectType){
+    LevelObjectFileData object = {0};
+    if(objectType == WIRE   && checkArgNumber(group, 3, "Wire"))   return object;
+    if(objectType == BUTTON && checkArgNumber(group, 2, "Button")) return object;
+    if(objectType == PORTAL && checkArgNumber(group, 2, "Portal")) return object;
+    if(objectType == DOOR   && checkArgNumber(group, 3, "Door"))   return object;
+    if(objectType == CRATE  && checkArgNumber(group, 1, "Crate"))  return object;
 
     StructGroup* temp = group->child;
     
     if(temp->token.type == VECTOR2){
-        wire.pos = parseVector2(temp);
+        object.pos = parseVector2(temp);
     }else{
-        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseWireOrDoor] - [line %d] Invalid argument type for arg 1", group->token.line);
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseObject] - [line %d] Invalid argument type for arg 1. Expected type VECTOR2", group->token.line);
     }
-    temp = temp->next;
-    if(temp->token.type == INTEGER){
-        wire.doorTypeOrWireID = temp->token.integer;
-    }else{
-        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseWireOrDoor] - [line %d] Invalid argument type for arg 2", group->token.line);
-    }
-    temp = temp->next;
-    if(temp->token.type == INTEGER){
-        wire.trigger = temp->token.integer;
-    }else{
-        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseWireOrDoor] - [line %d] Invalid argument type for arg 3", group->token.line);
-    }
-    return wire;
-}
+    if(objectType == CRATE) return object;
 
-ButtonPortalData parseButtonOrPortal(StructGroup* group){
-    ButtonPortalData button = {0};
-    if(checkArgNumber(group, 2, "ButtonOrPotal")) return button;
-
-    StructGroup* temp = group->child;
-    
-    if(temp->token.type == VECTOR2){
-        button.pos = parseVector2(temp);
-    }else{
-        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseButtonOrPortal] - [line %d] Invalid argument type for arg 1", group->token.line);
-    }
     temp = temp->next;
     if(temp->token.type == INTEGER){
-        button.triggerOrColourID = temp->token.integer;
+        if(objectType == BUTTON) object.trigger = temp->token.integer;
+        else object.specialID = temp->token.integer;
     }else{
-        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseButtonOrPortal] - [line %d] Invalid argument type for arg 2", group->token.line);
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseObject] - [line %d] Invalid argument type for arg 2. Expected type INTEGER", group->token.line);
     }
-    return button;
+    if(objectType == BUTTON || objectType == PORTAL) return object;
+
+    temp = temp->next;
+    if(temp->token.type == INTEGER){
+        object.trigger = temp->token.integer;
+    }else{
+        TraceLog(LOG_WARNING, "parseStructGroupInfo[parseObject] - [line %d] Invalid argument type for arg 3. Expected type INTEGER", group->token.line);
+    }
+    return object;
 }
 
 
@@ -716,58 +707,22 @@ int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(
     StructGroup* structGroup = groupRoot;
     while(structGroup != NULL){
         //TraceLog("reading...");
-        TempPhysObj obj;
-        PhysicsBody body;
         switch (structGroup->token.type)
         {
-            case CIRCLE_PHYSOBJ:
-                obj = parsePhysObj(structGroup, true);
-                body = CreatePhysicsBodyCircle(obj.pos, obj.radius, 1, obj.trigger);
-                for(int i = 0; i < obj.tagCount; i++){
-                    AddTagToPhysicsBody(body, obj.tags[i]);
-                }
-                body->freezeOrient = true;
-                body->enabled = !obj.isStatic;
-                break;
-            case RECTANGLE_PHYSOBJ:
-                obj = parsePhysObj(structGroup, false);
-                body = CreatePhysicsBodyRectangle((Vector2){obj.pos.x + obj.width / 2, obj.pos.y + obj.height / 2}, obj.width, obj.height, 1, obj.trigger);
-                for(int i = 0; i < obj.tagCount; i++){
-                    AddTagToPhysicsBody(body, obj.tags[i]);
-                }
-                body->freezeOrient = true;
-                body->enabled = !obj.isStatic;
-                break;
-            case TEXT_TRIGGER:; //dumb semicolon again!!! thanks emscripten!
+            case CIRCLE_PHYSOBJ:    CreatePhysObjFromData(parsePhysObj(structGroup, true), true);   break;
+            case RECTANGLE_PHYSOBJ: CreatePhysObjFromData(parsePhysObj(structGroup, false), false); break;
+            case TEXT_TRIGGER:; //dumb semicolon!!! thanks emscripten!
                 TextBoxTrigger textBox = parseTrigger(structGroup);
                 NewTriggerEvent(textBox.trigger, TRIGGER_USE_ONCE, CreateTriggerEventFunctionData_TextPrompt((const char**)textBox.texts, textBox.textCount, function_harold_prompt));
                 break;
             case PROPERTY:
                 *startingPos = parseVector2(structGroup);
                 break;
-            case WIRE:; //dumb semicolon again!!! thanks emscripten!
-                WireDoorData wire = parseWireOrDoor(structGroup);
-                CreateWire(wire.pos, wire.doorTypeOrWireID, wire.trigger, false);
-                break;
-            case BUTTON:; //dumb semicolon again!!! thanks emscripten!
-                ButtonPortalData button = parseButtonOrPortal(structGroup);
-                body = CreatePhysicsBodyRectangle((Vector2){button.pos.x + 15, button.pos.y + 5.5f}, 30, 11, 1, button.triggerOrColourID);
-                body->freezeOrient = true;
-                body->enabled = false;
-                CreateButton(button.pos, button.triggerOrColourID, false);
-                //assign to render button
-                break;
-            case PORTAL:; //dumb semicolon again!!! thanks emscripten!
-                ButtonPortalData portal = parseButtonOrPortal(structGroup);
-                body = CreatePhysicsBodyCircle((Vector2){portal.pos.x + 13, portal.pos.y + 22}, 14, 1, portal.triggerOrColourID + 13);
-                body->freezeOrient = true;
-                body->enabled = false;
-                CreatePortal(portal.pos, portal.triggerOrColourID);
-                break;
-            case DOOR:; //dumb semicolon again!!! thanks emscripten!
-                WireDoorData door = parseWireOrDoor(structGroup);
-                CreateDoor(door.pos, door.doorTypeOrWireID, door.trigger);
-                break;
+            case WIRE:   CreateWireFromData(parseObject(structGroup, WIRE));     break;
+            case BUTTON: CreateButtonFromData(parseObject(structGroup, BUTTON)); break;
+            case PORTAL: CreatePortalFromData(parseObject(structGroup, PORTAL)); break;
+            case DOOR:   CreateDoorFromData(parseObject(structGroup, DOOR));     break;
+            case CRATE:  CreateCrate(parseObject(structGroup, CRATE).pos);       break;
             default:
                 TraceLog(LOG_WARNING, "parseStructGroupInfo - [line %d] Received non-struct as parent group. [TOKEN_TYPE: %d] Skipping...", structGroup->token.line, structGroup->token.type);
                 break;

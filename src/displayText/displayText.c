@@ -133,11 +133,9 @@ void UpdateAndDrawTypingText(Color color){
                 currentWord++;
             }
             if((displayText[i] == ' ' && wordCount > currentWord + 1 && MeasureTextEx(defaultFont, words[currentWord], DefaultFontSize, spacing).x + drawLocation.x > maxTextWidth + textPosition.x) || drawLocation.x - textPosition.x > maxTextWidth){
-                //printf("/skip/");
                 drawLocation.y += spaceBetweenLines;
                 drawLocation.x = textPosition.x;
             }
         }
-        //printf("");
     }
 }

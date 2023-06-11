@@ -27,6 +27,10 @@ static Texture2D normalDoor;
 static Texture2D pushDoor;
 static Texture2D trapDoor;
 
+static Texture2D crateTexture;
+static int crateIndexArray[MAX_CRATES]; //PhysicsBody index of all crates
+static int crateCount;
+
 Animation* portalIDToAnimation(int portalID){
     switch(portalID){
         case 1:
@@ -41,6 +45,13 @@ Animation* portalIDToAnimation(int portalID){
             TraceLog(LOG_WARNING, "levelObjects - Unknown portalId received; id = %d", portalID);
             return &portalRed;
     }
+}
+
+Vector2 GetPhysicsBodyTexturePosition(int index, float textureWidth, float textureHeight){
+    Vector2 tempPos = GetPhysicsBody(index)->position;
+    tempPos.x -= textureWidth / 2.0f;
+    tempPos.y -= textureHeight / 2.0f;
+    return tempPos;
 }
 
 void LevelObjectsInit(){
@@ -59,6 +70,8 @@ void LevelObjectsInit(){
     normalDoor = GetTextureAtlasFromFolder("./../res/Doors/red_door_animation/", 3);
     pushDoor = GetTextureAtlasFromFolder("./../res/Doors/red_push_door_animation/", 67);
     trapDoor = GetTextureAtlasFromFolder("./../res/Doors/red_trap_door_animation/", 19);
+
+    crateTexture = LoadTexture("./../res/Objects/movable_crate.png");
 
     for(int i = 0; i < WIRE_ID_COUNT; i++){
         wireOn[i] = LoadTexture(TextFormat("./../res/Wires/on/%d.png", i));
@@ -81,6 +94,9 @@ void ActivateButton(unsigned int triggerID){
         }
     }
     ActivateDoor(triggerID);
+    // for(int i = GetPhysicsBodiesCount() - 1; i >= 0; i--){
+    //     if(GetPhysicsBody(i)->trigger == )
+    // }
 }
 
 void ActivateDoor(unsigned int triggerID){
@@ -122,6 +138,10 @@ void RenderLevelObjects(){
         DrawAnimationPro(&doorArray[i].anim, doorArray[i].pos, 1, WHITE, CYCLE_NONE);
     }
 
+    for(int i = 0; i < crateCount; i++){
+        DrawTextureEx(crateTexture, GetPhysicsBodyTexturePosition(crateIndexArray[i], crateTexture.width, crateTexture.height), 0, 1, WHITE);
+    }
+
     ShakeCycleAnimation(&portalRed);
     ShakeCycleAnimation(&portalBlue);
     ShakeCycleAnimation(&portalGreen);
@@ -143,6 +163,10 @@ Button* CreateButton(Vector2 pos, unsigned int trigger, bool m_buttonDown){
         TraceLog(LOG_WARNING, "levelObjects - MAX_BUTTONS limit reached. Couldn't create new button");
         return NULL;
     }
+    PhysicsBody body = CreatePhysicsBodyRectangle((Vector2){pos.x + 15, pos.y + 5.5f}, 30, 11, 1, trigger);
+    body->freezeOrient = true;
+    body->enabled = false;
+
     buttonArray[buttonCount] = (Button){pos, trigger, m_buttonDown};
     buttonCount++;
 
@@ -153,6 +177,10 @@ Portal* CreatePortal(Vector2 pos, unsigned int colourID){
         TraceLog(LOG_WARNING, "levelObjects - MAX_PORTALS limit reached. Couldn't create new portal");
         return NULL;
     }
+    PhysicsBody body = CreatePhysicsBodyCircle((Vector2){pos.x + 13, pos.y + 22}, 14, 1, colourID + 12);
+    body->freezeOrient = true;
+    body->enabled = false;
+
     portalArray[portalCount] = (Portal){pos, colourID};
     portalCount++;
 
@@ -201,9 +229,42 @@ Door* CreateDoor(Vector2 pos, int doorType, unsigned int trigger){
     return &(doorArray[doorCount - 1]);
 }
 
+void CreateCrate(Vector2 pos){
+    if(crateCount == MAX_CRATES){
+        TraceLog(LOG_WARNING, "levelObjects - MAX_CRATES limit reached. Couldn't create new crate");
+        return;
+    }
+    PhysicsBody body = CreatePhysicsBodyRectangle((Vector2){pos.x + crateTexture.width / 2, pos.y + crateTexture.height / 2}, crateTexture.width, crateTexture.height, 20, 0);
+    body->enabled = true;
+    body->freezeOrient = true;
+    AddTagToPhysicsBody(body, 1);
+
+    crateIndexArray[crateCount] = body->id;
+    crateCount++;
+}
+
+// All physics bodies are destroyed at the end of each level, no need to do it here
 void DestroyAllLevelObjects(){
     portalCount = 0;
     buttonCount = 0;
     wireCount = 0;
     doorCount = 0;
+    crateCount = 0;
+}
+
+void CreateWireFromData(LevelObjectFileData data){CreateWire(data.pos, data.specialID, data.trigger, false);}
+void CreateButtonFromData(LevelObjectFileData data){CreateButton(data.pos, data.trigger, false);};
+void CreatePortalFromData(LevelObjectFileData data){CreatePortal(data.pos, data.specialID);};
+void CreateDoorFromData(LevelObjectFileData data){CreateDoor(data.pos, data.specialID, data.trigger);};
+
+void CreatePhysObjFromData(PhysObjFileData data, bool isCircle){
+    PhysicsBody body = {0};
+    if(isCircle) body = CreatePhysicsBodyCircle(data.pos, data.radius, 1, data.trigger);
+    else body = CreatePhysicsBodyRectangle((Vector2){data.pos.x + data.width / 2, data.pos.y + data.height / 2}, data.width, data.height, 1, data.trigger);
+    //both
+    for(int i = 0; i < data.tagCount; i++){
+        AddTagToPhysicsBody(body, data.tags[i]);
+    }
+    body->freezeOrient = true;
+    body->enabled = !data.isStatic;
 }

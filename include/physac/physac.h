@@ -111,7 +111,7 @@
 
 #define PHYSAC_COLLISION_ITERATIONS     100
 #define PHYSAC_PENETRATION_ALLOWANCE    0.05f
-#define PHYSAC_PENETRATION_CORRECTION   0.4f
+#define PHYSAC_PENETRATION_CORRECTION   1.5f
 
 #define PHYSAC_PI                       3.14159265358979323846f
 #define PHYSAC_DEG2RAD                  (PHYSAC_PI/180.0f)
@@ -286,7 +286,7 @@ PHYSACDEF int GetPhysicsManifoldCount(void);
 //----------------------------------------------------------------------------------
 // Global Variables Definition
 //----------------------------------------------------------------------------------
-static double deltaTime = 1.0/60.0 * 1000;             // Delta time in milliseconds used for physics steps
+static double deltaTime = 1.0/120.0 * 1000;             // Delta time in milliseconds used for physics steps
 
 // Physics system configuration
 static PhysicsBody bodies[PHYSAC_MAX_BODIES];               // Physics bodies pointers array

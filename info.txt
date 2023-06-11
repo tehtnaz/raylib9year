@@ -1,6 +1,7 @@
 Triggers: Any physObj with a trigger above 0 disables its dynamics and collisions
 
-Tag = item entering a trigger
+Tag = item entering a trigger / item which should have that number tag on it
+Trigger = items which should have that trigger on it
 Reserved tags / trigger + recommended ranges
     (1):
         Tag     -> Crate (grabbable object)

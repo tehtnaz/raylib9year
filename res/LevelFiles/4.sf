@@ -10,11 +10,11 @@
 
     // Death Trigger
     // RectPhysObj     (Vector2( 0 107 ) 256.0 56.0 STATIC 0 4)
-    CirclePhysObj  (Vector2(153 203) 20.0 STATIC 0 4)
-    CirclePhysObj  (Vector2(140 223) 20.0 STATIC 0 4)
-    CirclePhysObj  (Vector2(125 245) 20.0 STATIC 0 4)
-    CirclePhysObj  (Vector2(175 180) 20.0 STATIC 0 4)
-    CirclePhysObj  (Vector2(103 252) 7.0 STATIC 0 4)
+    // CirclePhysObj  (Vector2(153 203) 20.0 STATIC 0 4)
+    // CirclePhysObj  (Vector2(140 223) 20.0 STATIC 0 4)
+    // CirclePhysObj  (Vector2(125 245) 20.0 STATIC 0 4)
+    // CirclePhysObj  (Vector2(175 180) 20.0 STATIC 0 4)
+    // CirclePhysObj  (Vector2(103 252) 7.0 STATIC 0 4)
 
 
     RectPhysObj     (Vector2( 9 0 )     1.0 256.0 STATIC 0 0)
@@ -34,4 +34,5 @@ Portal(Vector2(225 3) 1)   //red
 Portal(Vector2(216 220) 2) //blue
 Portal(Vector2(18 169) 4)  //yellow
 
-// Crate (Vector2())
+Crate(Vector2(104 154))
+Crate(Vector2(130 154))

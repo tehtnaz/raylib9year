@@ -11,6 +11,8 @@
 //      v4: parse split into different function, made more portable
 
 typedef enum TOKEN_TYPE{
+    
+
     //void + error types
     UNDEFINED,
     NO_TYPE,
@@ -26,7 +28,7 @@ typedef enum TOKEN_TYPE{
 
     //groups
     LEFT_PAREN,
-    RIGHT_PAREN,
+    RIGHT_PAREN, // DO NOT CHANGE THE SECTION ABOVE THIS OR ELSE THINGS WILL BREAK (we check if something is greater than RIGHT_PAREN)
 
     //your custom structs here (remember to add to readKeywords)
         //complex types
@@ -41,6 +43,7 @@ typedef enum TOKEN_TYPE{
         DOOR,
         PORTAL,
         WIRE,
+        CRATE,
         PROPERTY
 
 } TOKEN_TYPE;
@@ -64,44 +67,11 @@ typedef struct StructGroup{
     struct StructGroup* previous;
 } StructGroup;
 
-typedef struct TempPhysObj{
-    Vector2 pos;
-    float radius;   //for circles
-    float width;    // for recs
-    float height;   // for recs
-    bool isStatic;
-    unsigned int* tags;
-    int tagCount;
-    unsigned int trigger;
-} TempPhysObj;
-
 typedef struct TextBoxTrigger{
     unsigned int trigger;
     char** texts;
     int textCount;
 } TextBoxTrigger;
-
-typedef struct WireDoorData{
-    Vector2 pos;
-    unsigned int doorTypeOrWireID;
-    unsigned int trigger;
-} WireDoorData;
-
-typedef struct ButtonPortalData{
-    Vector2 pos;
-    unsigned int triggerOrColourID;
-} ButtonPortalData;
-
-typedef struct PortalData{
-    Vector2 pos;
-    unsigned int colourId;
-} PortalData;
-
-// typedef struct DoorData{
-// 
-// } DoorData;
-
-
 
 StructGroup* readFileSF(const char* path);
 

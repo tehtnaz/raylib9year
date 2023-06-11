@@ -29,7 +29,7 @@
 // Defines and Macros (Constant values)
 //----------------------------------------------------------------------------------
 
-#define INPUT_VELOCITY 0.1f
+#define INPUT_VELOCITY 0.11f
 
 #define DIMENSION_RED       (Color){244, 26, 26, 73}
 #define DIMENSION_BLUE      (Color){40, 92, 196, 104}
@@ -344,7 +344,6 @@ static void UpdateDrawFrame(void)
         {
             PhysicsBody body = GetPhysicsBody(i);
             if (body != NULL && (body->position.y > screenHeight*2 || body->position.y < -256)) body->position = (Vector2){128, 128};
-            // DestroyPhysicsBody(body);
         }
         UpdateDoors();
         //Physics
@@ -367,11 +366,12 @@ static void UpdateDrawFrame(void)
             DrawTexture(levelBackground, 0, 0, WHITE);
             
             RenderLevelObjects();
-
-            int bodyCount = GetPhysicsBodiesCount();
-            for(int i = 0; i < bodyCount; i++){
-                DrawPhysicsBody(i, (Color){ 230, 41, 55, 127 });
-            }
+            #ifdef _DEBUG
+                int bodyCount = GetPhysicsBodiesCount();
+                for(int i = 0; i < bodyCount; i++){
+                    DrawPhysicsBody(i, (Color){ 230, 41, 55, 127 });
+                }
+            #endif
             Vector2 input = GetKeyInputForce((Vector2){0, 0}, 0);
             if(input.x != 0 || input.y != 0){
                 DrawAnimationPro(player->velocity.y < 0 ? &playerRunForward : &playerRunBackward, (Vector2){player->position.x - 7, player->position.y - 25}, 1, WHITE, CYCLE_SHAKE);
@@ -412,9 +412,9 @@ Vector2 GetKeyInputForce(Vector2 preInput, int currentDimension){
     float multiplier = 1;
 
     if(currentDimension == 1){
-        multiplier = 2.0f;
+        multiplier = 1.7f;
     }else if(currentDimension == 2){
-        multiplier = 0.5f;
+        multiplier = 0.6f;
     }
     if(IsKeyDown(KEY_D)){
         vec2.x += INPUT_VELOCITY * multiplier;
@@ -445,7 +445,6 @@ float Vector2Mag(Vector2 v2){
 
 
 void DrawPhysicsBody(int index, Color color){
-    #ifdef _DEBUG
     PhysicsBody body = GetPhysicsBody(index);
     if(body->shape.type == PHYSICS_CIRCLE){
         
@@ -474,7 +473,6 @@ void DrawPhysicsBody(int index, Color color){
             //DrawText(TextFormat("%d, %d", body->position.x, body->position.y), body->position.x, body->position.y, 20, WHITE);
         
     }
-    #endif
 }
 
 Color GetDimensionColour(int dimension){
@@ -493,7 +491,7 @@ Color GetDimensionColour(int dimension){
 //--------------------------------------------------------------------------------------------
 
 void AddPlayerInputForce(PhysicsBody body){
-    if(IsKeyDown(KEY_E))body->velocity = player->velocity;
+    if(IsKeyDown(KEY_E) && currentDimension == 4)body->velocity = player->velocity;
 }
 
 void DrawHaroldText(const char** texts, int textCount){
@@ -521,7 +519,7 @@ void HitPortal_DestroyButtonTrigger(){
 }
 
 void ActivatePortal(unsigned int triggerID){
-    currentDimension = triggerID - 13;
+    currentDimension = triggerID - 12;
     dimensionTimer = 15;
 }
 

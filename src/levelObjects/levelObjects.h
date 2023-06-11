@@ -32,11 +32,29 @@ typedef struct Door{
     int isChangingState; // if = -1 -> moving backwards/closing | if = 1 -> moving forwards/opening | if = 0 -> not moving
 }Door;
 
+typedef struct LevelObjectFileData{
+    Vector2 pos;
+    unsigned int specialID; // can be either a doorType or colourID
+    unsigned int trigger;
+}LevelObjectFileData;
+
+typedef struct PhysObjFileData{
+    Vector2 pos;
+    float radius;   //for circles
+    float width;    // for recs
+    float height;   // for recs
+    bool isStatic;
+    unsigned int* tags;
+    int tagCount;
+    unsigned int trigger;
+} PhysObjFileData;
+
 #define MAX_BUTTONS 8
 #define MAX_PORTALS 4
 #define MAX_WIRES 2
 #define MAX_DOORS 4
 #define WIRE_ID_COUNT 7
+#define MAX_CRATES 2
 
 Animation* portalIDToAnimation(int portalID);
 
@@ -49,9 +67,17 @@ void UpdateDoors();
 
 void RenderLevelObjects();
 
-Wire* CreateWire(Vector2 pos, unsigned int wireID, unsigned int trigger, bool isOn);
-Button* CreateButton(Vector2 pos, unsigned int trigger, bool buttonDown);
-Portal* CreatePortal(Vector2 pos, unsigned int colourID);
-Door* CreateDoor(Vector2 pos, int doorType, unsigned int trigger);
+// Wire* CreateWire(Vector2 pos, unsigned int wireID, unsigned int trigger, bool isOn);
+// Button* CreateButton(Vector2 pos, unsigned int trigger, bool buttonDown);
+// Portal* CreatePortal(Vector2 pos, unsigned int colourID);
+// Door* CreateDoor(Vector2 pos, int doorType, unsigned int trigger);
+void CreateWireFromData(LevelObjectFileData data);
+void CreateButtonFromData(LevelObjectFileData data);
+void CreatePortalFromData(LevelObjectFileData data);
+void CreateDoorFromData(LevelObjectFileData data);
+
+void CreatePhysObjFromData(PhysObjFileData data, bool isCircle);
+
+void CreateCrate(Vector2 pos);
 
 void DestroyAllLevelObjects();
