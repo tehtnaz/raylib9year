@@ -12,6 +12,10 @@
 #include "animation.h"
 #include "levelObjects.h"
 
+// DEBUG HOTKEYS:
+    // Shift + number = load level of number
+    // I = shift to next dimension for 5 secs
+
 // TODO:
     // Death animation (fade to black)
     // Blue dimension prevents death
@@ -213,6 +217,7 @@ static void UpdateDrawFrame(void)
     if(IsKeyPressed(KEY_I)){
         currentDimension++;
         if(currentDimension > 4) currentDimension = 0;
+        dimensionTimer = 5;
     }
     #endif
     if(currentDimension > 0){
@@ -335,6 +340,16 @@ static void UpdateDrawFrame(void)
         if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) || IsKeyPressed(KEY_SPACE)){
             ClearDisplayText();
         }
+
+        if(IsKeyPressed(KEY_R)){
+            player->position = startingPos;
+            #if defined(_DEBUG)
+            if(IsKeyDown(KEY_LEFT_SHIFT)){
+                levelSelect--;
+                LoadNextLevel();
+            }
+            #endif
+        }
         // 
         //----------------------------------------------------------------------------------
         player->velocity = GetKeyInputForce(player->velocity, currentDimension);
@@ -400,7 +415,7 @@ static void UpdateDrawFrame(void)
         DrawTexturePro(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, -(float)target.texture.height }, (Rectangle){ 0, 0, (float)target.texture.width*screenScale, (float)target.texture.height*screenScale }, (Vector2){ 0, 0 }, 0.0f, WHITE);
 
         #if defined(_DEBUG)
-            DrawText(TextFormat("x:%d\ny:%d", GetMouseX(), GetMouseY()), 0, 0, 40, WHITE);
+            DrawText(TextFormat("x:%d\ny:%d\nfps:%d", GetMouseX(), GetMouseY(), GetFPS()), 0, 0, 40, WHITE);
         #endif
     EndDrawing();
     //----------------------------------------------------------------------------------  
@@ -551,7 +566,7 @@ void LoadNextLevel(){
     NewTriggerEvent(1, TRIGGER_USE_ON_STAY, CreateTriggerEventFunctionData_SetForce(AddPlayerInputForce));
     NewTriggerEvent(3, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_NoArgFunction(LoadNextLevel));
     
-    NewTriggerEvent(4, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_NoArgFunction(StartDeathAnimation));
+    NewTriggerEvent(4, TRIGGER_USE_ON_STAY, CreateTriggerEventFunctionData_NoArgFunction(StartDeathAnimation));
 
     NewTriggerEvent(13, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal));
     NewTriggerEvent(14, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal));

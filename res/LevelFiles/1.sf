@@ -13,6 +13,7 @@
         // phys hitbox is CirclePhysObj
     // Door          - pos; doorType; trigger
         // phys hitbox can be very different due to different door types
+        // doorType (1 = normal, 2 = piston door, 3 = trap door)
     // Crate         - posX; posY
         // both integers
 

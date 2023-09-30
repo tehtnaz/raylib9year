@@ -105,7 +105,7 @@
 #define PHYSAC_MAX_BODIES               128          // Maximum number of physic bodies supported
 #define PHYSAC_MAX_MANIFOLDS            16384        // Maximum number of physic bodies interactions (64x64)
 #define PHYSAC_MAX_VERTICES             24          // Maximum number of vertex for polygons shapes
-#define PHYSAC_DEFAULT_CIRCLE_VERTICES  24          // Default number of vertices for circle shapes
+#define PHYSAC_DEFAULT_CIRCLE_VERTICES  16          // Default number of vertices for circle shapes
 
 #define PHYSAC_MAX_TAG_COUNT            32
 
@@ -156,6 +156,7 @@ typedef struct PhysicsShape {
     PhysicsVertexData vertexData;               // Shape vertices data (used for polygon shapes)
     float radius;                               // Shape radius (used for circle shapes)
     Matrix2x2 transform;                        // Vertices transform matrix 2x2
+    Vector2 boundingBoxRadius;                  // Size of bounding box (radius)
 } PhysicsShape;
 
 typedef struct PhysicsBodyData {
@@ -367,6 +368,7 @@ void SetPhysicsAirFriction(float x, float y){
 PhysicsBody CreatePhysicsBodyCircle(Vector2 pos, float radius, float density, unsigned int trigger)
 {
     PhysicsBody body = CreatePhysicsBodyPolygon(pos, radius, PHYSAC_DEFAULT_CIRCLE_VERTICES, density, trigger);
+    // body->shape.type = PHYSICS_CIRCLE;
     return body;
 }
 
@@ -394,6 +396,7 @@ PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, f
         body->shape.body = body;
         body->shape.transform = MathMatFromRadians(0.0f);
         body->shape.vertexData = CreateRectanglePolygon(pos, CLITERAL(Vector2){ width, height });
+        body->shape.boundingBoxRadius = CLITERAL(Vector2){width / 2, height / 2};
 
         // Calculate centroid and moment of inertia
         Vector2 center = { 0.0f, 0.0f };
@@ -482,6 +485,7 @@ PhysicsBody CreatePhysicsBodyPolygon(Vector2 pos, float radius, int sides, float
         body->shape.body = body;
         body->shape.transform = MathMatFromRadians(0.0f);
         body->shape.vertexData = CreateDefaultPolygon(radius, sides);
+        body->shape.boundingBoxRadius = CLITERAL(Vector2){radius, radius};
 
         // Calculate centroid and moment of inertia
         Vector2 center = { 0.0f, 0.0f };
@@ -990,7 +994,8 @@ static void UpdatePhysicsStep(void)
         body->isGrounded = false;
     }
  
-    // Generate new collision information
+    // TODO: perf issues
+    // Generate new collision information 
     for (unsigned int i = 0; i < physicsBodiesCount; i++)
     {
         PhysicsBody bodyA = bodies[i];
@@ -1004,7 +1009,12 @@ static void UpdatePhysicsStep(void)
                 if (bodyB != NULL)
                 {
                     if ((bodyA->inverseMass == 0) && (bodyB->inverseMass == 0)) continue;
-
+                    Vector2 dist = {bodyA->position.x - bodyB->position.x, bodyA->position.y - bodyB->position.y};
+                    if(dist.x > bodyA->shape.boundingBoxRadius.x + bodyB->shape.boundingBoxRadius.x || dist.y > bodyA->shape.boundingBoxRadius.y + bodyB->shape.boundingBoxRadius.y) continue;
+                    // if(bodyA->shape.type == PHYSICS_CIRCLE && bodyB->shape.type == PHYSICS_CIRCLE){
+                    //     Vector2 diff = {bodyA->position.x - bodyB->position.x, bodyA->position.y - bodyB->position.y};
+                    //     if(sqrtf(diff.x * diff.x + diff.y * diff.y) < (bodyA->shape.radius + bodyB->shape.radius + 1)){continue;}
+                    // }
                     PhysicsManifold manifold = CreatePhysicsManifold(bodyA, bodyB);
                     SolvePhysicsManifold(manifold);
 

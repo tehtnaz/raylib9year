@@ -3,23 +3,29 @@
 
 // Map collision
     // Level Boundaries
-    RectPhysObj     (Vector2( 0 0 )     1.0 256.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 9 0 )     1.0 256.0 STATIC 0 0)
     RectPhysObj     (Vector2( 256 0 )   1.0 256.0 STATIC 0 0)
     RectPhysObj     (Vector2( 0 0 )     256.0 1.0 STATIC 0 0)
     RectPhysObj     (Vector2( 0 256 )   256.0 1.0 STATIC 0 0)
 
     // Death Trigger
-    // RectPhysObj     (Vector2( 0 107 ) 256.0 56.0 STATIC 0 4)
-    // CirclePhysObj  (Vector2(153 203) 20.0 STATIC 0 4)
-    // CirclePhysObj  (Vector2(140 223) 20.0 STATIC 0 4)
-    // CirclePhysObj  (Vector2(125 245) 20.0 STATIC 0 4)
-    // CirclePhysObj  (Vector2(175 180) 20.0 STATIC 0 4)
-    // CirclePhysObj  (Vector2(103 252) 7.0 STATIC 0 4)
+    CirclePhysObj  (Vector2(153 203) 20.0 STATIC 0 4)
+    CirclePhysObj  (Vector2(140 223) 20.0 STATIC 0 4)
+    CirclePhysObj  (Vector2(125 245) 20.0 STATIC 0 4)
+    CirclePhysObj  (Vector2(175 180) 20.0 STATIC 0 4)
+    CirclePhysObj  (Vector2(103 252) 7.0 STATIC 0 4)
 
+    CirclePhysObj  (Vector2(93 137) 19.0 STATIC 0 4)
+    CirclePhysObj  (Vector2(103 115) 15.0 STATIC 0 4)
+    // CirclePhysObj  (Vector2(103 93) 6.0 STATIC 0 4)
+    CirclePhysObj  (Vector2(169 145) 18.0 STATIC 0 4)
+    CirclePhysObj  (Vector2(168 123) 6.0 STATIC 0 4)
+    RectPhysObj    (Vector2(109 0) 56.0 147.0 STATIC 0 4)
 
-    RectPhysObj     (Vector2( 9 0 )     1.0 256.0 STATIC 0 0)
-    RectPhysObj     (Vector2( 10 167 )   94.0 10.0 STATIC 0 0)
-    RectPhysObj     (Vector2( 152 167 )  94.0 10.0 STATIC 0 0)
+    // Colliders
+    RectPhysObj     (Vector2( 10 156 )   94.0 10.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 156 156 )  94.0 10.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 247 156 )  9.0 100.0 STATIC 0 0)
 
     // Win Trigger
     RectPhysObj(Vector2( 0 3 ) 83.0 4.0 STATIC 0 3)

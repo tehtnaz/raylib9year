@@ -24,7 +24,7 @@ static Texture2D wireOff[WIRE_ID_COUNT];
 static int doorCount;
 static Door doorArray[MAX_DOORS];
 static Texture2D normalDoor;
-static Texture2D pushDoor;
+static Texture2D pistonDoor;
 static Texture2D trapDoor;
 
 static Texture2D crateTexture;
@@ -68,7 +68,7 @@ void LevelObjectsInit(){
     portalYellow = GetAnimationFromFolder(portalYellow, true, "./../res/Portals/yellow/");
 
     normalDoor = GetTextureAtlasFromFolder("./../res/Doors/red_door_animation/", 3);
-    pushDoor = GetTextureAtlasFromFolder("./../res/Doors/red_push_door_animation/", 67);
+    pistonDoor = GetTextureAtlasFromFolder("./../res/Doors/red_push_door_animation/", 67);
     trapDoor = GetTextureAtlasFromFolder("./../res/Doors/red_trap_door_animation/", 19);
 
     crateTexture = LoadTexture("./../res/Objects/movable_crate.png");
@@ -131,7 +131,7 @@ void RenderLevelObjects(){
     }
 
     for(int i = 0; i < wireCount; i++){
-        DrawTextureEx(wireArray[i].isOn ? wireOn[wireArray->wireID] : wireOff[wireArray->wireID], wireArray[i].pos, 0, 1, WHITE);
+        DrawTextureEx(wireArray[i].isOn ? wireOn[wireArray[i].wireID] : wireOff[wireArray[i].wireID], wireArray[i].pos, 0, 1, WHITE);
     }
 
     for(int i = 0; i < doorCount; i++){
@@ -204,9 +204,9 @@ Door* CreateDoor(Vector2 pos, int doorType, unsigned int trigger){
             tempAnim.fps = 2;
             break;
         case 2:
-            tempAnim.texture = pushDoor;
+            tempAnim.texture = pistonDoor;
             tempAnim.frameCount = 67;
-            tempAnim.spriteWidth = pushDoor.width / tempAnim.frameCount;
+            tempAnim.spriteWidth = pistonDoor.width / tempAnim.frameCount;
             tempAnim.fps = 15;
             break;
         case 3:

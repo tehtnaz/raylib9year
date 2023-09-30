@@ -1,0 +1,25 @@
+// Spawn point
+~(233, 233)
+
+// Map collision
+    // Level Boundaries
+    RectPhysObj     (Vector2( 0 0 )     1.0 256.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 256 0 )   1.0 256.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 0 0 )     256.0 1.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 0 256 )   256.0 1.0 STATIC 0 0)
+
+
+Wire(Vector2(110 2) 4 17)
+Door(Vector2(84 0) 2 17)
+Button(Vector2(148 109) 17)
+
+Wire(Vector2(38 57) 3 18)
+Door(Vector2(0 0) 1 18)
+Button(Vector2(148 109) 18)
+
+
+Portal(Vector2(165 2) 1)   //red
+Portal(Vector2(92 184) 2) // blue
+Portal(Vector2(165 58) 4)  //yellow
+
+Crate(Vector2(117 66))

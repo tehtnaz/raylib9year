@@ -25,7 +25,7 @@
 
 # Define required environment variables
 #------------------------------------------------------------------------------------------------
-# Define target platform: PLATFORM_DESKTOP, PLATFORM_WEB, PLATFORM_MINGW_WINDOWS
+# Define target platform: PLATFORM_DESKTOP, PLATFORM_WEB
 PLATFORM              ?= PLATFORM_DESKTOP
 # ENABLE OR DISABLE MINGW COMPILE (LINUX ONLY)
 MINGW                 ?= DISABLE
@@ -115,7 +115,7 @@ MAKE ?= make
 
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     ifeq ($(PLATFORM_OS),WINDOWS)
-        MAKE = mingw32-make
+        MAKE = mingw64-make
     endif
 endif
 
@@ -251,6 +251,9 @@ ifeq ($(PLATFORM),PLATFORM_DESKTOP)
         LDLIBS = -lraylib -lopengl32 -lgdi32 -lwinmm
         # Required for physac examples
         LDLIBS += -static -lpthread
+
+        LDFLAGS += -fstack-protector 
+        LDLIBS += -lssp -lmingw32
         EXT = .exe
     endif
 endif
