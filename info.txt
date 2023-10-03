@@ -24,7 +24,7 @@ Reserved tags / trigger + recommended ranges
         Tag     -> Player
         Trigger -> Portals
         
-    (17-65) (only 17 is implemented)
+    (17-65) (only 17 + 18 is implemented)
         Tag     -> Player
         Trigger -> Button (used to then activate Wires and Doors with matching IDs)
 

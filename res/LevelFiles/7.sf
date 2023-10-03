@@ -1,0 +1,2 @@
+TextTrigger     (65, ["STOP! WHAT ARE YOU DOING!", "DON'T GO PAST THAT DOOR!"])
+CirclePhysObj   (Vector2( 128 250 ) 8.0 STATIC 0 65)

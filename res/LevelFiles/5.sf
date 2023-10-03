@@ -8,14 +8,22 @@
     RectPhysObj     (Vector2( 0 0 )     256.0 1.0 STATIC 0 0)
     RectPhysObj     (Vector2( 0 256 )   256.0 1.0 STATIC 0 0)
 
+    // Death trigger
+    RectPhysObj    (Vector2(0 222) 150.0 34.0 STATIC 0 4)
+    RectPhysObj    (Vector2(124 163) 25.0 59.0 STATIC 0 4)
+    RectPhysObj    (Vector2(38 164) 86.0 24.0 STATIC 0 4)
+    RectPhysObj    (Vector2(34 168) 4.0 17.0 STATIC 0 4)
+    RectPhysObj    (Vector2(0 105) 137.0 28.0 STATIC 0 4)
+    RectPhysObj    (Vector2(207 33) 49.0 160.0 STATIC 0 4)
+
 
 Wire(Vector2(110 2) 4 17)
 Door(Vector2(84 0) 2 17)
-Button(Vector2(148 109) 17)
+Button(Vector2(148 108) 17)
 
 Wire(Vector2(38 57) 3 18)
 Door(Vector2(0 0) 1 18)
-Button(Vector2(148 109) 18)
+Button(Vector2(28 73) 18)
 
 
 Portal(Vector2(165 2) 1)   //red
