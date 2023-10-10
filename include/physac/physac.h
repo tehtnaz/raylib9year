@@ -150,13 +150,25 @@ typedef struct PhysicsVertexData {
     Vector2 normals[PHYSAC_MAX_VERTICES];       // Vertex normals vectors
 } PhysicsVertexData;
 
+
+typedef struct ColliderShift{
+    // Vector2 anchor; // anchor point of collider? (-1, 1 = top left; 0, 0 = centre)
+    Vector2 offset;    // from CENTRE of collider 
+    Vector2 scale;  // how collider is stretched
+}ColliderShift;
+
+// TODO: allow bodies to have multiple colliders (rigidbody + colliders like unity)
+// TODO: add messages to the stars earlier in the spotify playlist
+
 typedef struct PhysicsShape {
     PhysicsShapeType type;                      // Shape type (circle or polygon)
     PhysicsBody body;                           // Shape physics body data pointer
     PhysicsVertexData vertexData;               // Shape vertices data (used for polygon shapes)
+    PhysicsVertexData transformedData; // any time the offset or scale is changed, this must be updated
     float radius;                               // Shape radius (used for circle shapes)
     Matrix2x2 transform;                        // Vertices transform matrix 2x2
     Vector2 boundingBoxRadius;                  // Size of bounding box (radius)
+    ColliderShift shift;
 } PhysicsShape;
 
 typedef struct PhysicsBodyData {
@@ -327,6 +339,8 @@ static void CorrectPhysicsPositions(PhysicsManifold manifold);                  
 static void FindIncidentFace(Vector2 *v0, Vector2 *v1, PhysicsShape ref, PhysicsShape inc, int index);      // Finds two polygon shapes incident face
 static float FindAxisLeastPenetration(int *faceIndex, PhysicsShape shapeA, PhysicsShape shapeB);            // Finds polygon shapes axis least penetration
 
+static void TransformVertices(PhysicsShape shape);
+
 // Math required functions
 static Vector2 MathVector2Product(Vector2 vector, float value);                                             // Returns the product of a vector and a value
 static float MathVector2CrossProduct(Vector2 v1, Vector2 v2);                                               // Returns the cross product of two vectors
@@ -340,7 +354,9 @@ static Matrix2x2 MathMatFromRadians(float radians);                             
 static inline Matrix2x2 MathMatTranspose(Matrix2x2 matrix);                                                 // Returns the transpose of a given matrix 2x2
 static inline Vector2 MathMatVector2Product(Matrix2x2 matrix, Vector2 vector);                              // Returns product between matrix 2x2 and vector
 static int MathVector2Clip(Vector2 normal, Vector2 *faceA, Vector2 *faceB, float clip);                     // Returns clipping value based on a normal and two faces
-static Vector2 MathTriangleBarycenter(Vector2 v1, Vector2 v2, Vector2 v3);                                  // Returns the barycenter of a triangle given by 3 points
+// static Vector2 MathTriangleBarycenter(Vector2 v1, Vector2 v2, Vector2 v3);                                  // Returns the barycenter of a triangle given by 3 points
+
+
 
 //----------------------------------------------------------------------------------
 // Module Functions Definition
@@ -445,6 +461,8 @@ PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, f
         body->useGravity = true;
         body->isGrounded = false;
         body->freezeOrient = false;
+        body->shape.shift = CLITERAL(ColliderShift){CLITERAL(Vector2){0, 0}, CLITERAL(Vector2){1, 1}};
+        TransformVertices(body->shape);
 
         // Add new body to bodies pointers array and update bodies count
         bodies[physicsBodiesCount] = body;
@@ -534,6 +552,8 @@ PhysicsBody CreatePhysicsBodyPolygon(Vector2 pos, float radius, int sides, float
         body->useGravity = true;
         body->isGrounded = false;
         body->freezeOrient = false;
+        body->shape.shift = CLITERAL(ColliderShift){CLITERAL(Vector2){0, 0}, CLITERAL(Vector2){1, 1}};
+        TransformVertices(body->shape);
 
         // Add new body to bodies pointers array and update bodies count
         bodies[physicsBodiesCount] = body;
@@ -556,143 +576,6 @@ void PhysicsAddForce(PhysicsBody body, Vector2 force)
 void PhysicsAddTorque(PhysicsBody body, float amount)
 {
     if (body != NULL) body->torque += amount;
-}
-
-// Shatters a polygon shape physics body to little physics bodies with explosion force
-void PhysicsShatter(PhysicsBody body, Vector2 position, float force)
-{
-    if (body != NULL)
-    {
-        if (body->shape.type == PHYSICS_POLYGON)
-        {
-            PhysicsVertexData vertexData = body->shape.vertexData;
-            bool collision = false;
-
-            for (unsigned int i = 0; i < vertexData.vertexCount; i++)
-            {
-                Vector2 positionA = body->position;
-                Vector2 positionB = MathMatVector2Product(body->shape.transform, MathVector2Add(body->position, vertexData.positions[i]));
-                unsigned int nextIndex = (((i + 1) < vertexData.vertexCount) ? (i + 1) : 0);
-                Vector2 positionC = MathMatVector2Product(body->shape.transform, MathVector2Add(body->position, vertexData.positions[nextIndex]));
-
-                // Check collision between each triangle
-                float alpha = ((positionB.y - positionC.y)*(position.x - positionC.x) + (positionC.x - positionB.x)*(position.y - positionC.y))/
-                              ((positionB.y - positionC.y)*(positionA.x - positionC.x) + (positionC.x - positionB.x)*(positionA.y - positionC.y));
-
-                float beta = ((positionC.y - positionA.y)*(position.x - positionC.x) + (positionA.x - positionC.x)*(position.y - positionC.y))/
-                             ((positionB.y - positionC.y)*(positionA.x - positionC.x) + (positionC.x - positionB.x)*(positionA.y - positionC.y));
-
-                float gamma = 1.0f - alpha - beta;
-
-                if ((alpha > 0.0f) && (beta > 0.0f) & (gamma > 0.0f))
-                {
-                    collision = true;
-                    break;
-                }
-            }
-
-            if (collision)
-            {
-                int count = vertexData.vertexCount;
-                Vector2 bodyPos = body->position;
-                Vector2 *vertices = (Vector2 *)PHYSAC_MALLOC(sizeof(Vector2)*count);
-                Matrix2x2 trans = body->shape.transform;
-                for (int i = 0; i < count; i++) vertices[i] = vertexData.positions[i];
-
-                // Destroy shattered physics body
-                DestroyPhysicsBody(body);
-
-                for (int i = 0; i < count; i++)
-                {
-                    int nextIndex = (((i + 1) < count) ? (i + 1) : 0);
-                    Vector2 center = MathTriangleBarycenter(vertices[i], vertices[nextIndex], PHYSAC_VECTOR_ZERO);
-                    center = MathVector2Add(bodyPos, center);
-                    Vector2 offset = MathVector2Subtract(center, bodyPos);
-
-                    PhysicsBody body = CreatePhysicsBodyPolygon(center, 10, 3, 10, body->trigger);     // Create polygon physics body with relevant values
-
-                    PhysicsVertexData vertexData = { 0 };
-                    vertexData.vertexCount = 3;
-
-                    vertexData.positions[0] = MathVector2Subtract(vertices[i], offset);
-                    vertexData.positions[1] = MathVector2Subtract(vertices[nextIndex], offset);
-                    vertexData.positions[2] = MathVector2Subtract(position, center);
-
-                    // Separate vertices to avoid unnecessary physics collisions
-                    vertexData.positions[0].x *= 0.95f;
-                    vertexData.positions[0].y *= 0.95f;
-                    vertexData.positions[1].x *= 0.95f;
-                    vertexData.positions[1].y *= 0.95f;
-                    vertexData.positions[2].x *= 0.95f;
-                    vertexData.positions[2].y *= 0.95f;
-
-                    // Calculate polygon faces normals
-                    for (unsigned int j = 0; j < vertexData.vertexCount; j++)
-                    {
-                        unsigned int nextVertex = (((j + 1) < vertexData.vertexCount) ? (j + 1) : 0);
-                        Vector2 face = MathVector2Subtract(vertexData.positions[nextVertex], vertexData.positions[j]);
-
-                        vertexData.normals[j] = CLITERAL(Vector2){ face.y, -face.x };
-                        MathVector2Normalize(&vertexData.normals[j]);
-                    }
-
-                    // Apply computed vertex data to new physics body shape
-                    body->shape.vertexData = vertexData;
-                    body->shape.transform = trans;
-
-                    // Calculate centroid and moment of inertia
-                    center = PHYSAC_VECTOR_ZERO;
-                    float area = 0.0f;
-                    float inertia = 0.0f;
-
-                    for (unsigned int j = 0; j < body->shape.vertexData.vertexCount; j++)
-                    {
-                        // Triangle vertices, third vertex implied as (0, 0)
-                        Vector2 p1 = body->shape.vertexData.positions[j];
-                        unsigned int nextVertex = (((j + 1) < body->shape.vertexData.vertexCount) ? (j + 1) : 0);
-                        Vector2 p2 = body->shape.vertexData.positions[nextVertex];
-
-                        float D = MathVector2CrossProduct(p1, p2);
-                        float triangleArea = D/2;
-
-                        area += triangleArea;
-
-                        // Use area to weight the centroid average, not just vertex position
-                        center.x += triangleArea*PHYSAC_K*(p1.x + p2.x);
-                        center.y += triangleArea*PHYSAC_K*(p1.y + p2.y);
-
-                        float intx2 = p1.x*p1.x + p2.x*p1.x + p2.x*p2.x;
-                        float inty2 = p1.y*p1.y + p2.y*p1.y + p2.y*p2.y;
-                        inertia += (0.25f*PHYSAC_K*D)*(intx2 + inty2);
-                    }
-
-                    center.x *= 1.0f/area;
-                    center.y *= 1.0f/area;
-
-                    body->mass = area;
-                    body->inverseMass = ((body->mass != 0.0f) ? 1.0f/body->mass : 0.0f);
-                    body->inertia = inertia;
-                    body->inverseInertia = ((body->inertia != 0.0f) ? 1.0f/body->inertia : 0.0f);
-
-                    // Calculate explosion force direction
-                    Vector2 pointA = body->position;
-                    Vector2 pointB = MathVector2Subtract(vertexData.positions[1], vertexData.positions[0]);
-                    pointB.x /= 2.0f;
-                    pointB.y /= 2.0f;
-                    Vector2 forceDirection = MathVector2Subtract(MathVector2Add(pointA, MathVector2Add(vertexData.positions[0], pointB)), body->position);
-                    MathVector2Normalize(&forceDirection);
-                    forceDirection.x *= force;
-                    forceDirection.y *= force;
-
-                    // Apply force to new physics body
-                    PhysicsAddForce(body, forceDirection);
-                }
-
-                PHYSAC_FREE(vertices);
-            }
-        }
-    }
-    else TRACELOG("[PHYSAC] WARNING: PhysicsShatter: NULL physic body\n");
 }
 
 // Returns the current amount of created physics bodies
@@ -775,8 +658,8 @@ Vector2 GetPhysicsShapeVertex(PhysicsBody body, int vertex)
             } break;
             case PHYSICS_POLYGON:
             {
-                PhysicsVertexData vertexData = body->shape.vertexData;
-                position = MathVector2Add(body->position, MathMatVector2Product(body->shape.transform, vertexData.positions[vertex]));
+                PhysicsVertexData transformedData = body->shape.transformedData;
+                position = MathVector2Add(body->position, MathMatVector2Product(body->shape.transform, transformedData.positions[vertex]));
             } break;
             default: break;
         }
@@ -977,6 +860,23 @@ int GetPhysicsManifoldCount(void){
 // Module Internal Functions Definition
 //----------------------------------------------------------------------------------
 
+static void TransformVertices(PhysicsShape shape){
+    shape.transformedData.vertexCount = shape.vertexData.vertexCount;
+    for(int i = 0; i < shape.vertexData.vertexCount; i++){
+        shape.transformedData.positions[i].x = shape.vertexData.positions[i].x * shape.shift.scale.x + shape.shift.offset.x;
+        shape.transformedData.positions[i].y = shape.vertexData.positions[i].y * shape.shift.scale.y + shape.shift.offset.y;
+    }
+
+    for (int i = 0; i < shape.vertexData.vertexCount; i++)
+    {
+        int nextIndex = (((i + 1) < shape.vertexData.vertexCount) ? (i + 1) : 0);
+        Vector2 face = MathVector2Subtract(shape.transformedData.positions[nextIndex], shape.transformedData.positions[i]);
+
+        shape.transformedData.normals[i] = CLITERAL(Vector2){ face.y, -face.x };
+        MathVector2Normalize(&shape.transformedData.normals[i]);
+    }
+}
+
 // Update physics step (dynamics, collisions and position corrections)
 static void UpdatePhysicsStep(void)
 {
@@ -1010,7 +910,8 @@ static void UpdatePhysicsStep(void)
                 {
                     if ((bodyA->inverseMass == 0) && (bodyB->inverseMass == 0)) continue;
                     Vector2 dist = {bodyA->position.x - bodyB->position.x, bodyA->position.y - bodyB->position.y};
-                    if(dist.x > bodyA->shape.boundingBoxRadius.x + bodyB->shape.boundingBoxRadius.x || dist.y > bodyA->shape.boundingBoxRadius.y + bodyB->shape.boundingBoxRadius.y) continue;
+                    // TODO: include velocity in size of bounding box or else this will be bugged for quickly moving objects
+                    if(dist.x > bodyA->shape.boundingBoxRadius.x * bodyA->shape.shift.scale.x + bodyB->shape.boundingBoxRadius.x * bodyB->shape.shift.scale.x || dist.y > bodyA->shape.boundingBoxRadius.y * bodyA->shape.shift.scale.y + bodyB->shape.boundingBoxRadius.y * bodyB->shape.shift.scale.y) continue;
                     // if(bodyA->shape.type == PHYSICS_CIRCLE && bodyB->shape.type == PHYSICS_CIRCLE){
                     //     Vector2 diff = {bodyA->position.x - bodyB->position.x, bodyA->position.y - bodyB->position.y};
                     //     if(sqrtf(diff.x * diff.x + diff.y * diff.y) < (bodyA->shape.radius + bodyB->shape.radius + 1)){continue;}
@@ -1354,11 +1255,11 @@ static void SolveCircleToPolygon(PhysicsManifold manifold)
     // It is the same concept as using support points in SolvePolygonToPolygon
     float separation = -PHYSAC_FLT_MAX;
     int faceNormal = 0;
-    PhysicsVertexData vertexData = bodyB->shape.vertexData;
+    PhysicsVertexData transformedData = bodyB->shape.transformedData;
 
-    for (unsigned int i = 0; i < vertexData.vertexCount; i++)
+    for (unsigned int i = 0; i < transformedData.vertexCount; i++)
     {
-        float currentSeparation = MathVector2DotProduct(vertexData.normals[i], MathVector2Subtract(center, vertexData.positions[i]));
+        float currentSeparation = MathVector2DotProduct(transformedData.normals[i], MathVector2Subtract(center, transformedData.positions[i]));
 
         if (currentSeparation > bodyA->shape.radius) return;
 
@@ -1370,15 +1271,15 @@ static void SolveCircleToPolygon(PhysicsManifold manifold)
     }
 
     // Grab face's vertices
-    Vector2 v1 = vertexData.positions[faceNormal];
-    int nextIndex = (((faceNormal + 1) < (int)vertexData.vertexCount) ? (faceNormal + 1) : 0);
-    Vector2 v2 = vertexData.positions[nextIndex];
+    Vector2 v1 = transformedData.positions[faceNormal];
+    int nextIndex = (((faceNormal + 1) < (int)transformedData.vertexCount) ? (faceNormal + 1) : 0);
+    Vector2 v2 = transformedData.positions[nextIndex];
 
     // Check to see if center is within polygon
     if (separation < PHYSAC_EPSILON)
     {
         manifold->contactsCount = 1;
-        Vector2 normal = MathMatVector2Product(bodyB->shape.transform, vertexData.normals[faceNormal]);
+        Vector2 normal = MathMatVector2Product(bodyB->shape.transform, transformedData.normals[faceNormal]);
         manifold->normal = CLITERAL(Vector2){ -normal.x, -normal.y };
         manifold->contacts[0] = CLITERAL(Vector2){ manifold->normal.x*bodyA->shape.radius + bodyA->position.x, manifold->normal.y*bodyA->shape.radius + bodyA->position.y };
         manifold->penetration = bodyA->shape.radius;
@@ -1418,7 +1319,7 @@ static void SolveCircleToPolygon(PhysicsManifold manifold)
     }
     else // Closest to face
     {
-        Vector2 normal = vertexData.normals[faceNormal];
+        Vector2 normal = transformedData.normals[faceNormal];
 
         if (MathVector2DotProduct(MathVector2Subtract(center, v1), normal) > bodyA->shape.radius) return;
 
@@ -1491,7 +1392,7 @@ static void SolvePolygonToPolygon(PhysicsManifold manifold)
     FindIncidentFace(&incidentFace[0], &incidentFace[1], refPoly, incPoly, referenceIndex);
 
     // Setup reference face vertices
-    PhysicsVertexData refData = refPoly.vertexData;
+    PhysicsVertexData refData = refPoly.transformedData;
     Vector2 v1 = refData.positions[referenceIndex];
     referenceIndex = (((referenceIndex + 1) < (int)refData.vertexCount) ? (referenceIndex + 1) : 0);
     Vector2 v2 = refData.positions[referenceIndex];
@@ -1739,7 +1640,7 @@ static Vector2 GetSupport(PhysicsShape shape, Vector2 dir)
 {
     float bestProjection = -PHYSAC_FLT_MAX;
     Vector2 bestVertex = { 0.0f, 0.0f };
-    PhysicsVertexData data = shape.vertexData;
+    PhysicsVertexData data = shape.transformedData;
 
     for (unsigned int i = 0; i < data.vertexCount; i++)
     {
@@ -1762,8 +1663,8 @@ static float FindAxisLeastPenetration(int *faceIndex, PhysicsShape shapeA, Physi
     float bestDistance = -PHYSAC_FLT_MAX;
     int bestIndex = 0;
 
-    PhysicsVertexData dataA = shapeA.vertexData;
-    //PhysicsVertexData dataB = shapeB.vertexData;
+    PhysicsVertexData dataA = shapeA.transformedData;
+    //PhysicsVertexData dataB = shapeB.transformedData;
 
     for (unsigned int i = 0; i < dataA.vertexCount; i++)
     {
@@ -1803,8 +1704,8 @@ static float FindAxisLeastPenetration(int *faceIndex, PhysicsShape shapeA, Physi
 // Finds two polygon shapes incident face
 static void FindIncidentFace(Vector2 *v0, Vector2 *v1, PhysicsShape ref, PhysicsShape inc, int index)
 {
-    PhysicsVertexData refData = ref.vertexData;
-    PhysicsVertexData incData = inc.vertexData;
+    PhysicsVertexData refData = ref.transformedData;
+    PhysicsVertexData incData = inc.transformedData;
 
     Vector2 referenceNormal = refData.normals[index];
 
@@ -1867,17 +1768,6 @@ static int MathVector2Clip(Vector2 normal, Vector2 *faceA, Vector2 *faceB, float
     *faceB = out[1];
 
     return sp;
-}
-
-// Returns the barycenter of a triangle given by 3 points
-static Vector2 MathTriangleBarycenter(Vector2 v1, Vector2 v2, Vector2 v3)
-{
-    Vector2 result = { 0.0f, 0.0f };
-
-    result.x = (v1.x + v2.x + v3.x)/3;
-    result.y = (v1.y + v2.y + v3.y)/3;
-
-    return result;
 }
 
 // Returns the cross product of a vector and a value
