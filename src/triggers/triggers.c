@@ -13,9 +13,9 @@ static int triggerSelector = 0;
 void DestroyTriggerEventAtIndex(int index);
 
 
-TriggerEventFunctionData CreateTriggerEventFunctionData_SetForce(void (*function_add_force)(PhysicsBody body)){
+TriggerEventFunctionData CreateTriggerEventFunctionData_WithOriginBody(void (*function_add_force)(PhysicsBody body)){
     TriggerEventFunctionData data;
-    data.type = TRIGGER_SET_FORCE;
+    data.type = TRIGGER_WITH_ORIGIN_BODY;
     data.function_add_force = function_add_force;
     return data;
 }
@@ -93,7 +93,7 @@ void ActivateTriggerEvent(int index){
         case TRIGGER_FUNCTION: data.function_no_arg_function(); break;
         case TRIGGER_TEXT_PROMPT: data.function_text_prompt((const char**)data.texts, data.textCount); break;
         case TRIGGER_FUNCTION_WITH_TRIGGERID: data.function_with_trigger_function(triggerEventArray[index].triggerID); break;
-        case TRIGGER_SET_FORCE: 
+        case TRIGGER_WITH_ORIGIN_BODY: 
             if(triggerEventArray[index].bodyOrigin == NULL) {
                 TraceLog(LOG_ERROR, "Triggers - Body origin was NULL while trying to a function using it!");
             } else data.function_add_force(triggerEventArray[index].bodyOrigin); 

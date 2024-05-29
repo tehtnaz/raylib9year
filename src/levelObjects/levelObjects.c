@@ -1,4 +1,5 @@
 #include "levelObjects.h"
+#include "animatedColliders.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -114,6 +115,7 @@ void ActivateDoor(unsigned int triggerID){
 void UpdateDoors(){
     for(int i = 0; i < doorCount; i++){
         if(doorArray[i].isChangingState != 0){
+            //printf("pointer to anim %p\n", &doorArray[i].anim);
             if(doorArray[i].isChangingState == 1) CycleAnimation(&doorArray[i].anim);
             else CycleAnimationBackwards(&doorArray[i].anim);
             if(doorArray[i].anim.isAnimating == false) doorArray[i].isChangingState = 0;
@@ -163,7 +165,7 @@ Button* CreateButton(Vector2 pos, unsigned int trigger, bool m_buttonDown){
         TraceLog(LOG_WARNING, "levelObjects - MAX_BUTTONS limit reached. Couldn't create new button");
         return NULL;
     }
-    PhysicsBody body = CreatePhysicsBodyRectangle((Vector2){pos.x + 15, pos.y + 5.5f}, 30, 11, 1, trigger);
+    PhysicsBody body = CreatePhysicsBodyRectangle((Vector2){pos.x + 15, pos.y + 5.5f}, 30, 11, 1, trigger, 0);
     body->freezeOrient = true;
     body->enabled = false;
 
@@ -177,7 +179,7 @@ Portal* CreatePortal(Vector2 pos, unsigned int colourID){
         TraceLog(LOG_WARNING, "levelObjects - MAX_PORTALS limit reached. Couldn't create new portal");
         return NULL;
     }
-    PhysicsBody body = CreatePhysicsBodyCircle((Vector2){pos.x + 13, pos.y + 22}, 14, 1, colourID + 12);
+    PhysicsBody body = CreatePhysicsBodyCircle((Vector2){pos.x + 13, pos.y + 22}, 14, 1, colourID + 12, 0);
     body->freezeOrient = true;
     body->enabled = false;
 
@@ -219,12 +221,32 @@ Door* CreateDoor(Vector2 pos, int doorType, unsigned int trigger){
             TraceLog(LOG_WARNING, "levelObjects - Received incorrect doorType value (value was %d)", doorType);
             return NULL;
     }
-    PhysicsBody body = CreatePhysicsBodyRectangle((Vector2){pos.x + tempAnim.spriteWidth / 2, pos.y + tempAnim.texture.height / 2}, tempAnim.spriteWidth, tempAnim.texture.height, 1, 0);
-    body->enabled = false;
+    PhysicsBody body = CreatePhysicsBodyRectangle((Vector2){pos.x + tempAnim.spriteWidth / 2, pos.y + (doorType == 2 ? 16 : tempAnim.texture.height / 2)}, tempAnim.spriteWidth, doorType == 2 ? 32 : tempAnim.texture.height, 1, 0, doorType == 2 ? 1 : 0);
+    body->enabled = (doorType == 2);
     body->freezeOrient = true;
 
     doorArray[doorCount] = (Door){doorType, pos, tempAnim, trigger, body, 0};
     doorCount++;
+
+    if(doorType == 2){
+        OverridePhysicsBodyTriggerDynamics(body, true);
+        
+        PhysicsBody firstMovingBody = CreatePhysicsBodyRectangle((Vector2){pos.x + tempAnim.spriteWidth / 2, pos.y + 16}, tempAnim.spriteWidth, 32, 1, 0, 1);
+        firstMovingBody->enabled = true;
+        firstMovingBody->freezeOrient = true;
+        OverridePhysicsBodyTriggerDynamics(firstMovingBody, true);
+        
+        PhysicsBody secondMovingBody = CreatePhysicsBodyRectangle((Vector2){pos.x + tempAnim.spriteWidth / 2, pos.y + 16}, tempAnim.spriteWidth, 32, 1, 0, 1);
+        AddTagToPhysicsBody(secondMovingBody, 6);
+        secondMovingBody->enabled = true;
+        secondMovingBody->freezeOrient = true;
+        OverridePhysicsBodyTriggerDynamics(secondMovingBody, true);
+
+        CreateAnimatedCollider(body->position, (Vector2){body->position.x, body->position.y + 33}, firstMovingBody, &doorArray[doorCount - 1].anim);
+        CreateAnimatedCollider(body->position, (Vector2){body->position.x, body->position.y + 66}, secondMovingBody, &doorArray[doorCount - 1].anim);
+
+        TraceLog(LOG_DEBUG, "Creating new PistonDoor with props:\n-body-x:%f-y:%f\n-firstMoving-x:%f-y:%f\n-secondMoving-x:%f-y:%f", body->position.x, body->position.y, firstMovingBody->position.x, firstMovingBody->position.y, secondMovingBody->position.x, secondMovingBody->position.y);
+    }    
 
     return &(doorArray[doorCount - 1]);
 }
@@ -234,7 +256,8 @@ void CreateCrate(Vector2 pos){
         TraceLog(LOG_WARNING, "levelObjects - MAX_CRATES limit reached. Couldn't create new crate");
         return;
     }
-    PhysicsBody body = CreatePhysicsBodyRectangle((Vector2){pos.x + crateTexture.width / 2, pos.y + crateTexture.height / 2}, crateTexture.width, crateTexture.height, 20, 0);
+    PhysicsBody body = CreatePhysicsBodyRectangle((Vector2){pos.x + crateTexture.width / 2, pos.y + crateTexture.height / 2}, crateTexture.width, crateTexture.height, 20, 6, 0);
+    OverridePhysicsBodyTriggerDynamics(body, true);
     body->enabled = true;
     body->freezeOrient = true;
     AddTagToPhysicsBody(body, 1);
@@ -259,8 +282,8 @@ void CreateDoorFromData(LevelObjectFileData data){CreateDoor(data.pos, data.spec
 
 void CreatePhysObjFromData(PhysObjFileData data, bool isCircle){
     PhysicsBody body = {0};
-    if(isCircle) body = CreatePhysicsBodyCircle(data.pos, data.radius, 1, data.trigger);
-    else body = CreatePhysicsBodyRectangle((Vector2){data.pos.x + data.width / 2, data.pos.y + data.height / 2}, data.width, data.height, 1, data.trigger);
+    if(isCircle) body = CreatePhysicsBodyCircle(data.pos, data.radius, 1, data.trigger, 0);
+    else body = CreatePhysicsBodyRectangle((Vector2){data.pos.x + data.width / 2, data.pos.y + data.height / 2}, data.width, data.height, 1, data.trigger, 0);
     //both
     for(int i = 0; i < data.tagCount; i++){
         AddTagToPhysicsBody(body, data.tags[i]);

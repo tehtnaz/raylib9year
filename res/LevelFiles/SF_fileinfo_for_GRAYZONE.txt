@@ -1,0 +1,37 @@
+// Arguments
+    // RectPhysObj   - pos; width; height; isStatic; tagArray; trigger
+        // pos is from TOP LEFT
+        
+    // CirclePhysObj - pos; radius; isStatic; tagArray; trigger
+        // pos is from MIDDLE OF CIRCLE
+
+    // TextTrigger   - trigger; textArray
+
+    // Wire          - pos; wireId (sprite to load); trigger
+        // trigger changes sprite to activated
+
+    // Button        - pos; trigger
+        // phys hitbox is RectPhysObj
+
+    // Portal        - pos; colour
+        // colour is an int (red = 0, green = 1, blue = 2, yellow = 3)
+        // phys hitbox is CirclePhysObj
+
+    // Door          - pos; doorType; trigger
+        // phys hitbox can be very different due to different door types
+        // doorType (1 = normal, 2 = piston door, 3 = trap door)
+
+    // Crate         - posX; posY
+        // both integers
+
+
+// FOR CirclePhysObj, POSITION IS AT CENTER
+// RectPhysObj     (Vector2( 10 10 )   10.0 10.0  DYNAMIC 1 0)            / - single tag
+// RectPhysObj     (Vector2( 128 200 ) 8.0  8.0   DYNAMIC [1 128 334] 0)  / - multi tag
+// CirclePhysObj   (Vector2( 50 50 )   20.0     STATIC  0 1)
+
+// Text trigger + physobj group forms a fully functional trigger
+// text trigger arg 2 = string array (remember, "[]" and "()" are interchangeable )
+// triggerId; textArray
+
+// only 1 property (startingPos), so name isn't verified

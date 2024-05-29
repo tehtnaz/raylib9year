@@ -1,7 +1,16 @@
-Triggers: Any physObj with a trigger above 0 disables its dynamics and collisions
+Triggers: Any physObj with a trigger above 0 assumes it's only meant to be a trigger and disables its dynamics and collisions
+To override this behaviour, use OverridePhysicsBodyTriggerDynamics(PhysicsBody body, false);
 
 Tag = item entering a trigger / item which should have that number tag on it
-Trigger = items which should have that trigger on it
+Trigger = items which are triggered when the tag enters they hit box
+
+Layers:
+    (0): Default (almost all)
+    (1): PistonDoors
+
+Layer Matrix
+
+
 Reserved tags / trigger + recommended ranges
     (1):
         Tag     -> Crate (grabbable object)
@@ -16,24 +25,24 @@ Reserved tags / trigger + recommended ranges
         Tag     -> Player
         Trigger -> Death trigger
             Fade to black
-    (5):
-        Tag     -> None
-        Trigger -> Temporary trigger for disabled physics objects
+    (6):
+        Tag     -> PistonDoor
+        Trigger -> Crate
     
     (13-16): (DO NOT CHANGE THESE TRIGGER IDS, IF YOU DO, CHANGE VALUE ADDED IN dataHandling IN parseStructGroupInfo)
-        Tag     -> Player
+        Tag     -> (none - implicitly Player (Tag 2) )
         Trigger -> Portals
         
     (17-65) (only 17 + 18 is implemented)
-        Tag     -> Player
+        Tag     -> (none - implicitly Player (Tag 2) )
         Trigger -> Button (used to then activate Wires and Doors with matching IDs)
 
     (65-129) (does not need to be implemented, allocated dynamically when reading .sf file)
-        Tag     -> Player
+        Tag     -> (none - implicitly Player (Tag 2) )
         Trigger -> Text prompt
 
     (130-131)
-        Tag     -> Player
+        Tag     -> (none - implicitly Player (Tag 2) )
         Trigger -> Special conditional text for level 2 (if hit button while not in dimension / hit portal before button...)
 
 Player's tags must be manually assigned in code
