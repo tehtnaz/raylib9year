@@ -17,7 +17,7 @@
 
 Wire(Vector2(127, 57), 0, 17)
 Button(Vector2(189 73) 17)
-Portal(Vector2(39 180) 1)
+Portal(Vector2(39 180) 132)
 Door(Vector2(83 0) 1 17)
 
 // Begin Text

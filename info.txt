@@ -9,6 +9,13 @@ Layers:
     (1): PistonDoors
 
 Layer Matrix
+╔═══╦═══╦═══╗
+║ - ║ 0 ║ 1 ║
+╠═══╬═══╬═══╣
+║ 1 ║ Y ║ N ║
+╠═══╬═══╬═══╝
+║ 0 ║ Y ║
+╚═══╩═══╝
 
 
 Reserved tags / trigger + recommended ranges
@@ -25,13 +32,12 @@ Reserved tags / trigger + recommended ranges
         Tag     -> Player
         Trigger -> Death trigger
             Fade to black
+    (5):
+        Tag     -> None
+        Trigger -> Temporary trigger for disabled physics objects
     (6):
         Tag     -> PistonDoor
         Trigger -> Crate
-    
-    (13-16): (DO NOT CHANGE THESE TRIGGER IDS, IF YOU DO, CHANGE VALUE ADDED IN dataHandling IN parseStructGroupInfo)
-        Tag     -> (none - implicitly Player (Tag 2) )
-        Trigger -> Portals
         
     (17-65) (only 17 + 18 is implemented)
         Tag     -> (none - implicitly Player (Tag 2) )
@@ -44,6 +50,28 @@ Reserved tags / trigger + recommended ranges
     (130-131)
         Tag     -> (none - implicitly Player (Tag 2) )
         Trigger -> Special conditional text for level 2 (if hit button while not in dimension / hit portal before button...)
+
+    (132-147): (DO NOT CHANGE THESE TRIGGER IDS, IF YOU DO, CHANGE VALUE ADDED IN dataHandling IN parseStructGroupInfo, currentDimension in raylib_game, and properties in levelObjects)
+        Tag     -> (none - implicitly Player (Tag 2) )
+        Trigger -> Portals
+            Individual Values for portals: 
+
+            Red    - 132
+            Blue   - 133
+            Yellow - 134
+            Green 0- 135
+            Green 1- 136
+            Green 2- 137
+            Green 3- 138
+            Green 4- 139
+            Green 5- 140
+            Green 6- 141
+            Green 7- 142
+            Green 8- 143
+            Green 9- 144
+            Green 10-145
+            Green 11-146
+            Green 12-147
 
 Player's tags must be manually assigned in code
 

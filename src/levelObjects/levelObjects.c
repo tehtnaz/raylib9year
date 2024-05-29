@@ -28,19 +28,22 @@ static Texture2D normalDoor;
 static Texture2D pistonDoor;
 static Texture2D trapDoor;
 
+static Vector2 portalLocationArray[MAX_PORTAL_LOCATIONS];
+
 static Texture2D crateTexture;
 static int crateIndexArray[MAX_CRATES]; //PhysicsBody index of all crates
 static int crateCount;
 
 Animation* portalIDToAnimation(int portalID){
+    if(portalID > 134 && portalID <= 146){
+        return &portalGreen;
+    }
     switch(portalID){
-        case 1:
+        case 132:
             return &portalRed;
-        case 2:
+        case 133:
             return &portalBlue;
-        case 3:
-            return &portalGreen;
-        case 4:
+        case 134:
             return &portalYellow;
         default:
             TraceLog(LOG_WARNING, "levelObjects - Unknown portalId received; id = %d", portalID);
@@ -108,6 +111,10 @@ void ActivateDoor(unsigned int triggerID){
             doorArray[i].anim.isAnimating = true;
             doorArray[i].physObj->trigger = 5;
             TraceLog(LOG_DEBUG, "ActivateDoor - activated door index - %d", i);
+
+            if(doorArray[i].doorType == 3){
+                CreatePhysicsBodyRectangle(doorArray[i].physObj->position, 45, 30, 1, 3, 0);
+            }
         }
     }
 }
@@ -179,7 +186,7 @@ Portal* CreatePortal(Vector2 pos, unsigned int colourID){
         TraceLog(LOG_WARNING, "levelObjects - MAX_PORTALS limit reached. Couldn't create new portal");
         return NULL;
     }
-    PhysicsBody body = CreatePhysicsBodyCircle((Vector2){pos.x + 13, pos.y + 22}, 14, 1, colourID + 12, 0);
+    PhysicsBody body = CreatePhysicsBodyCircle((Vector2){pos.x + 13, pos.y + 22}, 14, 1, colourID, 0);
     body->freezeOrient = true;
     body->enabled = false;
 
@@ -221,9 +228,10 @@ Door* CreateDoor(Vector2 pos, int doorType, unsigned int trigger){
             TraceLog(LOG_WARNING, "levelObjects - Received incorrect doorType value (value was %d)", doorType);
             return NULL;
     }
-    PhysicsBody body = CreatePhysicsBodyRectangle((Vector2){pos.x + tempAnim.spriteWidth / 2, pos.y + (doorType == 2 ? 16 : tempAnim.texture.height / 2)}, tempAnim.spriteWidth, doorType == 2 ? 32 : tempAnim.texture.height, 1, 0, doorType == 2 ? 1 : 0);
+    PhysicsBody body = CreatePhysicsBodyRectangle((Vector2){pos.x + tempAnim.spriteWidth / 2, pos.y + (doorType == 2 ? 16 : tempAnim.texture.height / 2)}, tempAnim.spriteWidth, doorType == 2 ? 32 : tempAnim.texture.height, 1, doorType == 3 ? 5 : 0, doorType == 2 ? 1 : 0);
     body->enabled = (doorType == 2);
     body->freezeOrient = true;
+    TraceLog(LOG_DEBUG, "%d", body->trigger);
 
     doorArray[doorCount] = (Door){doorType, pos, tempAnim, trigger, body, 0};
     doorCount++;
@@ -256,7 +264,7 @@ void CreateCrate(Vector2 pos){
         TraceLog(LOG_WARNING, "levelObjects - MAX_CRATES limit reached. Couldn't create new crate");
         return;
     }
-    PhysicsBody body = CreatePhysicsBodyRectangle((Vector2){pos.x + crateTexture.width / 2, pos.y + crateTexture.height / 2}, crateTexture.width, crateTexture.height, 20, 6, 0);
+    PhysicsBody body = CreatePhysicsBodyRectangle((Vector2){pos.x + crateTexture.width / 2, pos.y + crateTexture.height / 2}, crateTexture.width, crateTexture.height, 100, 6, 0);
     OverridePhysicsBodyTriggerDynamics(body, true);
     body->enabled = true;
     body->freezeOrient = true;
@@ -264,6 +272,22 @@ void CreateCrate(Vector2 pos){
 
     crateIndexArray[crateCount] = body->id;
     crateCount++;
+}
+
+void AssignPortalLocation(Vector2 pos, int id){
+    if(id >= MAX_PORTAL_LOCATIONS){
+        TraceLog(LOG_WARNING, "levelObjects - ID of PortalLocation is too large. Couldn't create new portal location");
+        return;
+    }
+    portalLocationArray[id] = pos;
+}
+
+Vector2 GetPortalLocation(int triggerId){
+    if(triggerId < 135 || triggerId > 146){
+        TraceLog(LOG_WARNING, "levelObjects - TriggerID is out of range of portal location array. Must be between 135-146");
+        return (Vector2){0,0};
+    }
+    return portalLocationArray[triggerId - 135];
 }
 
 // All physics bodies are destroyed at the end of each level, no need to do it here
@@ -279,6 +303,7 @@ void CreateWireFromData(LevelObjectFileData data){CreateWire(data.pos, data.spec
 void CreateButtonFromData(LevelObjectFileData data){CreateButton(data.pos, data.trigger, false);};
 void CreatePortalFromData(LevelObjectFileData data){CreatePortal(data.pos, data.specialID);};
 void CreateDoorFromData(LevelObjectFileData data){CreateDoor(data.pos, data.specialID, data.trigger);};
+void AssignPortalLocationFromData(LevelObjectFileData data){AssignPortalLocation(data.pos, data.specialID);};
 
 void CreatePhysObjFromData(PhysObjFileData data, bool isCircle){
     PhysicsBody body = {0};

@@ -14,8 +14,11 @@
         // phys hitbox is RectPhysObj
 
     // Portal        - pos; colour
-        // colour is an int (red = 0, green = 1, blue = 2, yellow = 3)
+        // colour is an int that corresponds to the trigger (Refer to info.txt for values to put on triggers)
         // phys hitbox is CirclePhysObj
+
+    // Portal Teleport Pos - pos; orderNum
+        // orderNum matches the num of the green portal (0-11) in info.txt
 
     // Door          - pos; doorType; trigger
         // phys hitbox can be very different due to different door types

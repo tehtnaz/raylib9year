@@ -148,6 +148,8 @@ void readKeyword(TokenInfo* tokenInfo){
         tokenInfo->type = WIRE;
     }else if(TextIsEqual(tokenInfo->text, "Crate")){
         tokenInfo->type = CRATE;
+    }else if(TextIsEqual(tokenInfo->text, "PortalLocation")){
+        tokenInfo->type = PORTAL_LOCATION;
     }else{
         TraceLog(LOG_WARNING, "readFileSF[scan/readKeyword] - [line %d] Item '%s' doesn't match any keywords ", line, tokenInfo->text);
     }
@@ -672,6 +674,7 @@ LevelObjectFileData parseObject(StructGroup* group, TOKEN_TYPE objectType){
     if(objectType == PORTAL && checkArgNumber(group, 2, "Portal")) return object;
     if(objectType == DOOR   && checkArgNumber(group, 3, "Door"))   return object;
     if(objectType == CRATE  && checkArgNumber(group, 1, "Crate"))  return object;
+    if(objectType == CRATE  && checkArgNumber(group, 2, "Portal Location"))  return object;
 
     StructGroup* temp = group->child;
     
@@ -689,7 +692,7 @@ LevelObjectFileData parseObject(StructGroup* group, TOKEN_TYPE objectType){
     }else{
         TraceLog(LOG_WARNING, "parseStructGroupInfo[parseObject] - [line %d] Invalid argument type for arg 2. Expected type INTEGER", group->token.line);
     }
-    if(objectType == BUTTON || objectType == PORTAL) return object;
+    if(objectType == BUTTON || objectType == PORTAL || objectType == PORTAL_LOCATION) return object;
 
     temp = temp->next;
     if(temp->token.type == INTEGER){
@@ -699,6 +702,7 @@ LevelObjectFileData parseObject(StructGroup* group, TOKEN_TYPE objectType){
     }
     return object;
 }
+
 
 
 int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(const char** texts, int textCount), Vector2 *startingPos){
@@ -723,6 +727,7 @@ int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(
             case PORTAL: CreatePortalFromData(parseObject(structGroup, PORTAL)); break;
             case DOOR:   CreateDoorFromData(parseObject(structGroup, DOOR));     break;
             case CRATE:  CreateCrate(parseObject(structGroup, CRATE).pos);       break;
+            case PORTAL_LOCATION: AssignPortalLocationFromData(parseObject(structGroup, PORTAL_LOCATION)); break;
             default:
                 TraceLog(LOG_WARNING, "parseStructGroupInfo - [line %d] Received non-struct as parent group. [TOKEN_TYPE: %d] Skipping...", structGroup->token.line, structGroup->token.type);
                 break;

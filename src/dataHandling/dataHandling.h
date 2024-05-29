@@ -44,6 +44,7 @@ typedef enum TOKEN_TYPE{
         PORTAL,
         WIRE,
         CRATE,
+        PORTAL_LOCATION,
         PROPERTY
 
 } TOKEN_TYPE;

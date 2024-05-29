@@ -36,9 +36,9 @@ Door(Vector2(0 0) 1 17)
 Button(Vector2(221 91) 17)
 
 
-Portal(Vector2(225 3) 1)   //red
-Portal(Vector2(216 220) 2) //blue
-Portal(Vector2(18 169) 4)  //yellow
+Portal(Vector2(225 3) 132)   //red
+Portal(Vector2(216 220) 133) //blue
+Portal(Vector2(18 169) 134)  //yellow
 
 Crate(Vector2(104 154))
 Crate(Vector2(130 154))

@@ -50,11 +50,12 @@ typedef struct PhysObjFileData{
 } PhysObjFileData;
 
 #define MAX_BUTTONS 8
-#define MAX_PORTALS 4
+#define MAX_PORTALS 16
 #define MAX_WIRES 2
 #define MAX_DOORS 4
 #define WIRE_ID_COUNT 7
 #define MAX_CRATES 2
+#define MAX_PORTAL_LOCATIONS 12
 
 Animation* portalIDToAnimation(int portalID);
 
@@ -75,9 +76,12 @@ void CreateWireFromData(LevelObjectFileData data);
 void CreateButtonFromData(LevelObjectFileData data);
 void CreatePortalFromData(LevelObjectFileData data);
 void CreateDoorFromData(LevelObjectFileData data);
+void AssignPortalLocationFromData(LevelObjectFileData data);
 
 void CreatePhysObjFromData(PhysObjFileData data, bool isCircle);
 
 void CreateCrate(Vector2 pos);
+
+Vector2 GetPortalLocation(int triggerId);
 
 void DestroyAllLevelObjects();

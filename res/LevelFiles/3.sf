@@ -31,8 +31,8 @@ Wire(Vector2(143 57) 1 17)
 Button(Vector2(214 179) 17)
 Door(Vector2(104 0) 1 17)
 
-Portal(Vector2(41 30)  1) //red
-Portal(Vector2(41 191) 2) //blue
+Portal(Vector2(41 30)  132) //red
+Portal(Vector2(41 191) 133) //blue
 
 // Begin Text
 TextTrigger     (65, 

@@ -18,9 +18,7 @@
     // I = shift to next dimension for 5 secs
 
 // TODO:
-    // Moving colliders with anims (animated colliders)
     // Death animation (fade to black)
-    // Blue dimension prevents death
     // Dimension colour flashes during last 3 seconds
     // Other doors
 
@@ -83,7 +81,8 @@ static GameScreen currentScreen = SCREEN_TITLE;
 static Music titleMusic;
 static Music gameMusic;
 
-static int currentDimension; //dimension / 0 = normal; 1 = red; 2 = blue; 3 = green; 4 = yellow
+static int dimensionBeforeGreen = 0;
+static int currentDimension; //dimension / 0 = normal; 1 = red; 2 = blue; 3 = yellow; 4 = green
 static float dimensionTimer = 0;
 
 //----------------------------------------------------------------------------------
@@ -225,7 +224,15 @@ static void UpdateDrawFrame(void)
     #endif
     if(currentDimension > 0){
         dimensionTimer -= GetFrameTime();
-        if(dimensionTimer < 0) currentDimension = 0;
+        if(dimensionTimer < 0){
+            if(currentDimension == 4){
+                currentDimension = dimensionBeforeGreen;
+                dimensionTimer = 5;
+                dimensionBeforeGreen = 0;
+            }else{
+                currentDimension = 0;
+            }
+        }
     }
     if (screenScale != prevScreenScale)
     {
@@ -501,8 +508,8 @@ Color GetDimensionColour(int dimension){
     switch(dimension){
         case 1: return DIMENSION_RED;
         case 2: return DIMENSION_BLUE;
-        case 3: return DIMENSION_GREEN;
-        case 4: return DIMENSION_YELLOW;
+        case 3: return DIMENSION_YELLOW;
+        case 4: return DIMENSION_GREEN;
         default: return WHITE;
     }
 }
@@ -513,7 +520,7 @@ Color GetDimensionColour(int dimension){
 //--------------------------------------------------------------------------------------------
 
 void AddPlayerInputForce(PhysicsBody body){
-    if(IsKeyDown(KEY_E) && currentDimension == 4)body->velocity = player->velocity;
+    if(IsKeyDown(KEY_E) && currentDimension == 3)body->velocity = player->velocity;
 }
 
 void StopPistonDoor(PhysicsBody body){
@@ -547,8 +554,15 @@ void HitPortal_DestroyButtonTrigger(){
 }
 
 void ActivatePortal(unsigned int triggerID){
-    currentDimension = triggerID - 12;
-    dimensionTimer = 15;
+    if(triggerID > 134 && triggerID <= 146){
+        if(currentDimension == 4) return; 
+        dimensionBeforeGreen = currentDimension;
+        player->position = GetPortalLocation(triggerID); 
+        currentDimension = 4;
+    }else{
+        currentDimension = triggerID - 131;
+    }
+    dimensionTimer = currentDimension == 4 ? 0.5f : 14;
 }
 
 void ActivateButtonInDimension(unsigned int triggerID){
@@ -584,16 +598,15 @@ void LoadNextLevel(){
     
     NewTriggerEvent(6, TRIGGER_USE_ON_STAY, CreateTriggerEventFunctionData_WithOriginBody(StopPistonDoor));
 
-    NewTriggerEvent(13, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal));
-    NewTriggerEvent(14, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal));
-    NewTriggerEvent(15, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal));
-    NewTriggerEvent(16, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal));
-
     NewTriggerEvent(17, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivateButtonInDimension));
     NewTriggerEvent(18, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivateButtonInDimension));
     
     NewTriggerEvent(130, TRIGGER_USE_ONCE, CreateTriggerEventFunctionData_NoArgFunction(HitButton_DestroyPortalTrigger));
     NewTriggerEvent(131, TRIGGER_USE_ONCE, CreateTriggerEventFunctionData_NoArgFunction(HitPortal_DestroyButtonTrigger));
+
+    for(int i = 132; i < 148; i++){
+        NewTriggerEvent(i, TRIGGER_USE_ON_STAY, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal));
+    }
 
     parseStructGroupInfo(readFileSF(TextFormat("./../res/LevelFiles/%d.sf", levelSelect + 1)), DrawHaroldText, &startingPos);
 
