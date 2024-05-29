@@ -1,5 +1,4 @@
 #include "levelObjects.h"
-#include "animatedColliders.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -196,7 +195,6 @@ Door* CreateDoor(Vector2 pos, int doorType, unsigned int trigger){
         return NULL;
     }
     Animation tempAnim = assignProperties(0, 0, 0, false, 0, false);
-    // TODO: create animatedColliders here
     switch (doorType)
     {
         case 1:

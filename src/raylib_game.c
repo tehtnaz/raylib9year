@@ -11,14 +11,12 @@
 #include "triggers.h"
 #include "animation.h"
 #include "levelObjects.h"
-#include "animatedColliders.h"
 
 // DEBUG HOTKEYS:
     // Shift + number = load level of number
     // I = shift to next dimension for 5 secs
 
 // TODO:
-    // Moving colliders with anims (animated colliders)
     // Death animation (fade to black)
     // Blue dimension prevents death
     // Dimension colour flashes during last 3 seconds
@@ -362,14 +360,10 @@ static void UpdateDrawFrame(void)
             PhysicsBody body = GetPhysicsBody(i);
             if (body != NULL && (body->position.y > screenHeight*2 || body->position.y < -256)) body->position = (Vector2){128, 128};
         }
-
-        // --vvv-- THE ORDER UNDER HERE MATTERS!!! --vvv--
-
-        UpdateDoors(); // update doors and their anims
-        UpdateAnimatedColliders(); // use updated anims to modify positions
+        UpdateDoors();
         //Physics
         UpdatePhysics();
-        UpdateAndActivateTriggers(); // use updated physics tags to activate triggers
+        UpdateAndActivateTriggers();
     }
 
     // Draw

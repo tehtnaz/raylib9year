@@ -39,7 +39,7 @@ typedef struct LevelObjectFileData{
 }LevelObjectFileData;
 
 typedef struct PhysObjFileData{
-    Vector2 pos;    // position at top left for rects, centre for circles
+    Vector2 pos;
     float radius;   //for circles
     float width;    // for recs
     float height;   // for recs

@@ -37,6 +37,9 @@ PROJECT_BUILD_PATH    ?= ./../build/
 
 # RAYLIB_PATH           ?= ../../raylib
 
+# Locations of raylib.h and libraylib.a/libraylib.so
+RAYLIB_INCLUDE_PATH   ?= ./../include/raylib-4.5
+
 # Library type compilation: STATIC (.a) or SHARED (.so/.dll)
 RAYLIB_LIBTYPE        ?= STATIC
 
@@ -56,8 +59,6 @@ BUILD_WEB_RESOURCES_PATH  ?= ./../res
 
 DEFAULT_INCLUDE_PATH  ?= ./../include
 
-# Locations of raylib.h and libraylib.a/libraylib.so
-RAYLIB_INCLUDE_PATH   ?= $(DEFAULT_INCLUDE_PATH)/raylib-4.5
 
 # Determine PLATFORM_OS in case PLATFORM_DESKTOP selected
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
@@ -155,7 +156,7 @@ endif
 # Define include paths for required headers: INCLUDE_PATHS
 # NOTE: Some external/extras libraries could be required (stb, physac, easings...)
 #------------------------------------------------------------------------------------------------
-INCLUDE_PATHS := -I. -I $(RAYLIB_INCLUDE_PATH) -I $(DEFAULT_INCLUDE_PATH)/physac -I ./dataHandling -I ./animation -I ./triggers -I ./displayText -I ./levelObjects -I ./animatedColliders
+INCLUDE_PATHS := -I. -I $(RAYLIB_INCLUDE_PATH) -I $(DEFAULT_INCLUDE_PATH)/physac -I ./dataHandling -I ./animation -I ./triggers -I ./displayText -I ./levelObjects
 
 ifeq ($(PLATFORM),PLATFORM_WEB)
     INCLUDE_PATHS += -I $(EMSCRIPTEN_INCLUDE_PATH)
@@ -271,8 +272,7 @@ PROJECT_SOURCE_FILES ?= \
     animation/animation.c \
     triggers/triggers.c \
     displayText/displayText.c \
-    levelObjects/levelObjects.c \
-    animatedColliders/animatedColliders.c
+    levelObjects/levelObjects.c
 
 # Define all object files from source files
 # OBJS = $(patsubst %.c, %.o, $(PROJECT_SOURCE_FILES))
