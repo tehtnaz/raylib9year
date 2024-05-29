@@ -11,12 +11,14 @@
 #include "triggers.h"
 #include "animation.h"
 #include "levelObjects.h"
+#include "animatedColliders.h"
 
 // DEBUG HOTKEYS:
     // Shift + number = load level of number
     // I = shift to next dimension for 5 secs
 
 // TODO:
+    // Moving colliders with anims (animated colliders)
     // Death animation (fade to black)
     // Blue dimension prevents death
     // Dimension colour flashes during last 3 seconds
@@ -132,16 +134,17 @@ int main(void){
     // Init physics
     SetPhysicsGravity(0, 0);
     SetPhysicsAirFriction(0.01f, 0.01f);
+    SetCollisionMatrixIntersection(1, 1, false);
 
     // Init player, disable dynamics
-    player = CreatePhysicsBodyCircle((Vector2){ screenWidth/2.0f, screenHeight/2.0f }, 8, 1, 0);
+    player = CreatePhysicsBodyCircle((Vector2){ screenWidth/2.0f, screenHeight/2.0f }, 8, 1, 0, 0);
     AddTagToPhysicsBody(player, 2);
     AddTagToPhysicsBody(player, 3);
     AddTagToPhysicsBody(player, 4);
     player->enabled = true;
     player->freezeOrient = true;
 
-    playerGrabZone = CreatePhysicsBodyCircle(player->position, 22, 1, 1);
+    playerGrabZone = CreatePhysicsBodyCircle(player->position, 22, 1, 1, 0);
     playerGrabZone->enabled = false;
     playerGrabZone->freezeOrient = true;
 
@@ -360,10 +363,14 @@ static void UpdateDrawFrame(void)
             PhysicsBody body = GetPhysicsBody(i);
             if (body != NULL && (body->position.y > screenHeight*2 || body->position.y < -256)) body->position = (Vector2){128, 128};
         }
-        UpdateDoors();
+
+        // --vvv-- THE ORDER UNDER HERE MATTERS!!! --vvv--
+
+        UpdateDoors(); // update doors and their anims
+        UpdateAnimatedColliders(); // use updated anims to modify positions
         //Physics
         UpdatePhysics();
-        UpdateAndActivateTriggers();
+        UpdateAndActivateTriggers(); // use updated physics tags to activate triggers
     }
 
     // Draw
@@ -509,6 +516,12 @@ void AddPlayerInputForce(PhysicsBody body){
     if(IsKeyDown(KEY_E) && currentDimension == 4)body->velocity = player->velocity;
 }
 
+void StopPistonDoor(PhysicsBody body){
+    TraceLog(LOG_DEBUG, "Stopping PistonDoor %d", body->trigger);
+    Animation* anim = FindAnimationFromPhysicsBody(body);
+    if(anim != NULL) anim->isAnimating = false;
+}
+
 void DrawHaroldText(const char** texts, int textCount){
     TraceLog(LOG_DEBUG, "Queued: %d", textCount);
     for(int i = 0; i < textCount; i++){
@@ -559,14 +572,17 @@ void LoadNextLevel(){
     ClearDisplayText();
 
     DestroyAllLevelObjects();
+    DestroyAllAnimatedColliders();
 
     ResetAllTriggers();
     
     // Pre defined TriggerEvents
-    NewTriggerEvent(1, TRIGGER_USE_ON_STAY, CreateTriggerEventFunctionData_SetForce(AddPlayerInputForce));
+    NewTriggerEvent(1, TRIGGER_USE_ON_STAY, CreateTriggerEventFunctionData_WithOriginBody(AddPlayerInputForce));
     NewTriggerEvent(3, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_NoArgFunction(LoadNextLevel));
     
     NewTriggerEvent(4, TRIGGER_USE_ON_STAY, CreateTriggerEventFunctionData_NoArgFunction(StartDeathAnimation));
+    
+    NewTriggerEvent(6, TRIGGER_USE_ON_STAY, CreateTriggerEventFunctionData_WithOriginBody(StopPistonDoor));
 
     NewTriggerEvent(13, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal));
     NewTriggerEvent(14, TRIGGER_USE_ON_ENTER, CreateTriggerEventFunctionData_FunctionWithTriggerID(ActivatePortal));

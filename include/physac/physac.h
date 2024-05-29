@@ -102,12 +102,16 @@
 //----------------------------------------------------------------------------------
 // Defines and Macros
 //----------------------------------------------------------------------------------
+
+#define TRIANGLE_SUM(num) (num*(num+1)/2)
+
 #define PHYSAC_MAX_BODIES               128          // Maximum number of physic bodies supported
 #define PHYSAC_MAX_MANIFOLDS            16384        // Maximum number of physic bodies interactions (64x64)
 #define PHYSAC_MAX_VERTICES             24          // Maximum number of vertex for polygons shapes
 #define PHYSAC_DEFAULT_CIRCLE_VERTICES  16          // Default number of vertices for circle shapes
 
 #define PHYSAC_MAX_TAG_COUNT            32
+#define PHYSAC_MAX_LAYER_COUNT          4
 
 #define PHYSAC_COLLISION_ITERATIONS     100
 #define PHYSAC_PENETRATION_ALLOWANCE    0.05f
@@ -180,9 +184,11 @@ typedef struct PhysicsBodyData {
     bool freezeOrient;                          // Physics rotation constraint
     PhysicsShape shape;                         // Physics body shape information (type, radius, vertices, transform)
 
+    unsigned int layer;                         // Starts at 0 (ZERO!!!!)
     unsigned int tags[PHYSAC_MAX_TAG_COUNT];
     int tagCount;
     unsigned int trigger;
+    bool isDynamicTrigger;
     
 } PhysicsBodyData;
 
@@ -198,6 +204,10 @@ typedef struct PhysicsManifoldData {
     float dynamicFriction;                      // Mixed dynamic friction during collision
     float staticFriction;                       // Mixed static friction during collision
 } PhysicsManifoldData, *PhysicsManifold;
+
+typedef struct PhysicsCollisionMatrix{
+    unsigned int triMatrix; 
+} PhysicsCollisionMatrix;
 
 //----------------------------------------------------------------------------------
 // Module Functions Declaration
@@ -216,11 +226,12 @@ PHYSACDEF void SetPhysicsGravity(float x, float y);                             
 PHYSACDEF void SetPhysicsAirFriction(float x, float y);
  
 // Physic body creation/destroy
-PHYSACDEF PhysicsBody CreatePhysicsBodyCircle(Vector2 pos, float radius, float density, unsigned int trigger);                    // Creates a new circle physics body with generic parameters
-PHYSACDEF PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, float density, unsigned int trigger);    // Creates a new rectangle physics body with generic parameters
-PHYSACDEF PhysicsBody CreatePhysicsBodyPolygon(Vector2 pos, float radius, int sides, float density, unsigned int trigger);        // Creates a new polygon physics body with generic parameters
+PHYSACDEF PhysicsBody CreatePhysicsBodyCircle(Vector2 pos, float radius, float density, unsigned int trigger, unsigned int layer);                    // Creates a new circle physics body with generic parameters
+PHYSACDEF PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, float density, unsigned int trigger, unsigned int layer);    // Creates a new rectangle physics body with generic parameters
+PHYSACDEF PhysicsBody CreatePhysicsBodyPolygon(Vector2 pos, float radius, int sides, float density, unsigned int trigger, unsigned int layer);        // Creates a new polygon physics body with generic parameters
 PHYSACDEF void DestroyPhysicsBody(PhysicsBody body);                                                        // Destroy a physics body
 
+PHYSACDEF void OverridePhysicsBodyTriggerDynamics(PhysicsBody body, bool isDynamicTrigger);
 PHYSACDEF void AddTagToPhysicsBody(PhysicsBody body, int tag);
 PHYSACDEF void RemoveTagFromPhysicsBody(PhysicsBody body, int tag);
 
@@ -240,6 +251,10 @@ PHYSACDEF Vector2 GetPhysicsShapeVertex(PhysicsBody body, int vertex);          
 // Get manifold data
 PHYSACDEF PhysicsManifold GetPhysicsManifold(int index);
 PHYSACDEF int GetPhysicsManifoldCount(void);
+
+// Change collision matrix
+PHYSACDEF void SetCollisionMatrix(unsigned int triMatrix);
+PHYSACDEF void SetCollisionMatrixIntersection(unsigned int firstLayerNum, unsigned int secondLayerNum, bool value);
 
 #if defined(__cplusplus)
 }
@@ -297,6 +312,8 @@ static unsigned int physicsManifoldsCount = 0;              // Physics world cur
 
 static Vector2 gravityForce = { 0.0f, 9.81f };              // Physics world gravity force
 static Vector2 airFrictionCoeffecient = { 0.0f, 0.0f };     // 1/(x+1)
+
+static PhysicsCollisionMatrix collisionMatrix = {0xFFFF};
 
 // Utilities variables
 static unsigned int usedMemory = 0;                         // Total allocated dynamic memory
@@ -365,15 +382,15 @@ void SetPhysicsAirFriction(float x, float y){
 }
 
 // Creates a new circle physics body with generic parameters
-PhysicsBody CreatePhysicsBodyCircle(Vector2 pos, float radius, float density, unsigned int trigger)
+PhysicsBody CreatePhysicsBodyCircle(Vector2 pos, float radius, float density, unsigned int trigger, unsigned int layer)
 {
-    PhysicsBody body = CreatePhysicsBodyPolygon(pos, radius, PHYSAC_DEFAULT_CIRCLE_VERTICES, density, trigger);
+    PhysicsBody body = CreatePhysicsBodyPolygon(pos, radius, PHYSAC_DEFAULT_CIRCLE_VERTICES, density, trigger, layer);
     // body->shape.type = PHYSICS_CIRCLE;
     return body;
 }
 
 // Creates a new rectangle physics body with generic parameters
-PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, float density, unsigned int trigger)
+PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, float density, unsigned int trigger, unsigned int layer)
 {
     // NOTE: Make sure body data is initialized to 0
     PhysicsBody body = (PhysicsBody)PHYSAC_CALLOC(sizeof(PhysicsBodyData), 1);
@@ -385,7 +402,9 @@ PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, f
         for(int i = 0; i < PHYSAC_MAX_TAG_COUNT; i++){
             body->tags[i] = 0;
         }
+        body->layer = layer;
         body->trigger = trigger;
+        body->isDynamicTrigger = false;
         body->tagCount = 0;
 
         // Initialize new body with generic values
@@ -458,7 +477,7 @@ PhysicsBody CreatePhysicsBodyRectangle(Vector2 pos, float width, float height, f
 }
 
 // Creates a new polygon physics body with generic parameters
-PhysicsBody CreatePhysicsBodyPolygon(Vector2 pos, float radius, int sides, float density, unsigned int trigger)
+PhysicsBody CreatePhysicsBodyPolygon(Vector2 pos, float radius, int sides, float density, unsigned int trigger, unsigned int layer)
 {
     PhysicsBody body = (PhysicsBody)PHYSAC_MALLOC(sizeof(PhysicsBodyData));
     usedMemory += sizeof(PhysicsBodyData);
@@ -469,7 +488,9 @@ PhysicsBody CreatePhysicsBodyPolygon(Vector2 pos, float radius, int sides, float
         for(int i = 0; i < PHYSAC_MAX_TAG_COUNT; i++){
             body->tags[i] = 0;
         }
+        body->layer = layer;
         body->trigger = trigger;
+        body->isDynamicTrigger = false;
         body->tagCount = 0;
 
         // Initialize new body with generic values
@@ -609,7 +630,7 @@ void PhysicsShatter(PhysicsBody body, Vector2 position, float force)
                     center = MathVector2Add(bodyPos, center);
                     Vector2 offset = MathVector2Subtract(center, bodyPos);
 
-                    PhysicsBody body = CreatePhysicsBodyPolygon(center, 10, 3, 10, body->trigger);     // Create polygon physics body with relevant values
+                    PhysicsBody body = CreatePhysicsBodyPolygon(center, 10, 3, 10, body->trigger, body->layer);     // Create polygon physics body with relevant values
 
                     PhysicsVertexData vertexData = { 0 };
                     vertexData.vertexCount = 3;
@@ -973,10 +994,34 @@ int GetPhysicsManifoldCount(void){
     return physicsManifoldsCount;
 }
 
+void SetCollisionMatrix(unsigned int triMatrix){
+    collisionMatrix.triMatrix = triMatrix;
+}
+
+void SetCollisionMatrixIntersection(unsigned int firstLayerNum, unsigned int secondLayerNum, bool value){
+    if(secondLayerNum > firstLayerNum){
+        TRACELOG("[PHYSAC - CUSTOM] WARNING: secondLayerNum was greater than firstLayerNum\n");
+        return;
+    }
+    if(value == true){
+        collisionMatrix.triMatrix |= 1 << (TRIANGLE_SUM(firstLayerNum) + secondLayerNum);
+    }else{
+        collisionMatrix.triMatrix &= ~(1 << (TRIANGLE_SUM(firstLayerNum) + secondLayerNum));
+    }
+}
+
+void OverridePhysicsBodyTriggerDynamics(PhysicsBody body, bool isDynamicTrigger){
+    body->isDynamicTrigger = isDynamicTrigger;
+}
+
 //----------------------------------------------------------------------------------
 // Module Internal Functions Definition
 //----------------------------------------------------------------------------------
 
+// Returns true if collision is valid, false otherwise
+static bool CheckCollisionMatrix(unsigned int firstLayerNum, unsigned int secondLayerNum){
+    return (collisionMatrix.triMatrix & (1 << (TRIANGLE_SUM(firstLayerNum) + secondLayerNum))) > 0;
+}
 // Update physics step (dynamics, collisions and position corrections)
 static void UpdatePhysicsStep(void)
 {
@@ -1011,6 +1056,7 @@ static void UpdatePhysicsStep(void)
                     if ((bodyA->inverseMass == 0) && (bodyB->inverseMass == 0)) continue;
                     Vector2 dist = {bodyA->position.x - bodyB->position.x, bodyA->position.y - bodyB->position.y};
                     if(dist.x > bodyA->shape.boundingBoxRadius.x + bodyB->shape.boundingBoxRadius.x || dist.y > bodyA->shape.boundingBoxRadius.y + bodyB->shape.boundingBoxRadius.y) continue;
+                    if(!CheckCollisionMatrix(bodyA->layer, bodyB->layer)) continue;
                     // if(bodyA->shape.type == PHYSICS_CIRCLE && bodyB->shape.type == PHYSICS_CIRCLE){
                     //     Vector2 diff = {bodyA->position.x - bodyB->position.x, bodyA->position.y - bodyB->position.y};
                     //     if(sqrtf(diff.x * diff.x + diff.y * diff.y) < (bodyA->shape.radius + bodyB->shape.radius + 1)){continue;}
@@ -1640,14 +1686,14 @@ static void IntegratePhysicsImpulses(PhysicsManifold manifold)
         // Apply impulse to each physics body
         Vector2 impulseV = { manifold->normal.x*impulse, manifold->normal.y*impulse };
 
-        if (bodyA->enabled && bodyB->trigger == 0)
+        if (bodyA->enabled && (bodyB->trigger == 0 || bodyB->isDynamicTrigger))
         {
             bodyA->velocity.x += bodyA->inverseMass*(-impulseV.x);
             bodyA->velocity.y += bodyA->inverseMass*(-impulseV.y);
             if (!bodyA->freezeOrient) bodyA->angularVelocity += bodyA->inverseInertia*MathVector2CrossProduct(radiusA, CLITERAL(Vector2){ -impulseV.x, -impulseV.y });
         }
 
-        if (bodyB->enabled && bodyA->trigger == 0)
+        if (bodyB->enabled && (bodyA->trigger == 0 || bodyA->isDynamicTrigger))
         {
             bodyB->velocity.x += bodyB->inverseMass*(impulseV.x);
             bodyB->velocity.y += bodyB->inverseMass*(impulseV.y);
@@ -1677,7 +1723,7 @@ static void IntegratePhysicsImpulses(PhysicsManifold manifold)
         else tangentImpulse = CLITERAL(Vector2){ tangent.x*-impulse*manifold->dynamicFriction, tangent.y*-impulse*manifold->dynamicFriction };
 
         // Apply friction impulse
-        if (bodyA->enabled && bodyB->trigger == 0)
+        if (bodyA->enabled && (bodyB->trigger == 0 || bodyB->isDynamicTrigger))
         {
             bodyA->velocity.x += bodyA->inverseMass*(-tangentImpulse.x);
             bodyA->velocity.y += bodyA->inverseMass*(-tangentImpulse.y);
@@ -1685,7 +1731,7 @@ static void IntegratePhysicsImpulses(PhysicsManifold manifold)
             if (!bodyA->freezeOrient) bodyA->angularVelocity += bodyA->inverseInertia*MathVector2CrossProduct(radiusA, CLITERAL(Vector2){ -tangentImpulse.x, -tangentImpulse.y });
         }
 
-        if (bodyB->enabled && bodyA->trigger == 0)
+        if (bodyB->enabled && (bodyA->trigger == 0 || bodyA->isDynamicTrigger))
         {
             bodyB->velocity.x += bodyB->inverseMass*(tangentImpulse.x);
             bodyB->velocity.y += bodyB->inverseMass*(tangentImpulse.y);
@@ -1721,13 +1767,13 @@ static void CorrectPhysicsPositions(PhysicsManifold manifold)
     correction.x = (PHYSAC_MAX(manifold->penetration - PHYSAC_PENETRATION_ALLOWANCE, 0.0f)/(bodyA->inverseMass + bodyB->inverseMass))*manifold->normal.x*PHYSAC_PENETRATION_CORRECTION;
     correction.y = (PHYSAC_MAX(manifold->penetration - PHYSAC_PENETRATION_ALLOWANCE, 0.0f)/(bodyA->inverseMass + bodyB->inverseMass))*manifold->normal.y*PHYSAC_PENETRATION_CORRECTION;
 
-    if (bodyA->enabled && bodyB->trigger == 0)
+    if (bodyA->enabled && (bodyB->trigger == 0 || bodyB->isDynamicTrigger))
     {
         bodyA->position.x -= correction.x*bodyA->inverseMass;
         bodyA->position.y -= correction.y*bodyA->inverseMass;
     }
 
-    if (bodyB->enabled && bodyA->trigger == 0)
+    if (bodyB->enabled && (bodyA->trigger == 0 || bodyA->isDynamicTrigger))
     {
         bodyB->position.x += correction.x*bodyB->inverseMass;
         bodyB->position.y += correction.y*bodyB->inverseMass;

@@ -37,9 +37,6 @@ PROJECT_BUILD_PATH    ?= ./../build/
 
 # RAYLIB_PATH           ?= ../../raylib
 
-# Locations of raylib.h and libraylib.a/libraylib.so
-RAYLIB_INCLUDE_PATH   ?= ./../include/raylib-4.5
-
 # Library type compilation: STATIC (.a) or SHARED (.so/.dll)
 RAYLIB_LIBTYPE        ?= STATIC
 
@@ -59,6 +56,8 @@ BUILD_WEB_RESOURCES_PATH  ?= ./../res
 
 DEFAULT_INCLUDE_PATH  ?= ./../include
 
+# Locations of raylib.h and libraylib.a/libraylib.so
+RAYLIB_INCLUDE_PATH   ?= $(DEFAULT_INCLUDE_PATH)/raylib-4.5
 
 # Determine PLATFORM_OS in case PLATFORM_DESKTOP selected
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
@@ -270,6 +269,7 @@ PROJECT_SOURCE_FILES ?= \
     raylib_game.c \
     dataHandling/dataHandling.c \
     animation/animation.c \
+    animation/animatedColliders.c \
     triggers/triggers.c \
     displayText/displayText.c \
     levelObjects/levelObjects.c
