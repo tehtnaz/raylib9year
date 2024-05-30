@@ -674,7 +674,7 @@ LevelObjectFileData parseObject(StructGroup* group, TOKEN_TYPE objectType){
     if(objectType == PORTAL && checkArgNumber(group, 2, "Portal")) return object;
     if(objectType == DOOR   && checkArgNumber(group, 3, "Door"))   return object;
     if(objectType == CRATE  && checkArgNumber(group, 1, "Crate"))  return object;
-    if(objectType == CRATE  && checkArgNumber(group, 2, "Portal Location"))  return object;
+    if(objectType == PORTAL_LOCATION  && checkArgNumber(group, 2, "Portal Location"))  return object;
 
     StructGroup* temp = group->child;
     
@@ -710,7 +710,7 @@ int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(
 
     StructGroup* structGroup = groupRoot;
     while(structGroup != NULL){
-        //TraceLog("reading...");
+        TraceLog(LOG_DEBUG, "reading...");
         switch (structGroup->token.type)
         {
             case CIRCLE_PHYSOBJ:    CreatePhysObjFromData(parsePhysObj(structGroup, true), true);   break;

@@ -124,6 +124,7 @@ int main(void){
     InitAudioDevice();
     InitPhysics();
     SetMasterVolume(0.2f);
+    //SetTextLineSpacing(40);
 
     // Render texture to draw full screen, enables screen scaling
     // NOTE: If screen is scaled, mouse input should be scaled proportionally
@@ -187,6 +188,7 @@ int main(void){
     //--------------------------------------------------------------------------------------
     UnloadRenderTexture(target);
     ClearDisplayText();
+    ClosePhysics();
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
@@ -429,7 +431,8 @@ static void UpdateDrawFrame(void)
         DrawTexturePro(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, -(float)target.texture.height }, (Rectangle){ 0, 0, (float)target.texture.width*screenScale, (float)target.texture.height*screenScale }, (Vector2){ 0, 0 }, 0.0f, WHITE);
 
         #if defined(_DEBUG)
-            DrawText(TextFormat("x:%d\ny:%d\nfps:%d", GetMouseX(), GetMouseY(), GetFPS()), 0, 0, 40, WHITE);
+            DrawText(TextFormat("x:%d\n\n\ny:%d\n\n\nfps:%d", GetMouseX(), GetMouseY(), GetFPS()), 0, 0, 40, WHITE);
+            //DrawFPS(target.texture.width*screenScale - 75, 0);
         #endif
     EndDrawing();
     //----------------------------------------------------------------------------------  
@@ -589,6 +592,8 @@ void LoadNextLevel(){
     DestroyAllAnimatedColliders();
 
     ResetAllTriggers();
+
+    TraceLog(LOG_INFO, "Loading new TriggerEvents and level file...");
     
     // Pre defined TriggerEvents
     NewTriggerEvent(1, TRIGGER_USE_ON_STAY, CreateTriggerEventFunctionData_WithOriginBody(AddPlayerInputForce));
