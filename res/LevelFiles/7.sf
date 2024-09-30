@@ -1,2 +1,12 @@
+// Spawn point
+~(126, 240)
+
+// Map collision
+    // Level Boundaries
+    RectPhysObj     (Vector2( 0 0 )     1.0 256.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 256 0 )   1.0 256.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 0 0 )     256.0 1.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 0 256 )   256.0 1.0 STATIC 0 0)
+
 TextTrigger     (65, ["STOP! WHAT ARE YOU DOING!", "DON'T GO PAST THAT DOOR!"])
 CirclePhysObj   (Vector2( 128 250 ) 8.0 STATIC 0 65)

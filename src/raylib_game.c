@@ -21,6 +21,7 @@
     // Death animation (fade to black)
     // Dimension colour flashes during last 3 seconds
     // Other doors
+    // Loading TextTriggers + freeing the text causes major memoery issues, can crash game upon loading new levels
 
 
 #include "dataHandling/dataHandling.h"

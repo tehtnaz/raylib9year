@@ -16,6 +16,7 @@ static Font defaultFont = {0};
 static char* cachedText = NULL;
 static char* displayText = NULL;
 
+static int selectedText = 0;
 static int queuedTextCount = 0;
 static char* queuedText[MAX_QUEUED_TEXT];
 static float queuedMaxTextWidth[MAX_QUEUED_TEXT];
@@ -49,13 +50,18 @@ void QueueDisplayText(const char* item, Vector2 pos, int maxWidth){
         TraceLog(LOG_ERROR, "displayText -  Could not create queue more texts (max reached)");
         return;
     }
-    queuedText[queuedTextCount] = malloc(TextLength(item) * sizeof(char));
+    int length = TextLength(item);
+    queuedText[queuedTextCount] = malloc(length * sizeof(char));
     TextCopy(queuedText[queuedTextCount], item);
 
     queuedTextPosition[queuedTextCount] = pos;
     queuedMaxTextWidth[queuedTextCount] = maxWidth;
 
     queuedTextCount++;
+
+    #ifdef _DEBUG
+        TraceLog(LOG_DEBUG, "displayText - Item queued. Length: %d, Text:[[%s]]", length, item);
+    #endif
 }
 
 // Clear existing text
@@ -72,8 +78,10 @@ void ClearDisplayText(){
 void ClearDisplayTextQueue(){
     for(int i = 0; i < queuedTextCount; i++){
         free(queuedText[i]);
+        queuedText[i] = NULL;
     }
     queuedTextCount = 0;
+    selectedText = 0;
 }
 
 bool GetDisplayTextEnabled(){
@@ -85,15 +93,18 @@ bool GetDisplayTextEnabled(){
 void UpdateAndDrawTypingText(Color color){
     if(!displayTextEnabled){
         
-        if(queuedTextCount > 0){
+        if(selectedText < queuedTextCount){
             TraceLog(LOG_DEBUG, "UpdateAndDrawTypingText - shifting...");
-            TraceLog(LOG_DEBUG, "UpdateAndDrawTypingText - %s", queuedText[0]);
-            NewDisplayText(queuedText[0], queuedTextPosition[0], queuedMaxTextWidth[0]);
-            queuedTextCount--;
+            TraceLog(LOG_DEBUG, "UpdateAndDrawTypingText - %s", queuedText[selectedText]);
+            NewDisplayText(queuedText[selectedText], queuedTextPosition[selectedText], queuedMaxTextWidth[selectedText]);
+            selectedText++;
+            // for(int i = 0; i < queuedTextCount; i++){
+            //     queuedText[i] = queuedText[i+1];
+            //     queuedTextPosition[i] = queuedTextPosition[i+1];
+            //     queuedMaxTextWidth[i] = queuedMaxTextWidth[i+1];
+            // }
             for(int i = 0; i < queuedTextCount; i++){
-                queuedText[i] = queuedText[i+1];
-                queuedTextPosition[i] = queuedTextPosition[i+1];
-                queuedMaxTextWidth[i] = queuedMaxTextWidth[i+1];
+                TraceLog(LOG_DEBUG, "bruh fr??: [[%p]] ((%s))", queuedText[i], queuedText[i]);
             }
         }else{
             return;

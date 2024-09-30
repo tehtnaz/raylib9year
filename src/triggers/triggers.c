@@ -22,8 +22,10 @@ TriggerEventFunctionData CreateTriggerEventFunctionData_WithOriginBody(void (*fu
 TriggerEventFunctionData CreateTriggerEventFunctionData_TextPrompt(const char** texts, int textCount, void (*function_text_prompt)(const char** texts, int textCount)){
     TriggerEventFunctionData data;
     data.type = TRIGGER_TEXT_PROMPT;
+    TraceLog(LOG_DEBUG, "tiggers - create trigger prompt leght: %d", textCount);
     data.function_text_prompt = function_text_prompt;
     data.texts = malloc(textCount * sizeof(char*));
+    TraceLog(LOG_DEBUG, "tiggers - data.texts: %p", data.texts);
     for(int i = 0; i < textCount; i++){
         data.texts[i] = calloc(TextLength(texts[i]), sizeof(char));
         TextCopy(data.texts[i], texts[i]);
@@ -68,9 +70,15 @@ void NewTriggerEvent(unsigned int triggerID, TriggerUseType useType, TriggerEven
 void ClearTriggerEventFunctionData(TriggerEvent event){
     if(event.data.type == TRIGGER_TEXT_PROMPT){
         for(int i = 0; i < event.data.textCount; i++){
+            TraceLog(LOG_DEBUG, "Triggers- TRIGGER_TEXT_PROMPT: Freeing texts array id: %d, (%p), [[%s]]", i, event.data.texts[i], event.data.texts[i]);
             free(event.data.texts[i]);
+            event.data.texts[i] = NULL;
+            //TraceLog(LOG_DEBUG, "Triggers- TRIGGER_TEXT_PROMPT: Freed text id: %d", i);
         }
+        TraceLog(LOG_DEBUG, "Triggers- TRIGGER_TEXT_PROMPT: Freeing texts (%p)", event.data.texts);
         free(event.data.texts);
+        event.data.texts = NULL;
+        TraceLog(LOG_DEBUG, "Triggers- TRIGGER_TEXT_PROMPT: Freed texts");
     }
     event.data = (TriggerEventFunctionData){0};
 }
