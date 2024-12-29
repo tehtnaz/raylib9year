@@ -38,3 +38,7 @@
 // triggerId; textArray
 
 // only 1 property (startingPos), so name isn't verified
+
+
+// Portal - for sprite and hitbox, top-left anchor
+// PortalLocation - for teleport, centre

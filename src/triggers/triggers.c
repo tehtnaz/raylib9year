@@ -19,13 +19,14 @@ TriggerEventFunctionData CreateTriggerEventFunctionData_WithOriginBody(void (*fu
     data.function_add_force = function_add_force;
     return data;
 }
+// NOTE: Copies strings into new blocks
 TriggerEventFunctionData CreateTriggerEventFunctionData_TextPrompt(const char** texts, int textCount, void (*function_text_prompt)(const char** texts, int textCount)){
     TriggerEventFunctionData data;
     data.type = TRIGGER_TEXT_PROMPT;
-    TraceLog(LOG_DEBUG, "tiggers - create trigger prompt leght: %d", textCount);
+    TraceLog(LOG_DEBUG, "Tiggers - create trigger prompt leght: %d", textCount); // Tee Iye double GUH Eee R
     data.function_text_prompt = function_text_prompt;
-    data.texts = malloc(textCount * sizeof(char*));
-    TraceLog(LOG_DEBUG, "tiggers - data.texts: %p", data.texts);
+    data.texts = (char**) malloc(textCount * sizeof(char*));
+    TraceLog(LOG_DEBUG, "Tiggers - data.texts: %p", data.texts);
     for(int i = 0; i < textCount; i++){
         data.texts[i] = calloc(TextLength(texts[i]), sizeof(char));
         TextCopy(data.texts[i], texts[i]);
@@ -68,15 +69,17 @@ void NewTriggerEvent(unsigned int triggerID, TriggerUseType useType, TriggerEven
 }
 
 void ClearTriggerEventFunctionData(TriggerEvent event){
+    // TraceLog(LOG_ERROR, "We are skipping freeing because I don't care");
     if(event.data.type == TRIGGER_TEXT_PROMPT){
         for(int i = 0; i < event.data.textCount; i++){
             TraceLog(LOG_DEBUG, "Triggers- TRIGGER_TEXT_PROMPT: Freeing texts array id: %d, (%p), [[%s]]", i, event.data.texts[i], event.data.texts[i]);
-            free(event.data.texts[i]);
+            if(event.data.texts[i] != NULL)free(event.data.texts[i]);
+                else TraceLog(LOG_WARNING, "Tried freeing NULL event.data.texts[i]");
             event.data.texts[i] = NULL;
-            //TraceLog(LOG_DEBUG, "Triggers- TRIGGER_TEXT_PROMPT: Freed text id: %d", i);
         }
         TraceLog(LOG_DEBUG, "Triggers- TRIGGER_TEXT_PROMPT: Freeing texts (%p)", event.data.texts);
-        free(event.data.texts);
+        if(event.data.texts != NULL)free(event.data.texts);
+            else TraceLog(LOG_WARNING, "Tried freeing NULL event.data.texts");
         event.data.texts = NULL;
         TraceLog(LOG_DEBUG, "Triggers- TRIGGER_TEXT_PROMPT: Freed texts");
     }
@@ -86,7 +89,7 @@ void ClearTriggerEventFunctionData(TriggerEvent event){
 void ResetAllTriggers(){
     for(int i = 0; i < triggerEventCount; i++){
         ClearTriggerEventFunctionData(triggerEventArray[i]);
-        triggerEventArray[i] = (TriggerEvent){};
+        triggerEventArray[i] = (TriggerEvent){0};
     }
     triggerEventCount = 0;
 }

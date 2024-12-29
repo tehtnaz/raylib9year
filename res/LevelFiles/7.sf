@@ -8,5 +8,30 @@
     RectPhysObj     (Vector2( 0 0 )     256.0 1.0 STATIC 0 0)
     RectPhysObj     (Vector2( 0 256 )   256.0 1.0 STATIC 0 0)
 
-TextTrigger     (65, ["STOP! WHAT ARE YOU DOING!", "DON'T GO PAST THAT DOOR!"])
+Wire(Vector2(166 53) 6 17)
+Door(Vector2(174 12) 3 17)
+Button(Vector2(136 51) 17)
+
 CirclePhysObj   (Vector2( 128 250 ) 8.0 STATIC 0 65)
+
+Portal(Vector2(84 1) 132)   //red
+Portal(Vector2(9 216) 133) // blue
+Portal(Vector2(9 83) 134)  //yellow
+
+Crate(Vector2(39 4))
+Crate(Vector2(103 45))
+
+Portal(Vector2(223 146) 135)   //green 1
+PortalLocation(Vector2(91 100) 0) // green 1
+
+Portal(Vector2(223 181) 136)   //green 2
+PortalLocation(Vector2(152 101) 1) // green 2
+
+Portal(Vector2(223 216) 137)   //green 3
+PortalLocation(Vector2(217 102) 2) // green 3
+
+Portal(Vector2(141 86) 138)   //green 4
+PortalLocation(Vector2(22 54) 3) // green 4
+
+TextTrigger     (65, ["STOP! WHAT ARE YOU DOING!"
+                      "DON'T GO PAST THAT DOOR!"])

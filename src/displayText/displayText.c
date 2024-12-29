@@ -28,6 +28,21 @@ static bool displayTextEnabled = false;
 static Vector2 textPosition = {0, 0};
 static float currentTimeBetween = 0;
 
+void InitDisplayText(){
+    cachedText = NULL;
+    displayText = NULL;
+    for(int i = 0; i < MAX_QUEUED_TEXT; i++){
+        queuedText[i] = NULL;
+        queuedMaxTextWidth[i] = 0;
+        queuedTextPosition[i] = (Vector2){0, 0};
+    }
+    // This may seem useless, bc raylib uses the default font without the *Ex() functions, 
+    // but maybe we could change the font someday? I think that's what I intended originally
+    defaultFont = GetFontDefault();
+}
+
+// void EndDisplayText(){}
+
 // Allocate new text to be shown across the screen
 void NewDisplayText(const char* text, Vector2 pos, int maxWidth){
     if(cachedText != NULL) free(cachedText);
@@ -38,11 +53,11 @@ void NewDisplayText(const char* text, Vector2 pos, int maxWidth){
     textPosition = pos;
     maxTextWidth = maxWidth;
     displayTextEnabled = true;
-    if(defaultFont.baseSize == 0){
-        //defaultFont = LoadFont("./../res/Text/DotGothic16-Regular.ttf");
-        //SetTextureFilter(defaultFont.texture, TEXTURE_FILTER_POINT);
-        defaultFont = GetFontDefault();
-    }
+    // if(defaultFont.baseSize == 0){
+    //     //defaultFont = LoadFont("./../res/Text/DotGothic16-Regular.ttf");
+    //     //SetTextureFilter(defaultFont.texture, TEXTURE_FILTER_POINT);
+    //     defaultFont = GetFontDefault();
+    // }
 }
 
 void QueueDisplayText(const char* item, Vector2 pos, int maxWidth){
@@ -51,7 +66,7 @@ void QueueDisplayText(const char* item, Vector2 pos, int maxWidth){
         return;
     }
     int length = TextLength(item);
-    queuedText[queuedTextCount] = malloc(length * sizeof(char));
+    queuedText[queuedTextCount] = calloc(length, sizeof(char));
     TextCopy(queuedText[queuedTextCount], item);
 
     queuedTextPosition[queuedTextCount] = pos;
@@ -66,18 +81,22 @@ void QueueDisplayText(const char* item, Vector2 pos, int maxWidth){
 
 // Clear existing text
 void ClearDisplayText(){
-    free(displayText);
-    free(cachedText);
+    if(displayText != NULL) free(displayText);
+    else TraceLog(LOG_WARNING, "Tried freeing NULL displayText");
+    if(cachedText != NULL) free(cachedText);
+    else TraceLog(LOG_WARNING, "Tried freeing NULL cachedText");
+    
     cachedText = NULL;
     displayText = NULL;
     displayTextEnabled = false;
-    UnloadFont(defaultFont);
-    defaultFont.baseSize = 0;
+    //UnloadFont(defaultFont);
+    //defaultFont.baseSize = 0;
 }
 
 void ClearDisplayTextQueue(){
     for(int i = 0; i < queuedTextCount; i++){
-        free(queuedText[i]);
+        if(queuedText[i] != NULL) free(queuedText[i]);
+        else TraceLog(LOG_WARNING, "Tried freeing NULL queuedText");
         queuedText[i] = NULL;
     }
     queuedTextCount = 0;

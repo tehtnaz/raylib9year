@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+// Should only be run once!
+void InitDisplayText(); // initialize
+// void EndDisplayText();  // tie loose ends (clear everything)
+
 // MUST BE RUN ON EVERY FRAME
 // Word wraps text with current width
 void UpdateAndDrawTypingText(Color color);

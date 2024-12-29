@@ -57,7 +57,7 @@ BUILD_WEB_RESOURCES_PATH  ?= ./../res
 DEFAULT_INCLUDE_PATH  ?= ./../include
 
 # Locations of raylib.h and libraylib.a/libraylib.so
-RAYLIB_INCLUDE_PATH   ?= $(DEFAULT_INCLUDE_PATH)/raylib-5.0
+RAYLIB_INCLUDE_PATH   ?= $(DEFAULT_INCLUDE_PATH)/raylib-5.5
 
 # Determine PLATFORM_OS in case PLATFORM_DESKTOP selected
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
@@ -65,18 +65,18 @@ ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     # ifeq ($(UNAME),Msys) -> Windows
     ifeq ($(OS),Windows_NT)
         PLATFORM_OS = WINDOWS
-        RAYLIB_LIB_PATH ?= ./../lib/raylib-5.0_win64_mingw-w64
+        RAYLIB_LIB_PATH ?= ./../lib/raylib-5.5_win64_mingw-w64
     else
         PLATFORM_OS = LINUX
-        RAYLIB_LIB_PATH ?= ./../lib/raylib-5.0_linux_amd64
+        RAYLIB_LIB_PATH ?= ./../lib/raylib-5.5_linux_amd64
         ifeq ($(MINGW),ENABLE)
-            RAYLIB_LIB_PATH = ./../lib/raylib-5.0_win64_mingw-w64
+            RAYLIB_LIB_PATH = ./../lib/raylib-5.5_win64_mingw-w64
         endif
     endif
 endif
 
 ifeq ($(PLATFORM),PLATFORM_WEB)
-    RAYLIB_LIB_PATH ?= ./../lib/raylib-5.0_webassembly
+    RAYLIB_LIB_PATH ?= ./../lib/raylib-5.5_webassembly
 endif
 
 

@@ -66,21 +66,21 @@ static Vector2 startingPos = {128, 128};
 static PhysicsBody player;
 static PhysicsBody playerGrabZone;
 
-static Texture2D playerBackward;
-static Texture2D playerForward;
-static Animation playerRunBackward;
-static Animation playerRunForward;
+static Texture2D playerBackward = {0};
+static Texture2D playerForward = {0};
+static Animation playerRunBackward = {0};
+static Animation playerRunForward = {0};
 
-static Animation haroldTextBox;
-static Animation menuAnimation;
+static Animation haroldTextBox = {0};
+static Animation menuAnimation = {0};
 
 static int levelSelect = 0;
-static Texture2D levelBackground;
+static Texture2D levelBackground = {0};
 
 static GameScreen currentScreen = SCREEN_TITLE;
 
-static Music titleMusic;
-static Music gameMusic;
+static Music titleMusic = {0};
+static Music gameMusic = {0};
 
 static int dimensionBeforeGreen = 0;
 static int currentDimension; //dimension / 0 = normal; 1 = red; 2 = blue; 3 = yellow; 4 = green
@@ -436,6 +436,7 @@ static void UpdateDrawFrame(void)
             //DrawFPS(target.texture.width*screenScale - 75, 0);
         #endif
     EndDrawing();
+    //TraceLog(LOG_DEBUG, "end frame");
     //----------------------------------------------------------------------------------  
 }
 
@@ -586,8 +587,12 @@ void LoadNextLevel(){
     for(int i = 0; i < bodyCount - 2; i++){
         DestroyPhysicsBody(GetPhysicsBody(2));
     }
+    TraceLog(LOG_INFO, "Reloaded level background & cleared physics bodies");
+
     ClearDisplayTextQueue();
     ClearDisplayText();
+
+    TraceLog(LOG_INFO, "Cleared all display texts");
 
     DestroyAllLevelObjects();
     DestroyAllAnimatedColliders();

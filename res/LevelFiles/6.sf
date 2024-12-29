@@ -13,35 +13,35 @@ Door(Vector2(89 0) 3 17)
 Button(Vector2(84 87) 17)
 Portal(Vector2(148 141) 132)   //red
 
-Portal(Vector2(83 208) 135)   //green 0
-PortalLocation(Vector2(226 223) 0) // green 0
+Portal(Vector2(83 208) 135)   //green 1
+PortalLocation(Vector2(226 223) 0) // green 1
 
-Portal(Vector2(213 208) 136)   //green 1
-PortalLocation(Vector2(29 155) 1) // green 1
+Portal(Vector2(213 208) 136)   //green 2
+PortalLocation(Vector2(29 155) 1) // green 2
 
-Portal(Vector2(17 141) 137)   //green 2
-PortalLocation(Vector2(129 156) 2) // green 2
+Portal(Vector2(17 141) 137)   //green 3
+PortalLocation(Vector2(129 156) 2) // green 3
 
-Portal(Vector2(83 141) 138)   //green 3
-PortalLocation(Vector2(225 90) 3) // green 3
+Portal(Vector2(83 141) 138)   //green 4
+PortalLocation(Vector2(225 90) 3) // green 4
 
-Portal(Vector2(212 74) 139)   //green 4
-PortalLocation(Vector2(128 234) 4) // green 4
+Portal(Vector2(212 74) 139)   //green 5
+PortalLocation(Vector2(128 234) 4) // green 5
 
-Portal(Vector2(148 208) 140)   //green 5
-PortalLocation(Vector2(30 224) 5) // green 5
+Portal(Vector2(148 208) 140)   //green 6
+PortalLocation(Vector2(30 224) 5) // green 6
 
-Portal(Vector2(17 208) 141)   //green 6
-PortalLocation(Vector2(225 156) 6) // green 6
+Portal(Vector2(17 208) 141)   //green 7
+PortalLocation(Vector2(225 156) 6) // green 7
 
-Portal(Vector2(212 141) 142)   //green 7
-PortalLocation(Vector2(30 89) 7) // green 7
+Portal(Vector2(212 141) 142)   //green 8
+PortalLocation(Vector2(30 89) 7) // green 8
 
-Portal(Vector2(17 74) 143)   //green 8
-PortalLocation(Vector2(130 91) 8) // green 8
+Portal(Vector2(17 74) 143)   //green 9
+PortalLocation(Vector2(130 91) 8) // green 9
 
-Portal(Vector2(148 74) 144)   //green 9
-PortalLocation(Vector2(230 22) 9) // green 9
+Portal(Vector2(148 74) 144)   //green 10
+PortalLocation(Vector2(230 22) 9) // green 10
 
-Portal(Vector2(17 7) 145)   //green 10
-PortalLocation(Vector2(128 217) 10) // green 10
+Portal(Vector2(17 7) 145)   //green 11
+PortalLocation(Vector2(128 217) 10) // green 11

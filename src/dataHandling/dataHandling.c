@@ -35,6 +35,7 @@ void advanceChar(){
         peek = fgetc(fp);
 }
 
+// The result of this is NOT freed until the final parse
 void readString(TokenInfo* tokenInfo){
     tokenInfo->type = STRING;
     int stringSize = 8;
@@ -107,7 +108,7 @@ void readNumber(TokenInfo* tokenInfo){
 }
 void readKeyword(TokenInfo* tokenInfo){
     tokenInfo->type = UNDEFINED;
-    int stringSize = 8;
+    int stringSize = 16;
     tokenInfo->text = (char*)calloc(stringSize, sizeof(char));
     tokenInfo->text[0] = ch;
     int i = 1;
@@ -163,6 +164,7 @@ void advanceToken(){
     tokenInfo = tokenInfo->next;
 }
 
+// Calloc one StructGroup
 StructGroup* sg_alloc(){
     return (StructGroup*)calloc(1, sizeof(StructGroup));
 }
@@ -261,6 +263,7 @@ StructGroup* readFileSF(const char* path){
     }
     fclose(fp);
     tokenInfo = infoRoot;
+    // why? The only thing I can recall is that it clears the last (erroneously) allocated poioter
     if(tokenInfo != NULL && tokenInfo->next != NULL){
         while (tokenInfo->next->next != NULL) tokenInfo = tokenInfo->next;
         free(tokenInfo->next);
@@ -322,7 +325,7 @@ StructGroup* readFileSF(const char* path){
             free(temp);
             skipAdd = true;
         }
-        if(!skipAdd) structGroup->token = *tokenInfo;
+        if(!skipAdd) structGroup->token = *tokenInfo; // struct is copied so we can free tokenInfo
 
 
         advanceToken();
@@ -417,11 +420,12 @@ StructGroup* readFileSF(const char* path){
             if(structGroup->previous != NULL)structGroup->previous->next = structGroup->next;
             if(structGroup == groupRoot) groupRoot = structGroup->next;
             if(structGroup->parent != NULL && structGroup == structGroup->parent->child) structGroup->parent->child = structGroup->next;
-            structGroup->next->previous = structGroup->previous;
+            structGroup->next->previous = structGroup->previous; // this works if it's null or another struct group
             temp = structGroup->next;
             free(structGroup);
             structGroup = temp;
         }
+        // ? [DOUBLE-CHECK] i stopped double checking here
         //TraceLog("i %d", structGroup->token.type);
         if(structGroup->child != NULL){
             //TraceLog("vv- FOUND CHILD. ENTER CHILD -vv");
@@ -635,20 +639,20 @@ TextBoxTrigger parseTrigger(StructGroup* group){
     TextBoxTrigger textBox = {0};
     if(checkArgNumber(group, 2, "TextBoxTrigger")) return textBox;
 
-    StructGroup* temp = group->child;
+    //StructGroup* temp = group->child;
     
-    if(temp->token.type == INTEGER){
-        textBox.trigger = temp->token.integer;
+    if(group->child->token.type == INTEGER){
+        textBox.trigger = group->child->token.integer;
     }else{
         TraceLog(LOG_WARNING, "parseStructGroupInfo[parseTrigger] - [line %d] Invalid argument type for arg 1", group->token.line);
     }
-    temp = temp->next;
-    if(temp->token.type == NO_TYPE){
+    group->child = group->child->next;
+    if(group->child->token.type == NO_TYPE){
         int textCount = 8;
         textBox.texts = malloc(textCount * sizeof(char*));
-        temp = temp->child;
-        for(int i = 0; temp != NULL; i++){
-            if(temp->token.type != STRING){
+        group->child = group->child->child;
+        for(int i = 0; group->child != NULL; i++){
+            if(group->child->token.type != STRING){
                 TraceLog(LOG_WARNING, "parseStructGroupInfo[parseTrigger] - [line %d] Invalid type for what should be inside a STRING array", group->token.line);
                 break;
             }
@@ -656,11 +660,15 @@ TextBoxTrigger parseTrigger(StructGroup* group){
                 textCount *= 2;
                 textBox.texts = realloc(textBox.texts, sizeof(char*) * textCount);
             }
-            textBox.texts[i] = calloc(TextLength(temp->token.text), sizeof(char));
-            TextCopy(textBox.texts[i], temp->token.text);
+            // forget about copying it, just double it and give it to the next person
+            // //textBox.texts[i] = calloc(TextLength(group->child->token.text), sizeof(char));
+            // //TextCopy(textBox.texts[i], group->child->token.text);
+            textBox.texts[i] = group->child->token.text;
+
             textBox.textCount++;
-            temp = temp->next;
+            group->child = group->child->next;
         }
+        TraceLog(LOG_DEBUG, "parseTrigger - textCount: %d, allocated textCount: %d", textBox.textCount, textCount);
     }else{
         TraceLog(LOG_WARNING, "parseStructGroupInfo[parseTrigger] - [line %d] Invalid argument type for arg 2. Expected type NO_TYPE", group->token.line);
     }
@@ -718,6 +726,11 @@ int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(
             case TEXT_TRIGGER:; //dumb semicolon!!! thanks emscripten!
                 TextBoxTrigger textBox = parseTrigger(structGroup);
                 NewTriggerEvent(textBox.trigger, TRIGGER_USE_ONCE, CreateTriggerEventFunctionData_TextPrompt((const char**)textBox.texts, textBox.textCount, function_harold_prompt));
+                for(int i = 0; i < textBox.textCount; i++){
+                    if(textBox.texts[i] != NULL) free(textBox.texts[i]);
+                }
+                if(textBox.texts != NULL) free(textBox.texts);
+                else TraceLog(LOG_WARNING, "Tried freeing NULL textBox.texts");
                 break;
             case PROPERTY:
                 *startingPos = parseVector2(structGroup);
@@ -734,5 +747,6 @@ int parseStructGroupInfo(StructGroup* groupRoot, void (*function_harold_prompt)(
         }
         structGroup = structGroup->next;
     }
+    TraceLog(LOG_INFO, "Finished parseStructGroupInfo");
     return 0;
 }
