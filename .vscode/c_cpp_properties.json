@@ -11,7 +11,7 @@
                 "${workspaceFolder}/src/displayText",
                 "${workspaceFolder}/src/triggers",
                 "${workspaceFolder}/src/*.*",
-                "${workspaceFolder}/include/raylib-5.0"
+                "${workspaceFolder}/include/raylib-5.5"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

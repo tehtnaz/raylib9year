@@ -72,7 +72,7 @@
 #if !defined(PHYSAC_H)
 #define PHYSAC_H
 
-#include "../raylib-4.5/raylib.h"
+#include "../raylib-5.5/raylib.h"
 
 // Function specifiers in case library is build/used as a shared library (Windows)
 // NOTE: Microsoft specifiers to tell compiler that symbols are imported/exported from a .dll
@@ -115,7 +115,7 @@
 
 #define PHYSAC_COLLISION_ITERATIONS     100
 #define PHYSAC_PENETRATION_ALLOWANCE    0.05f
-#define PHYSAC_PENETRATION_CORRECTION   1.0f
+#define PHYSAC_PENETRATION_CORRECTION   0.4f
 
 #define PHYSAC_PI                       3.14159265358979323846f
 #define PHYSAC_DEG2RAD                  (PHYSAC_PI/180.0f)
@@ -1104,7 +1104,7 @@ static void UpdatePhysicsStep(void)
     {
         for (unsigned int j = 0; j < physicsManifoldsCount; j++)
         {
-            PhysicsManifold manifold = contacts[i];
+            PhysicsManifold manifold = contacts[j]; // ! Changed to match new physac version
             if (manifold != NULL) IntegratePhysicsImpulses(manifold);
         }
     }

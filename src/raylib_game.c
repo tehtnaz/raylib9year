@@ -125,7 +125,7 @@ int main(void){
     InitAudioDevice();
     InitPhysics();
     SetMasterVolume(0.2f);
-    //SetTextLineSpacing(40);
+    //! changed in 5.5 SetTextLineSpacing(40);
 
     // Render texture to draw full screen, enables screen scaling
     // NOTE: If screen is scaled, mouse input should be scaled proportionally

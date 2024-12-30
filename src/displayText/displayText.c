@@ -10,7 +10,7 @@
 #define MAX_QUEUED_TEXT 16
 static const float spaceBetweenLines = DefaultFontSize * DefaultLineSpacing;
 static const float spacing = DefaultFontSize / 10;
-static Font defaultFont = {0};
+// static Font defaultFont = {0};
 
 // Static Variables
 static char* cachedText = NULL;
@@ -36,9 +36,10 @@ void InitDisplayText(){
         queuedMaxTextWidth[i] = 0;
         queuedTextPosition[i] = (Vector2){0, 0};
     }
+    // SetTextLineSpacing(spaceBetweenLines);
     // This may seem useless, bc raylib uses the default font without the *Ex() functions, 
     // but maybe we could change the font someday? I think that's what I intended originally
-    defaultFont = GetFontDefault();
+    // defaultFont = GetFontDefault();
 }
 
 // void EndDisplayText(){}
@@ -141,10 +142,13 @@ void UpdateAndDrawTypingText(Color color){
         textLength++;
     }
 
-    Vector2 textSize = MeasureTextEx(defaultFont, displayText, DefaultFontSize, spacing);
+    // Vector2 textSize = MeasureTextEx(defaultFont, displayText, DefaultFontSize, spacing);
+    int textSize = MeasureText(displayText, DefaultFontSize);
 
-    if(maxTextWidth == 0 || textSize.x <= maxTextWidth){
-        DrawTextEx(defaultFont, displayText, textPosition, DefaultFontSize, spacing, color);
+    // if(maxTextWidth == 0 || textSize.x <= maxTextWidth){
+    if(maxTextWidth == 0 || textSize <= maxTextWidth){
+        // DrawTextEx(defaultFont, displayText, textPosition, DefaultFontSize, spacing, color);
+        DrawText(displayText, textPosition.x, textPosition.y, DefaultFontSize, color);
     }else{
         Vector2 drawLocation = textPosition;
         int wordCount = 0;
@@ -154,15 +158,18 @@ void UpdateAndDrawTypingText(Color color){
 
         for(int i = 0; i < textLength; i++){
             //printf("w:%d[i:%d, c:%c] o:%d | ", currentWord, i, displayText[i], wordOffset);
-            DrawTextEx(defaultFont, TextFormat("%c", displayText[i]), drawLocation, DefaultFontSize, spacing, color);
-            drawLocation.x += MeasureTextEx(defaultFont, TextFormat("%c", displayText[i]), DefaultFontSize, spacing).x;
+            // DrawTextEx(defaultFont, TextFormat("%c", displayText[i]), drawLocation, DefaultFontSize, spacing, color);
+            DrawText(TextFormat("%c", displayText[i]), drawLocation.x, drawLocation.y, DefaultFontSize, color);
+            // drawLocation.x += MeasureTextEx(defaultFont, TextFormat("%c", displayText[i]), DefaultFontSize, spacing).x;
+            drawLocation.x += MeasureText(TextFormat("%c", displayText[i]), DefaultFontSize);
             drawLocation.x += spacing;
 
             if(i >= TextLength(words[currentWord]) + wordOffset){
                 wordOffset += TextLength(words[currentWord]) + 1;
                 currentWord++;
             }
-            if((displayText[i] == ' ' && wordCount > currentWord + 1 && MeasureTextEx(defaultFont, words[currentWord], DefaultFontSize, spacing).x + drawLocation.x > maxTextWidth + textPosition.x) || drawLocation.x - textPosition.x > maxTextWidth){
+            // if((displayText[i] == ' ' && wordCount > currentWord + 1 && MeasureTextEx(defaultFont, words[currentWord], DefaultFontSize, spacing).x + drawLocation.x > maxTextWidth + textPosition.x) || drawLocation.x - textPosition.x > maxTextWidth){
+            if((displayText[i] == ' ' && wordCount > currentWord + 1 && MeasureText(words[currentWord], DefaultFontSize) + drawLocation.x > maxTextWidth + textPosition.x) || drawLocation.x - textPosition.x > maxTextWidth){
                 drawLocation.y += spaceBetweenLines;
                 drawLocation.x = textPosition.x;
             }
