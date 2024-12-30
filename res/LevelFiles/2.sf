@@ -23,11 +23,11 @@ Door(Vector2(83 0) 1 17)
 // Begin Text
 TextTrigger     (65, 
     ["Goodies, you can walk!"
-    "Now you see that botton on the ground?"
+    "Now you see that botton on\nthe ground?"
     "YES CLICK IT!"
     "...What?"
-    "Are you telling me it's not called a botton?"
-    "What do you mean; I can't pronounce words?!"
+    "Are you telling me it's not\ncalled a botton?"
+    "What do you mean; I can't\npronounce words?!"
     "Walk onto the Button."])
 CirclePhysObj   (Vector2( 128 250 ) 8.0 STATIC 0 65)
 

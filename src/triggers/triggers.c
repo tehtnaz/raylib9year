@@ -73,7 +73,7 @@ void ClearTriggerEventFunctionData(TriggerEvent event){
     if(event.data.type == TRIGGER_TEXT_PROMPT){
         for(int i = 0; i < event.data.textCount; i++){
             TraceLog(LOG_DEBUG, "Triggers- TRIGGER_TEXT_PROMPT: Freeing texts array id: %d, (%p), [[%s]]", i, event.data.texts[i], event.data.texts[i]);
-            if(event.data.texts[i] != NULL)free(event.data.texts[i]);
+            if(event.data.texts[i] != NULL)free(event.data.texts[i]); // WHY ARE YOU LIKE THIS?? it keeps crashing here
                 else TraceLog(LOG_WARNING, "Tried freeing NULL event.data.texts[i]");
             event.data.texts[i] = NULL;
         }

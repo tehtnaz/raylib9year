@@ -38,6 +38,6 @@ Portal(Vector2(41 191) 133) //blue
 TextTrigger     (65, 
     ["Oh yeah hello there yes"
     "I would like to have a..."
-    "regular cheese pizza please and uh..."
+    "regular cheese pizza please\nand uh..."
     "Oh have I left this on?"])
 CirclePhysObj   (Vector2( 130 135 ) 15.0 STATIC 0 65)
