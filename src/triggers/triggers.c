@@ -28,7 +28,8 @@ TriggerEventFunctionData CreateTriggerEventFunctionData_TextPrompt(const char** 
     data.texts = (char**) malloc(textCount * sizeof(char*));
     TraceLog(LOG_DEBUG, "Tiggers - data.texts: %p", data.texts);
     for(int i = 0; i < textCount; i++){
-        data.texts[i] = calloc(TextLength(texts[i]), sizeof(char));
+        TraceLog(LOG_DEBUG, "Triggers - Calloc %d chars for data.texts[%d]", TextLength(texts[i]), i);
+        data.texts[i] = calloc(TextLength(texts[i]) + 1, sizeof(char));
         TextCopy(data.texts[i], texts[i]);
     }
     data.textCount = textCount;
@@ -72,7 +73,7 @@ void ClearTriggerEventFunctionData(TriggerEvent event){
     // TraceLog(LOG_ERROR, "We are skipping freeing because I don't care");
     if(event.data.type == TRIGGER_TEXT_PROMPT){
         for(int i = 0; i < event.data.textCount; i++){
-            TraceLog(LOG_DEBUG, "Triggers- TRIGGER_TEXT_PROMPT: Freeing texts array id: %d, (%p), [[%s]]", i, event.data.texts[i], event.data.texts[i]);
+            TraceLog(LOG_DEBUG, "Triggers- TRIGGER_TEXT_PROMPT: Freeing texts array id: %d, (%p), [[%s]] (length: %d)", i, event.data.texts[i], event.data.texts[i], TextLength(event.data.texts[i]));
             if(event.data.texts[i] != NULL)free(event.data.texts[i]); // WHY ARE YOU LIKE THIS?? it keeps crashing here
                 else TraceLog(LOG_WARNING, "Tried freeing NULL event.data.texts[i]");
             event.data.texts[i] = NULL;

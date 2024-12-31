@@ -38,7 +38,7 @@ void advanceChar(){
 // The result of this is NOT freed until the final parse
 void readString(TokenInfo* tokenInfo){
     tokenInfo->type = STRING;
-    int stringSize = 8;
+    int stringSize = 64;
     tokenInfo->text = (char*)calloc(stringSize, sizeof(char));
     for(int i = 0; peek != '"'; i++){
         if(i == (stringSize - 1)){
