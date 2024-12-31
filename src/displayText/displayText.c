@@ -48,8 +48,8 @@ void InitDisplayText(){
 void NewDisplayText(const char* text, Vector2 pos, int maxWidth){
     if(cachedText != NULL) free(cachedText);
     if(displayText != NULL) free(displayText);
-    cachedText = calloc(TextLength(text), sizeof(char));
-    displayText = calloc(TextLength(text), sizeof(char));
+    cachedText = calloc(TextLength(text) + 1, sizeof(char));
+    displayText = calloc(TextLength(text) + 1, sizeof(char));
     TextCopy(cachedText, text);
     textPosition = pos;
     maxTextWidth = maxWidth;
@@ -67,7 +67,7 @@ void QueueDisplayText(const char* item, Vector2 pos, int maxWidth){
         return;
     }
     int length = TextLength(item);
-    queuedText[queuedTextCount] = calloc(length, sizeof(char));
+    queuedText[queuedTextCount] = calloc(length + 1, sizeof(char));
     TextCopy(queuedText[queuedTextCount], item);
 
     queuedTextPosition[queuedTextCount] = pos;
