@@ -113,7 +113,7 @@ void HitPortal_DestroyButtonTrigger();
 
 int main(void){
     #if !defined(_DEBUG)
-        SetTraceLogLevel(LOG_NONE);         // Disable raylib trace log messsages
+        SetTraceLogLevel(LOG_WARNING);         // Disable raylib trace log messsages
     #else
         SetTraceLogLevel(LOG_DEBUG);
     #endif
@@ -125,6 +125,7 @@ int main(void){
     InitAudioDevice();
     InitPhysics();
     SetMasterVolume(0.2f);
+    InitDisplayText();
     //! changed in 5.5 SetTextLineSpacing(40);
 
     // Render texture to draw full screen, enables screen scaling

@@ -64,6 +64,7 @@ void readString(TokenInfo* tokenInfo){
             switch(ch){
                 case 'n':  tokenInfo->text[i] = '\n'; break;
                 case 't':  tokenInfo->text[i] = '\t'; break;
+                case 'r':  tokenInfo->text[i] = '\r'; break;
                 case '\\': tokenInfo->text[i] = '\\'; break;
                 case '"':  tokenInfo->text[i] = '"';  break;
                 default:   tokenInfo->text[i] = '\\'; break;

@@ -28,9 +28,9 @@
 
 // Begin Text
 TextTrigger     (65, 
-    ["Hello fellow adventurer! My\nname is Harold, and I like cats!"
-    "As you can see, you are in\nour newest institution! THE 1J7B!"
-    "Well, I guess you can't see\nsince you're stuck inside."
-    "Guess I'll have to help you \nthen."
+    ["Hello fellow adventurer! My name is Harold, and I like cats!"
+    "As you can see, you are in our newest institution! THE 1J7B!"
+    "Well, I guess you can't see since you're stuck inside."
+    "Guess I'll have to help you then."
     "USE WASD TO MOVE"])
 CirclePhysObj   (Vector2( 128 250 ) 8.0 STATIC 0 65)
