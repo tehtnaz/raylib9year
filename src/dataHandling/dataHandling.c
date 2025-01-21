@@ -5,10 +5,6 @@
 
 // --- Helpers ---
 
-float parseFloat(const char* input){
-    return (float)atof(input);
-}
-
 bool isDigit(char ch){
     return ch >= '0' && ch <= '9';
 }
@@ -103,7 +99,7 @@ void readNumber(TokenInfo* tokenInfo){
     if(tokenInfo->type == INTEGER){
         tokenInfo->integer = TextToInteger(string);
     }else{
-        tokenInfo->decimal = parseFloat(string);
+        tokenInfo->decimal = TextToFloat(string);
     }
     free(string);
 }
