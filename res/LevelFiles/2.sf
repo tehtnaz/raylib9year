@@ -12,6 +12,17 @@
     RectPhysObj     (Vector2( 10 166 )  94.0 10.0 STATIC 0 0)
     RectPhysObj     (Vector2( 152 91 )  94.0 10.0 STATIC 0 0)
 
+    // Bottom right Crates
+    CirclePhysObj   (Vector2( 205 180 ) 15.0 STATIC 0 0 )
+    RectPhysObj     (Vector2( 217 101 )  29.0 55.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 198 135 )  19.0 21.0 STATIC 0 0)
+    RectPhysObj     (Vector2( 230 156 )  15.0 37.0 STATIC 0 0)
+    // Bottom left Crates
+    RectPhysObj     (Vector2( 10 176 )  17.0 72.0 STATIC 0 0)
+    CirclePhysObj   (Vector2( 16 223 ) 22.0 STATIC 0 0 )
+    CirclePhysObj   (Vector2( 28 239 ) 10.0 STATIC 0 0 )
+
+
     // Win Trigger
     RectPhysObj(Vector2( 0 3 ), 256.0, 4.0, STATIC, 0, 3)
 
